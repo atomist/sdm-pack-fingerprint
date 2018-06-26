@@ -4,23 +4,14 @@ import {
     HandleEvent,
     HandlerContext,
     HandlerResult,
-    SuccessPromise,
     logger,
+    SuccessPromise,
 } from "@atomist/automation-client";
 import { subscription } from "@atomist/automation-client/graph/graphQL";
-import {
-    addressSlackUsers,
-    buttonForCommand,
-} from "@atomist/automation-client/spi/message/MessageClient";
-import {
-    Attachment,
-    codeLine,
-    SlackMessage,
-} from "@atomist/slack-messages/SlackMessages";
 
-import * as graphql from "../../typings/types";
-import * as impact from "@atomist/clj-editors";
 import { Maker } from "@atomist/automation-client/util/constructionUtils";
+import * as impact from "@atomist/clj-editors";
+import * as graphql from "../../typings/types";
 
 @EventHandler("register push impact handling functions", subscription("push-impact"))
 export class PushImpactHandler implements HandleEvent<graphql.PushImpactEvent.Subscription> {
@@ -40,10 +31,10 @@ export class PushImpactHandler implements HandleEvent<graphql.PushImpactEvent.Su
                 action: (diff: impact.Diff) => {
                     logger.info(`check diff from ${diff.from.sha} to ${diff.to.sha}`);
                     return;
-                }
+                },
             }]);
         return SuccessPromise;
     }
 }
 
-export const createPushImpactHandler: Maker<PushImpactHandler> = () => {return new PushImpactHandler();};
+export const createPushImpactHandler: Maker<PushImpactHandler> = () => new PushImpactHandler();
