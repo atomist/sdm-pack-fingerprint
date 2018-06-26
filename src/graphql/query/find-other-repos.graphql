@@ -1,0 +1,16 @@
+query findOtherRepos {
+ Repo {
+   name
+   owner
+   branches(name: "master") @required {
+     commit {
+       sha
+       message
+       fingerprints (name: "%s", sha: "%s") @required {
+         data
+         name
+       }
+     }
+   }
+ }
+}

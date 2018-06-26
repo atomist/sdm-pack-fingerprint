@@ -1,0 +1,9 @@
+query GetFingerprintData {
+  Commit(sha: "%s") {
+    fingerprints(name: "%s") {
+      name
+      _id
+      data
+    }
+  }
+}

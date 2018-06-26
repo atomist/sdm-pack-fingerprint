@@ -1,0 +1,39 @@
+subscription PushImpactEvent {
+  PushImpact {
+    id
+    data
+    push {
+      before {
+        sha
+        fingerprints {
+          sha
+          name
+        }
+      }
+      after {
+        author {
+          login
+          emails {
+            address
+          }
+        }
+        sha
+        fingerprints {
+          sha
+          name
+        }
+        repo {
+          name
+          org {
+            owner
+            ownerType
+          }
+          channels {
+            channelId
+            name
+          }
+        }
+      }
+    }
+  }
+}
