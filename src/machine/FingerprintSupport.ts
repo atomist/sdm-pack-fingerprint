@@ -17,9 +17,24 @@ export const FingerprintSupport: ExtensionPack = {
             {
                 name: "clj-fingerprinter",
                 action: (i: PushImpactListenerInvocation) => {
-                    logger.info("generate some clojure fingerprints");
-                    return clj.fingerprint(i.project.baseDir) as Promise<FingerprinterResult>;
+                    if (clj.isClojure(i.project.baseDir,i.credentials)) {
+                        logger.info("generate some clojure fingerprints");
+                        return clj.fingerprint(i.project.baseDir) as Promise<FingerprinterResult>;
+                    }
                 },
-            });
+            },
+            {
+                name: "npm-fingerprinter",
+                action: async (i: PushImpactListenerInvocation) => {
+                    return [];
+                }
+            },
+            {
+                name: "js-fingerprinter",
+                action: async (i: PushImpactListenerInvocation) => {
+                    return [];
+                }
+            }
+        );
     },
 };
