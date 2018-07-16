@@ -7,11 +7,11 @@ import {
 import { SoftwareDeliveryMachineConfiguration } from "@atomist/sdm/api/machine/SoftwareDeliveryMachineOptions";
 import { FingerprintSupport } from "../src";
 
-export function machineMaker(configuration: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
+export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
 
     const sdm = createSoftwareDeliveryMachine({
         name: `${configuration.name}-test`,
-        configuration,
+        configuration: config,
     });
 
     // put in other things you need for your test
@@ -25,5 +25,5 @@ export function machineMaker(configuration: SoftwareDeliveryMachineConfiguration
 export const configuration: Configuration = {
     postProcessors: [
         configureSdm(machineMaker),
-    ]
-}
+    ],
+};
