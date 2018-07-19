@@ -31,6 +31,7 @@
     "@atomist/automation-client": "0.18.0-20180704102519",
     "@atomist/sdm": "0.3.2-20180716044057",
     "@atomist/sdm-core": "0.3.2-20180716045144",
+    "@atomist/sdm-pack-spring": "0.1.7-20180715090742",
     "@types/mocha": "^2.2.48",
     "@types/node": "^9.4.1",
     "@types/power-assert": "^1.4.29",
