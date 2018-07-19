@@ -8,12 +8,11 @@ import {
 } from "@atomist/sdm";
 import { metadata } from "@atomist/sdm/api-helper/misc/extensionPack";
 import { PushImpactHandler } from "../handlers/events/pushImpactHandler";
-import { allDeps } from "../npm/deps";
-import { File } from "@atomist/automation-client/project/File";
 import { Fingerprint } from "@atomist/automation-client/project/fingerprint/Fingerprint";
 import {MavenFingerprinter} from "@atomist/sdm-pack-spring";
 import { IgnoreVersion, SetTeamLibrary, ShowGoals } from "../handlers/commands/pushImpactCommandHandlers";
 import { ConfirmUpdate } from "../handlers/commands/pushImpactCommandHandlers";
+import { File } from "@atomist/automation-client/project/File";
 
 const npmProjectDeps: PushImpactListener<FingerprinterResult> = 
     async (i: PushImpactListenerInvocation) => {

@@ -1,5 +1,5 @@
 import { Parameters, Parameter, MappedParameter, Value, MappedParameters, Secret } from "@atomist/automation-client";
-import { CommandHandlerRegistration, CommandListenerInvocation } from "../../../node_modules/@atomist/sdm";
+import { CommandHandlerRegistration, CommandListenerInvocation } from "@atomist/sdm";
 
 @Parameters()
 export class IgnoreVersionParameters {
