@@ -19,7 +19,7 @@ const npmProjectDeps: PushImpactListener<FingerprinterResult> =
     async (i: PushImpactListenerInvocation) => {
         try {
             const f: File = await i.project.findFile("package.json");
-            const data: string = clj.fingerprintPackageJson(f);
+            const data: string = clj.fingerprintPackageJson(i.project.baseDir, f);
             return [{"name": "npm-project-deps",
                      "version": "0.0.1",
                      "abbreviation": "npm-deps",
@@ -46,7 +46,6 @@ export const FingerprintSupport: ExtensionPack = {
                 name: "clj-fingerprinter",
                 action: (i: PushImpactListenerInvocation) => {
                     if (clj.isClojure(i.project.baseDir, i.credentials)) {
-                        logger.info("generate some clojure fingerprints");
                         return clj.fingerprint(i.project.baseDir) as Promise<FingerprinterResult>;
                     }
                 },
