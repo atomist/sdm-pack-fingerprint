@@ -34,7 +34,7 @@ ISC License - [https://www.isc.org/downloads/software-support-policy/isc-license
 |`signal-exit`|`3.0.2`|Ben Coe|[https://github.com/tapjs/signal-exit](https://github.com/tapjs/signal-exit)|
 |`which-module`|`2.0.0`|nexdrew|[https://github.com/nexdrew/which-module](https://github.com/nexdrew/which-module)|
 |`which`|`1.3.1`|Isaac Z. Schlueter|[https://github.com/isaacs/node-which](https://github.com/isaacs/node-which)|
-|`y18n`|`3.2.1`|Ben Coe|[https://github.com/yargs/y18n](https://github.com/yargs/y18n)|
+|`y18n`|`4.0.0`|Ben Coe|[https://github.com/yargs/y18n](https://github.com/yargs/y18n)|
 |`yallist`|`2.1.2`|Isaac Z. Schlueter|[https://github.com/isaacs/yallist](https://github.com/isaacs/yallist)|
 |`yargs-parser`|`10.1.0`|Ben Coe|[https://github.com/yargs/yargs-parser](https://github.com/yargs/yargs-parser)|
 
