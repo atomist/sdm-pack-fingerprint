@@ -1,4 +1,4 @@
-query findOtherRepos {
+query findOtherRepos($repo: String!, $sha: String!) {
  Repo {
    name
    owner
@@ -6,7 +6,7 @@ query findOtherRepos {
      commit {
        sha
        message
-       fingerprints (name: "%s", sha: "%s") @required {
+       fingerprints (name: $repo, sha: $sha) @required {
          data
          name
        }

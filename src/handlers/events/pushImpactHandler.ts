@@ -9,9 +9,12 @@ import { OnEvent } from "@atomist/automation-client/onEvent";
 import { buttonForCommand } from "@atomist/automation-client/spi/message/MessageClient";
 import * as impact from "@atomist/clj-editors";
 import { SlackMessage } from "@atomist/slack-messages";
-import { PushImpactEvent } from "../../typings/types";
+import { PushImpactEvent, GetFingerprintData } from "../../typings/types";
 import { EventHandlerRegistration } from "@atomist/sdm";
 import { NoParameters } from "@atomist/automation-client/SmartParameters";
+import { QueryOptions } from "@atomist/automation-client/internal/graph/graphQL";
+import { QueryNoCacheOptions } from "../../../node_modules/@atomist/automation-client/spi/graph/GraphClient";
+import _ = require("../../../node_modules/@types/lodash");
 
 function qcon(ctx:HandlerContext, diff: impact.Diff): void {
     const message: SlackMessage = {
@@ -45,14 +48,34 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> =
     (event: EventFired<PushImpactEvent.Subscription>, ctx: HandlerContext) => {
 
         logger.info("handler PushImpactEvent subscription");
+        const fingerprintData = (sha:string, name:string) => {
+            return ctx.graphClient.query<GetFingerprintData.Query, GetFingerprintData.Variables>({
+                name: "getFingerprintData",
+                variables: {
+                    sha: sha,
+                    name: name
+                },
+                options: QueryNoCacheOptions,
+            })
+            .then(result => {
+                const fingerprints =
+                    _.get(result, "Commit[0].fingerprints") as GetFingerprintData.Fingerprints[];
+                if (fingerprints) {
+                    return fingerprints[0].data as string; 
+                }
+                return "{}";
+            })
+            .catch( (reason) => {
+                logger.info(`error getting fingerprint data ${reason}`);
+                return "{}"
+            });
+        }
         impact.processPushImpact(
             event,
+            fingerprintData,
             [ 
                 {
                     selector: forFingerprint("fingerprint1"),
-                    action: (diff: impact.Diff) => {
-                        return;
-                    },
                     diffAction: (diff: impact.Diff) => {
                         logger.info(`check diff from ${diff.from.sha} to ${diff.to.sha}`);
                         qcon(ctx, diff);
