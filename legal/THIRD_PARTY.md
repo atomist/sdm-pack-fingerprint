@@ -17,7 +17,7 @@ Apache License 2.0 - [http://www.apache.org/licenses/LICENSE-2.0](http://www.apa
 
 | Name | Version | Publisher | Repository |
 |------|---------|-----------|------------|
-|`@atomist/clj-editors`|`0.2.3`||[https://github.com/atomisthq/clj-editors](https://github.com/atomisthq/clj-editors)|
+|`@atomist/clj-editors`|`0.2.4`||[https://github.com/atomisthq/clj-editors](https://github.com/atomisthq/clj-editors)|
 
 #### ISC
 ISC License - [https://www.isc.org/downloads/software-support-policy/isc-license/](https://www.isc.org/downloads/software-support-policy/isc-license/)
