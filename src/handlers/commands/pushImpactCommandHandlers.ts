@@ -37,6 +37,20 @@ export class SetTeamLibraryGoalParameters {
 }
 
 @Parameters()
+export class ChooseTeamLibraryGoalParameters {
+
+    @Parameter({ required: false, displayable: false })
+    public msgId?: string;
+
+    // TODO this one has name and version in the parameter value
+    @Value("library")
+    public library: string;
+
+    @Value("version")
+    public version: string;
+}
+
+@Parameters()
 export class ShowGoalsParameters {
 
     @MappedParameter(MappedParameters.GitHubOwner)
@@ -86,8 +100,20 @@ function confirmUpdate(cli: CommandListenerInvocation<ConfirmUpdateParameters>) 
     return;
 }
 
+function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>)
+
 function showGoals(cli: CommandListenerInvocation<ShowGoalsParameters>) {
     cli.context.messageClient.respond("okay, I'll do it");
+    // TODO goals-list-message
+    // run in a cloned workspace
+    // get-goals
+    // get current project dependencies (different for differnt file types)
+    // turn them into options
+    // make an actionable message with a msgid
+    //  depends on SetTeamLibraryGoalParameters
+    //  update-goals and goals-list-message again
+
+    // goals get-goals update-goals
     return;
 }
 
@@ -100,10 +126,19 @@ export const IgnoreVersion: CommandHandlerRegistration<IgnoreVersionParameters> 
 
 export const SetTeamLibrary: CommandHandlerRegistration<SetTeamLibraryGoalParameters> = {
     name: "LibraryImpactSetTeamLibrary",
+    intent: "set library target",
     description: "set a new target for a team to consume a particular version",
     paramsMaker: SetTeamLibraryGoalParameters,
     listener: async cli => setTeamLibraryGoal(cli),
 };
+
+export const ChooseTeamLibrary: CommandHandlerRegistration<ChooseTeamLibraryGoalParameters> = {
+    name: "LibraryImpactChooseTeamLibrary",
+    description: "set library target using version in current project",
+    paramsMaker: ChooseTeamLibraryGoalParameters,
+    listener: async cli => chooseTeamLibraryGoal(cli),
+};
+
 
 export const ConfirmUpdate: CommandHandlerRegistration<ConfirmUpdateParameters> = {
     name: "LibraryImpactConfirmUpdate",
