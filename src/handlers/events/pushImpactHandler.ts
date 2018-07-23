@@ -6,9 +6,9 @@ import {
 } from "@atomist/automation-client";
 import { subscription } from "@atomist/automation-client/graph/graphQL";
 import { OnEvent } from "@atomist/automation-client/onEvent";
-import { buttonForCommand, SlackFileMessage } from "@atomist/automation-client/spi/message/MessageClient";
+import { buttonForCommand, SlackFileMessage, Destination, SlackDestination } from "@atomist/automation-client/spi/message/MessageClient";
 import * as impact from "@atomist/clj-editors";
-import { SlackMessage } from "@atomist/slack-messages";
+import { SlackMessage, channel } from "@atomist/slack-messages";
 import { PushImpactEvent, GetFingerprintData } from "../../typings/types";
 import { EventHandlerRegistration } from "@atomist/sdm";
 import { NoParameters } from "@atomist/automation-client/SmartParameters";
@@ -72,8 +72,11 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha:string, name:stri
 }
 
 function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff): void {
-    // TODO SlackFileMessages seem to not be sendable currently
-    ctx.messageClient.addressChannels( clj.renderDiff(diff), diff.channel);
+    const message:SlackFileMessage = {content: clj.renderDiff(diff), fileType: "text", title: `${diff.owner}/${diff.repo}`};
+    // TODO CD recommends we not use messageClient.send until slack team-id is removed from the Destination factory
+    // const destination: SlackDestination = new SlackDestination(ctx.teamId);
+    // ctx.messageClient.send(message,destination.addressChannel(diff.channel));
+    ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }
 
 function checkLibraryGoals(ctx: HandlerContext, diff: impact.Diff): void {
