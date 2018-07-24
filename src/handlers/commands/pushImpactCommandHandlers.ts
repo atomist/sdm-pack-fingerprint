@@ -1,22 +1,22 @@
-import { Parameters, Parameter, MappedParameter, Value, MappedParameters, Secret, logger } from "@atomist/automation-client";
-import { CommandHandlerRegistration, CommandListenerInvocation } from "@atomist/sdm";
-import { ChatTeamPreferences, SetTeamPreference } from "../../typings/types";
-import { SlackMessage } from "@atomist/slack-messages";
-import { GitCommandGitProject } from "@atomist/automation-client/project/git/GitCommandGitProject";
-import { GitProject } from "@atomist/automation-client/project/git/GitProject";
-import { RemoteRepoRef, ProviderType } from "../../../node_modules/@atomist/automation-client/operations/common/RepoId";
-import { GitHubRepoRef } from "@atomist/automation-client/operations/common/GitHubRepoRef";
-import { menuForCommand } from "@atomist/automation-client/spi/message/MessageClient";
-import { GraphClient } from "@atomist/automation-client/spi/graph/GraphClient";
-import { listCommitsBetween } from "@atomist/sdm-core/util/github/ghub";
-import { ProjectOperationCredentials } from "@atomist/automation-client/operations/common/ProjectOperationCredentials";
+import {Parameters, Parameter, MappedParameter, Value, MappedParameters, Secret, logger} from "@atomist/automation-client";
+import {CodeInspection, CodeInspectionRegistration, CommandHandlerRegistration, CommandListenerInvocation} from "@atomist/sdm";
+import {ChatTeamPreferences, SetTeamPreference} from "../../typings/types";
 import * as _ from "lodash";
+import {SlackMessage} from "@atomist/slack-messages";
+import {GitCommandGitProject} from "@atomist/automation-client/project/git/GitCommandGitProject";
+import {GitProject} from "@atomist/automation-client/project/git/GitProject";
+import {RemoteRepoRef, ProviderType} from "../../../node_modules/@atomist/automation-client/operations/common/RepoId";
+import {GitHubRepoRef} from "@atomist/automation-client/operations/common/GitHubRepoRef";
 import * as goals from "@atomist/clj-editors";
+import {menuForCommand} from "@atomist/automation-client/spi/message/MessageClient";
+import {GraphClient} from "@atomist/automation-client/spi/graph/GraphClient";
+import {listCommitsBetween} from "@atomist/sdm-core/util/github/ghub";
+import {ProjectOperationCredentials} from "@atomist/automation-client/operations/common/ProjectOperationCredentials";
 
 @Parameters()
 export class IgnoreVersionParameters {
 
-    @Parameter({ required: false, displayable: false })
+    @Parameter({required: false, displayable: false})
     public msgId?: string;
 
     @MappedParameter(MappedParameters.GitHubOwner)
@@ -38,7 +38,7 @@ export class IgnoreVersionParameters {
 @Parameters()
 export class SetTeamLibraryGoalParameters {
 
-    @Parameter({ required: false, displayable: false })
+    @Parameter({required: false, displayable: false})
     public msgId?: string;
 
     @Parameter({required: true})
@@ -51,7 +51,7 @@ export class SetTeamLibraryGoalParameters {
 @Parameters()
 export class ChooseTeamLibraryGoalParameters {
 
-    @Parameter({ required: false, displayable: false })
+    @Parameter({required: false, displayable: false})
     public msgId?: string;
 
     // TODO this one has name and version in the parameter value
@@ -78,7 +78,7 @@ export class ShowGoalsParameters {
 @Parameters()
 export class ConfirmUpdateParameters {
 
-    @Parameter({ required: false, displayable: false })
+    @Parameter({required: false, displayable: false})
     public msgId?: string;
 
     @MappedParameter(MappedParameters.GitHubOwner)
@@ -92,19 +92,17 @@ export class ConfirmUpdateParameters {
 
     @Parameter({required: true})
     public name: string;
-    
+
     @Parameter({required: true})
     public version: string;
 }
 
 export function queryPreferences(graphClient: GraphClient): () => Promise<any> {
     return (): Promise<any> => {
-        return graphClient.query<ChatTeamPreferences.Query,ChatTeamPreferences.Variables>(
+        return graphClient.query<ChatTeamPreferences.Query, ChatTeamPreferences.Variables>(
             {name: "chat-team-preferences"}
-        ).then(result => {
-            return result;
-        }
-    )};
+        );
+    };
 }
 
 function mutatePreference(graphClient: GraphClient): (chatTeamId: string, prefsAsJson: string) => Promise<any> {
@@ -114,11 +112,10 @@ function mutatePreference(graphClient: GraphClient): (chatTeamId: string, prefsA
              variables: {name: "atomist:fingerprints:clojure:project-deps",
                          value: prefsAsJson,
                          team: chatTeamId}},
-        ).then(result => {
-            return result;
-        })
+        );
     };
 }
+
 function ignoreVersion(cli: CommandListenerInvocation<IgnoreVersionParameters>) {
     return;
 }
@@ -127,8 +124,10 @@ function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryGoalPar
     return goals.withNewGoal(
         queryPreferences(cli.context.graphClient),
         mutatePreference(cli.context.graphClient),
-        {name: cli.parameters.name,
-         version: cli.parameters.version}
+        {
+            name: cli.parameters.name,
+            version: cli.parameters.version
+        }
     );
 }
 
@@ -144,41 +143,37 @@ function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryG
     );
 }
 
-function showGoals(cli: CommandListenerInvocation<ShowGoalsParameters>) {
+const showGoals: CodeInspection<void,ShowGoalsParameters> = async (p, cli) => {
 
-    function cloneRepo(): Promise<String> {
-        return GitCommandGitProject.cloned(
-            {token: cli.parameters.userToken},
-            new GitHubRepoRef(cli.parameters.owner, cli.parameters.repo)
-        ).then(project => project.baseDir);
-    };
-
-    function sendMessage(text:string, options: {text: string, value: string}[]): Promise<void> {
+    function sendMessage(text: string, options: { text: string, value: string }[]): Promise<void> {
         const message: SlackMessage = {
             attachments: [
-                {text: text,
-                 color: "#00a5ff",
-                 fallback: "none",
-                 mrkdwn_in: ["text"],
-                 actions: [
-                     menuForCommand(
-                         {text: "Add a new target ...",
-                         options: options},
-                         LibraryImpactChooseTeamLibrary.name,
-                         "library")
-                 ],
-                 }
+                {
+                    text,
+                    color: "#00a5ff",
+                    fallback: "none",
+                    mrkdwn_in: ["text"],
+                    actions: [
+                        menuForCommand(
+                            {
+                                text: "Add a new target ...",
+                                options
+                            },
+                            LibraryImpactChooseTeamLibrary,
+                            "library")
+                    ],
+                }
             ]
-        };        
-        return cli.context.messageClient.respond(message);
+        };
+        return cli.addressChannels(message);
     };
 
-    return goals.withProjectGoals( 
-      queryPreferences(cli.context.graphClient),
-      cloneRepo,
-      sendMessage
+    return goals.withProjectGoals(
+        queryPreferences(cli.context.graphClient),
+        p,
+        sendMessage,
     );
-}
+};
 
 export const IgnoreVersion: CommandHandlerRegistration<IgnoreVersionParameters> = {
     name: "LibraryImpactIgnoreVersion",
@@ -209,10 +204,10 @@ export const ConfirmUpdate: CommandHandlerRegistration<ConfirmUpdateParameters> 
     listener: async cli => confirmUpdate(cli),
 };
 
-export const ShowGoals: CommandHandlerRegistration<ShowGoalsParameters> = {
+export const ShowGoals: CodeInspectionRegistration<ShowGoalsParameters> = {
     name: "LibraryImpactShowGoals",
     description: "show the current goals for this team",
     intent: "get library targets",
     paramsMaker: ShowGoalsParameters,
-    listener: async cli => showGoals(cli),
+    inspection: showGoals,
 };
