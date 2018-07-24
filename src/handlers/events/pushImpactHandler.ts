@@ -86,9 +86,12 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: clj.Diff): (s:str
     };
 }
 
-function renderDiffSnippet(ctx: HandlerContext, diff: clj.Diff): void {
+async function renderDiffSnippet(ctx: HandlerContext, diff: clj.Diff) {
     const message:SlackFileMessage = {content: clj.renderDiff(diff), fileType: "text", title: `${diff.owner}/${diff.repo}`};
-    ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
+    // TODO CD recommends we not use messageClient.send until slack team-id is removed from the Destination factory
+    // const destination: SlackDestination = new SlackDestination(ctx.teamId);
+    // ctx.messageClient.send(message,destination.addressChannel(diff.channel));
+    return ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }
 
 function checkLibraryGoals(ctx: HandlerContext, diff: clj.Diff): void {
