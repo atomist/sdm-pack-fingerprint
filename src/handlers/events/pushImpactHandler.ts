@@ -6,16 +6,17 @@ import {
 } from "@atomist/automation-client";
 import { subscription } from "@atomist/automation-client/graph/graphQL";
 import { OnEvent } from "@atomist/automation-client/onEvent";
-import { buttonForCommand, SlackFileMessage, Destination, SlackDestination } from "@atomist/automation-client/spi/message/MessageClient";
+import { buttonForCommand, SlackFileMessage, Destination, SlackDestination, menuForCommand } from "@atomist/automation-client/spi/message/MessageClient";
 import * as impact from "@atomist/clj-editors";
 import { SlackMessage, channel } from "@atomist/slack-messages";
 import { PushImpactEvent, GetFingerprintData } from "../../typings/types";
 import { EventHandlerRegistration } from "@atomist/sdm";
 import { NoParameters } from "@atomist/automation-client/SmartParameters";
-import { QueryOptions } from "@atomist/automation-client/internal/graph/graphQL";
+import { QueryOptions, query } from "@atomist/automation-client/internal/graph/graphQL";
 import { QueryNoCacheOptions } from "@atomist/automation-client/spi/graph/GraphClient";
 import _ = require("lodash");
 import * as clj from "@atomist/clj-editors";
+import { queryPreferences, ConfirmUpdate, SetTeamLibrary, IgnoreVersion } from "../commands/pushImpactCommandHandlers";
 
 function qcon(ctx:HandlerContext, diff: impact.Diff): void {
     const message: SlackMessage = {
@@ -79,8 +80,48 @@ function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff): void {
     ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }
 
+function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff): (s:string, library: {name: string, version: string}) => Promise<any> {
+    return (text:string, library: {name: string, version: string}) => {
+        const message:SlackMessage = {
+            attachments: [
+                {text: text,
+                 color: "#45B254",
+                 fallback: "none",
+                 mrkdwn_in: ["text"],
+                 actions: [
+                    buttonForCommand(
+                        {text: "Accept"},
+                        ConfirmUpdate,
+                        {owner: diff.owner,
+                         repo: diff.repo,
+                         name: library.name,
+                         version: library.version}),
+                    buttonForCommand(
+                        {text: "Set as target"},
+                        SetTeamLibrary,
+                        {name: library.name,
+                         version: library.version}
+                    ),
+                    buttonForCommand(
+                        {text: "Ignore"},
+                        IgnoreVersion,
+                        {name: library.name,
+                         version: library.version}
+                    )
+                 ],
+                 }
+            ]
+        };
+        return ctx.messageClient.addressChannels(message, diff.channel);
+    };
+}
+
 function checkLibraryGoals(ctx: HandlerContext, diff: impact.Diff): void {
-    
+    impact.checkLibraryGoals(
+        queryPreferences(ctx.graphClient),
+        libraryEditorChoiceMessage(ctx,diff),
+        diff
+    );
 }
 
 const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> =
