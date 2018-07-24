@@ -10,7 +10,7 @@ import { metadata } from "@atomist/sdm/api-helper/misc/extensionPack";
 import { PushImpactHandler } from "../handlers/events/pushImpactHandler";
 import { Fingerprint } from "@atomist/automation-client/project/fingerprint/Fingerprint";
 import {MavenFingerprinter} from "@atomist/sdm-pack-spring";
-import { IgnoreVersion, SetTeamLibrary, ShowGoals } from "../handlers/commands/pushImpactCommandHandlers";
+import { IgnoreVersion, SetTeamLibrary, ShowGoals, LibraryImpactChooseTeamLibrary } from "../handlers/commands/pushImpactCommandHandlers";
 import { ConfirmUpdate } from "../handlers/commands/pushImpactCommandHandlers";
 import { File } from "@atomist/automation-client/project/File";
 
@@ -40,6 +40,7 @@ export const FingerprintSupport: ExtensionPack = {
         sdm.addCommand(ConfirmUpdate);
         sdm.addCommand(SetTeamLibrary);
         sdm.addCommand(ShowGoals);
+        sdm.addCommand(LibraryImpactChooseTeamLibrary);
 
         sdm.addFingerprinterRegistration({
                 name: "clj-fingerprinter",

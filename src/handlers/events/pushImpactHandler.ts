@@ -81,30 +81,30 @@ function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff): void {
 }
 
 function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff): (s:string, library: {name: string, version: string}) => Promise<any> {
-    return (text:string, library: {name: string, version: string}) => {
+    return (text, library) => {
         const message:SlackMessage = {
             attachments: [
-                {text: text,
+                {text,
                  color: "#45B254",
                  fallback: "none",
                  mrkdwn_in: ["text"],
                  actions: [
                     buttonForCommand(
                         {text: "Accept"},
-                        ConfirmUpdate,
+                        ConfirmUpdate.name,
                         {owner: diff.owner,
                          repo: diff.repo,
                          name: library.name,
                          version: library.version}),
                     buttonForCommand(
                         {text: "Set as target"},
-                        SetTeamLibrary,
+                        SetTeamLibrary.name,
                         {name: library.name,
                          version: library.version}
                     ),
                     buttonForCommand(
                         {text: "Ignore"},
-                        IgnoreVersion,
+                        IgnoreVersion.name,
                         {name: library.name,
                          version: library.version}
                     )

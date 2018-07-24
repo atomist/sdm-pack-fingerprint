@@ -172,7 +172,7 @@ function showGoals(cli: CommandListenerInvocation<ShowGoalsParameters>) {
                      menuForCommand(
                          {text: "Add a new target ...",
                          options: options},
-                         LibraryImpactChooseTeamLibrary,
+                         LibraryImpactChooseTeamLibrary.name,
                          "library")
                  ],
                  }
