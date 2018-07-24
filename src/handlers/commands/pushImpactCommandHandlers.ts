@@ -1,17 +1,10 @@
-import {Parameters, Parameter, MappedParameter, Value, MappedParameters, Secret, logger} from "@atomist/automation-client";
+import {MappedParameter, MappedParameters, Parameter, Parameters, Secret, Value} from "@atomist/automation-client";
 import {CodeInspection, CodeInspectionRegistration, CommandHandlerRegistration, CommandListenerInvocation} from "@atomist/sdm";
 import {ChatTeamPreferences, SetTeamPreference} from "../../typings/types";
-import * as _ from "lodash";
 import {SlackMessage} from "@atomist/slack-messages";
-import {GitCommandGitProject} from "@atomist/automation-client/project/git/GitCommandGitProject";
-import {GitProject} from "@atomist/automation-client/project/git/GitProject";
-import {RemoteRepoRef, ProviderType} from "../../../node_modules/@atomist/automation-client/operations/common/RepoId";
-import {GitHubRepoRef} from "@atomist/automation-client/operations/common/GitHubRepoRef";
 import * as goals from "@atomist/clj-editors";
 import {menuForCommand} from "@atomist/automation-client/spi/message/MessageClient";
 import {GraphClient} from "@atomist/automation-client/spi/graph/GraphClient";
-import {listCommitsBetween} from "@atomist/sdm-core/util/github/ghub";
-import {ProjectOperationCredentials} from "@atomist/automation-client/operations/common/ProjectOperationCredentials";
 
 @Parameters()
 export class IgnoreVersionParameters {
@@ -46,17 +39,6 @@ export class SetTeamLibraryGoalParameters {
 
     @Parameter({required: true})
     public version: string;
-}
-
-@Parameters()
-export class ChooseTeamLibraryGoalParameters {
-
-    @Parameter({required: false, displayable: false})
-    public msgId?: string;
-
-    // TODO this one has name and version in the parameter value
-    @Parameter({required: true})
-    public library: string;
 }
 
 @Parameters()
@@ -135,7 +117,7 @@ function confirmUpdate(cli: CommandListenerInvocation<ConfirmUpdateParameters>) 
     return;
 }
 
-function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>) {
+async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>) {
     return goals.withNewGoal(
         queryPreferences(cli.context.graphClient),
         mutatePreference(cli.context.graphClient),
@@ -190,11 +172,23 @@ export const SetTeamLibrary: CommandHandlerRegistration<SetTeamLibraryGoalParame
     listener: async cli => setTeamLibraryGoal(cli),
 };
 
+export interface ChooseTeamLibraryGoalParameters {
+
+    msgId?: string;
+
+    // TODO this one has name and version in the parameter value
+    library: string;
+}
+
+// TODO how does type checking help us when we're referencing this from an Action above?
 export const LibraryImpactChooseTeamLibrary: CommandHandlerRegistration<ChooseTeamLibraryGoalParameters> = {
     name: "LibraryImpactChooseTeamLibrary",
     description: "set library target using version in current project",
-    paramsMaker: ChooseTeamLibraryGoalParameters,
-    listener: async cli => chooseTeamLibraryGoal(cli),
+    parameters: {
+        msgId: {required: false, displayable: false},
+        library: {},
+    },
+    listener: chooseTeamLibraryGoal,
 };
 
 export const ConfirmUpdate: CommandHandlerRegistration<ConfirmUpdateParameters> = {
@@ -204,7 +198,7 @@ export const ConfirmUpdate: CommandHandlerRegistration<ConfirmUpdateParameters> 
     listener: async cli => confirmUpdate(cli),
 };
 
-export const ShowGoals: CodeInspectionRegistration<ShowGoalsParameters> = {
+export const ShowGoals: CodeInspectionRegistration<void,ShowGoalsParameters> = {
     name: "LibraryImpactShowGoals",
     description: "show the current goals for this team",
     intent: "get library targets",
