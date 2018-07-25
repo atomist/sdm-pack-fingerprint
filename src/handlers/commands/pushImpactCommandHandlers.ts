@@ -1,17 +1,28 @@
-import { Parameters, Parameter, MappedParameter, Value, MappedParameters, Secret, logger } from "@atomist/automation-client";
-import { CommandHandlerRegistration, CommandListenerInvocation } from "@atomist/sdm";
-import { ChatTeamPreferences, SetTeamPreference } from "../../typings/types";
-import { SlackMessage } from "@atomist/slack-messages";
-import { GitCommandGitProject } from "@atomist/automation-client/project/git/GitCommandGitProject";
-import { GitProject } from "@atomist/automation-client/project/git/GitProject";
-import { RemoteRepoRef, ProviderType } from "../../../node_modules/@atomist/automation-client/operations/common/RepoId";
-import { GitHubRepoRef } from "@atomist/automation-client/operations/common/GitHubRepoRef";
-import { menuForCommand } from "@atomist/automation-client/spi/message/MessageClient";
+import {
+    MappedParameter,
+    MappedParameters,
+    Parameter,
+    Parameters,
+    Secret,
+    Value,
+} from "@atomist/automation-client";
 import { GraphClient } from "@atomist/automation-client/spi/graph/GraphClient";
-import { listCommitsBetween } from "@atomist/sdm-core/util/github/ghub";
-import { ProjectOperationCredentials } from "@atomist/automation-client/operations/common/ProjectOperationCredentials";
-import * as _ from "lodash";
+import { menuForCommand } from "@atomist/automation-client/spi/message/MessageClient";
 import * as goals from "@atomist/clj-editors";
+import {
+    CodeInspection,
+    CodeInspectionRegistration,
+    CommandHandlerRegistration,
+    CommandListenerInvocation,
+    CodeTransformRegistration,
+    CodeTransform,
+} from "@atomist/sdm";
+import { SlackMessage } from "@atomist/slack-messages";
+import {
+    ChatTeamPreferences,
+    SetTeamPreference,
+} from "../../typings/types";
+import { GitProject } from "../../../node_modules/@atomist/automation-client/project/git/GitProject";
 
 @Parameters()
 export class IgnoreVersionParameters {
@@ -41,22 +52,11 @@ export class SetTeamLibraryGoalParameters {
     @Parameter({ required: false, displayable: false })
     public msgId?: string;
 
-    @Parameter({required: true})
+    @Parameter({ required: true })
     public name: string;
 
-    @Parameter({required: true})
+    @Parameter({ required: true })
     public version: string;
-}
-
-@Parameters()
-export class ChooseTeamLibraryGoalParameters {
-
-    @Parameter({ required: false, displayable: false })
-    public msgId?: string;
-
-    // TODO this one has name and version in the parameter value
-    @Parameter({required: true})
-    public library: string;
 }
 
 @Parameters()
@@ -90,95 +90,95 @@ export class ConfirmUpdateParameters {
     @MappedParameter(MappedParameters.GitHubRepositoryProvider)
     public providerId: string;
 
-    @Parameter({required: true})
+    @Parameter({ required: true })
     public name: string;
-    
-    @Parameter({required: true})
+
+    @Parameter({ required: true })
     public version: string;
 }
 
 export function queryPreferences(graphClient: GraphClient): () => Promise<any> {
-    return (): Promise<any> => {
-        return graphClient.query<ChatTeamPreferences.Query,ChatTeamPreferences.Variables>(
-            {name: "chat-team-preferences"}
-        ).then(result => {
-            return result;
-        }
-    )};
+    return () => {
+        return graphClient.query<ChatTeamPreferences.Query, ChatTeamPreferences.Variables>(
+            { name: "chat-team-preferences" },
+        );
+    };
 }
 
 function mutatePreference(graphClient: GraphClient): (chatTeamId: string, prefsAsJson: string) => Promise<any> {
-    return (chatTeamId:string,prefsAsJson:string): Promise<any> => {
-        return graphClient.mutate<SetTeamPreference.Mutation,SetTeamPreference.Variables>(
-            {name: "set-chat-team-preference",
-             variables: {name: "atomist:fingerprints:clojure:project-deps",
-                         value: prefsAsJson,
-                         team: chatTeamId}},
-        ).then(result => {
-            return result;
-        })
+    return (chatTeamId, prefsAsJson): Promise<any> => {
+        return graphClient.mutate<SetTeamPreference.Mutation, SetTeamPreference.Variables>(
+            {
+                name: "set-chat-team-preference",
+                variables: {
+                    name: "atomist:fingerprints:clojure:project-deps",
+                    value: prefsAsJson,
+                    team: chatTeamId,
+                },
+            },
+        );
     };
 }
+
 function ignoreVersion(cli: CommandListenerInvocation<IgnoreVersionParameters>) {
-    return;
+    return cli.addressChannels("TODO");
 }
 
 function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryGoalParameters>) {
     return goals.withNewGoal(
         queryPreferences(cli.context.graphClient),
         mutatePreference(cli.context.graphClient),
-        {name: cli.parameters.name,
-         version: cli.parameters.version}
+        {
+            name: cli.parameters.name,
+            version: cli.parameters.version,
+        },
     );
 }
 
-function confirmUpdate(cli: CommandListenerInvocation<ConfirmUpdateParameters>) {
-    return;
-}
-
-function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>) {
+async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>) {
     return goals.withNewGoal(
         queryPreferences(cli.context.graphClient),
         mutatePreference(cli.context.graphClient),
-        cli.parameters.library
+        cli.parameters.library,
     );
 }
 
-function showGoals(cli: CommandListenerInvocation<ShowGoalsParameters>) {
+const confirmUpdate: CodeTransform<ConfirmUpdateParameters> = async (p, cli) => {
+    await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
+    return p;
+}
 
-    function cloneRepo(): Promise<String> {
-        return GitCommandGitProject.cloned(
-            {token: cli.parameters.userToken},
-            new GitHubRepoRef(cli.parameters.owner, cli.parameters.repo)
-        ).then(project => project.baseDir);
-    };
+const showGoals: CodeInspection<void, ShowGoalsParameters> = async (p, cli) => {
 
-    function sendMessage(text:string, options: {text: string, value: string}[]): Promise<void> {
+    const sendMessage = (text: string, options: { text: string, value: string }[]): Promise<void> => {
         const message: SlackMessage = {
             attachments: [
-                {text: text,
-                 color: "#00a5ff",
-                 fallback: "none",
-                 mrkdwn_in: ["text"],
-                 actions: [
-                     menuForCommand(
-                         {text: "Add a new target ...",
-                         options: options},
-                         LibraryImpactChooseTeamLibrary.name,
-                         "library")
-                 ],
-                 }
-            ]
-        };        
-        return cli.context.messageClient.respond(message);
+                {
+                    text,
+                    color: "#00a5ff",
+                    fallback: "none",
+                    mrkdwn_in: ["text"],
+                    actions: [
+                        menuForCommand(
+                            {
+                                text: "Add a new target ...",
+                                options,
+                            },
+                            LibraryImpactChooseTeamLibrary.name,
+                            "library"),
+                    ],
+                },
+            ],
+        };
+        return cli.addressChannels(message);
     };
 
-    return goals.withProjectGoals( 
-      queryPreferences(cli.context.graphClient),
-      cloneRepo,
-      sendMessage
+    return goals.withProjectGoals(
+        queryPreferences(cli.context.graphClient),
+        (p as GitProject).baseDir,
+        sendMessage,
     );
-}
+};
 
 export const IgnoreVersion: CommandHandlerRegistration<IgnoreVersionParameters> = {
     name: "LibraryImpactIgnoreVersion",
@@ -195,24 +195,34 @@ export const SetTeamLibrary: CommandHandlerRegistration<SetTeamLibraryGoalParame
     listener: async cli => setTeamLibraryGoal(cli),
 };
 
+export interface ChooseTeamLibraryGoalParameters {
+
+    msgId?: string;
+
+    library: string;
+}
+
 export const LibraryImpactChooseTeamLibrary: CommandHandlerRegistration<ChooseTeamLibraryGoalParameters> = {
     name: "LibraryImpactChooseTeamLibrary",
     description: "set library target using version in current project",
-    paramsMaker: ChooseTeamLibraryGoalParameters,
-    listener: async cli => chooseTeamLibraryGoal(cli),
+    parameters: {
+        msgId: { required: false, displayable: false },
+        library: {},
+    },
+    listener: chooseTeamLibraryGoal,
 };
 
-export const ConfirmUpdate: CommandHandlerRegistration<ConfirmUpdateParameters> = {
+export const ConfirmUpdate: CodeTransformRegistration<ConfirmUpdateParameters> = {
     name: "LibraryImpactConfirmUpdate",
     description: "choose to raise a PR on the current project for a library version update",
     paramsMaker: ConfirmUpdateParameters,
-    listener: async cli => confirmUpdate(cli),
+    transform: confirmUpdate,
 };
 
-export const ShowGoals: CommandHandlerRegistration<ShowGoalsParameters> = {
+export const ShowGoals: CodeInspectionRegistration<void,ShowGoalsParameters> = {
     name: "LibraryImpactShowGoals",
     description: "show the current goals for this team",
     intent: "get library targets",
     paramsMaker: ShowGoalsParameters,
-    listener: async cli => showGoals(cli),
+    inspection: showGoals,
 };
