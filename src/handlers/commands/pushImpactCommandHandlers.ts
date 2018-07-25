@@ -145,6 +145,7 @@ async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLi
 
 const confirmUpdate: CodeTransform<ConfirmUpdateParameters> = async (p, cli) => {
     await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
+    goals.edit((p as GitProject).baseDir,cli.parameters.name,cli.parameters.version);
     return p;
 }
 

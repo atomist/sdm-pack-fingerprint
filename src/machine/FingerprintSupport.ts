@@ -20,12 +20,28 @@ import { File } from "@atomist/automation-client/project/File";
 const npmProjectDeps: PushImpactListener<FingerprinterResult> =
     async (i: PushImpactListenerInvocation) => {
         try {
-            const f: File = await i.project.findFile("package.json");
-            const data: string = clj.fingerprintPackageJson(i.project.baseDir, f);
+            const data: string = clj.fingerprint(i.project.baseDir);
             return [{
                 "name": "npm-project-deps",
                 "version": "0.0.1",
                 "abbreviation": "npm-deps",
+                "sha": clj.sha256(data),
+                "data": data,
+                "value": data
+            }];
+        } catch (err) {
+            return [];
+        }
+    };
+
+const cljProjectDeps: PushImpactListener<FingerprinterResult> =
+    async (i: PushImpactListenerInvocation) => {
+        try {
+            const data: string = clj.fingerprint(i.project.baseDir);
+            return [{
+                "name": "clojure-project-deps",
+                "version": "0.0.1",
+                "abbreviation": "lein-deps",
                 "sha": clj.sha256(data),
                 "data": data,
                 "value": data
@@ -49,11 +65,7 @@ export const FingerprintSupport: ExtensionPack = {
 
         sdm.addFingerprinterRegistration({
                 name: "clj-fingerprinter",
-                action: async i => {
-                    if (clj.isClojure(i.project.baseDir, i.credentials)) {
-                        return clj.fingerprint(i.project.baseDir) as Promise<FingerprinterResult>;
-                    }
-                },
+                action: cljProjectDeps,
             })
             .addFingerprinterRegistration({
                 name: "npm-fingerprinter",
