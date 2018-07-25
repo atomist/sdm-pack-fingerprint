@@ -1,17 +1,17 @@
 import { Parameters, Parameter, MappedParameter, Value, MappedParameters, Secret, logger } from "@atomist/automation-client";
 import { CommandHandlerRegistration, CommandListenerInvocation } from "@atomist/sdm";
 import { ChatTeamPreferences, SetTeamPreference } from "../../typings/types";
-import * as _ from "lodash";
 import { SlackMessage } from "@atomist/slack-messages";
 import { GitCommandGitProject } from "@atomist/automation-client/project/git/GitCommandGitProject";
 import { GitProject } from "@atomist/automation-client/project/git/GitProject";
 import { RemoteRepoRef, ProviderType } from "../../../node_modules/@atomist/automation-client/operations/common/RepoId";
 import { GitHubRepoRef } from "@atomist/automation-client/operations/common/GitHubRepoRef";
-import * as goals from "@atomist/clj-editors";
 import { menuForCommand } from "@atomist/automation-client/spi/message/MessageClient";
 import { GraphClient } from "@atomist/automation-client/spi/graph/GraphClient";
 import { listCommitsBetween } from "@atomist/sdm-core/util/github/ghub";
 import { ProjectOperationCredentials } from "@atomist/automation-client/operations/common/ProjectOperationCredentials";
+import * as _ from "lodash";
+import * as goals from "@atomist/clj-editors";
 
 @Parameters()
 export class IgnoreVersionParameters {
@@ -108,9 +108,6 @@ export function queryPreferences(graphClient: GraphClient): () => Promise<any> {
 }
 
 function mutatePreference(graphClient: GraphClient): (chatTeamId: string, prefsAsJson: string) => Promise<any> {
-    // TODO mutate and query don't stop you from parameterizing the functions with the wrong type
-    // TODO mutations can be in the wrong place - folder conventions are relevant
-    // TODO and it just plain doesn't work - where is the correlation-id in my logs!
     return (chatTeamId:string,prefsAsJson:string): Promise<any> => {
         return graphClient.mutate<SetTeamPreference.Mutation,SetTeamPreference.Variables>(
             {name: "set-chat-team-preference",
@@ -150,17 +147,12 @@ function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryG
 function showGoals(cli: CommandListenerInvocation<ShowGoalsParameters>) {
 
     function cloneRepo(): Promise<String> {
-        // TODO what is cli.credentials?  Seemed wrong
-        // Is GitCommandGitProject.cloned even remotely appropriate here?
         return GitCommandGitProject.cloned(
             {token: cli.parameters.userToken},
             new GitHubRepoRef(cli.parameters.owner, cli.parameters.repo)
         ).then(project => project.baseDir);
     };
 
-    // TODO selection is rendering but callback is not working
-    // TODO passing a string works but is not right.  passing the type doesn't work
-    // do you need the handler, instead of the registration?
     function sendMessage(text:string, options: {text: string, value: string}[]): Promise<void> {
         const message: SlackMessage = {
             attachments: [
@@ -203,7 +195,6 @@ export const SetTeamLibrary: CommandHandlerRegistration<SetTeamLibraryGoalParame
     listener: async cli => setTeamLibraryGoal(cli),
 };
 
-// TODO how does type checking help us when we're referencing this from an Action above?
 export const LibraryImpactChooseTeamLibrary: CommandHandlerRegistration<ChooseTeamLibraryGoalParameters> = {
     name: "LibraryImpactChooseTeamLibrary",
     description: "set library target using version in current project",

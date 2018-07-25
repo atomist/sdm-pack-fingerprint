@@ -41,19 +41,10 @@ export const FingerprintSupport: ExtensionPack = {
         sdm.addCommand(SetTeamLibrary);
         sdm.addCommand(ShowGoals);
         sdm.addCommand(LibraryImpactChooseTeamLibrary);
-
-        sdm.addFingerprinterRegistration({
-                name: "clj-fingerprinter",
-                action: (i: PushImpactListenerInvocation) => {
-                    if (clj.isClojure(i.project.baseDir, i.credentials)) {
-                        return clj.fingerprint(i.project.baseDir) as Promise<FingerprinterResult>;
-                    }
-                },
-            })
-            .addFingerprinterRegistration(
+        
+        sdm.addFingerprinterRegistration(
                 {name: "npm-fingerprinter",
                  action: npmProjectDeps})
-            .addFingerprinterRegistration(new MavenFingerprinter())
             .addFingerprinterRegistration({
                 name: "js-fingerprinter",
                 action: async (i: PushImpactListenerInvocation) => {

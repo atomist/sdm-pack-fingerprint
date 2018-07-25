@@ -7,40 +7,18 @@ import {
 import { subscription } from "@atomist/automation-client/graph/graphQL";
 import { OnEvent } from "@atomist/automation-client/onEvent";
 import { buttonForCommand, SlackFileMessage, Destination, SlackDestination, menuForCommand } from "@atomist/automation-client/spi/message/MessageClient";
-import * as impact from "@atomist/clj-editors";
 import { SlackMessage, channel } from "@atomist/slack-messages";
 import { PushImpactEvent, GetFingerprintData } from "../../typings/types";
 import { EventHandlerRegistration } from "@atomist/sdm";
 import { NoParameters } from "@atomist/automation-client/SmartParameters";
 import { QueryOptions, query } from "@atomist/automation-client/internal/graph/graphQL";
 import { QueryNoCacheOptions } from "@atomist/automation-client/spi/graph/GraphClient";
-import _ = require("lodash");
+import * as _ from "lodash";
 import * as clj from "@atomist/clj-editors";
 import { queryPreferences, ConfirmUpdate, SetTeamLibrary, IgnoreVersion } from "../commands/pushImpactCommandHandlers";
 
-function qcon(ctx:HandlerContext, diff: impact.Diff): void {
-    const message: SlackMessage = {
-        text: "improved presentation",
-        attachments: [
-            {
-                text: "do you want to say hello to qcon?",
-                fallback: "fallback message",
-                mrkdwn_in: [
-                    "text",
-                ],
-                callback_id: "cllbck1",
-                actions: [
-                    buttonForCommand({ text: "yes" }, "helloQcon", { sha: diff.to.sha }),
-                ],
-            },
-        ],
-    };
-    ctx.messageClient.addressChannels(message, [ "clj1" ]);
-    return;
-}
-
-function forFingerprint(s:string): (fp: impact.FP) => boolean {
-   return (fp: impact.FP) => {
+function forFingerprint(s:string): (fp: clj.FP) => boolean {
+   return (fp: clj.FP) => {
        logger.info(`check fp ${fp.name}`);
        return (fp.name === s);
    }
@@ -72,15 +50,7 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha:string, name:stri
     }
 }
 
-function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff): void {
-    const message:SlackFileMessage = {content: clj.renderDiff(diff), fileType: "text", title: `${diff.owner}/${diff.repo}`};
-    // TODO CD recommends we not use messageClient.send until slack team-id is removed from the Destination factory
-    // const destination: SlackDestination = new SlackDestination(ctx.teamId);
-    // ctx.messageClient.send(message,destination.addressChannel(diff.channel));
-    ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
-}
-
-function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff): (s:string, library: {name: string, version: string}) => Promise<any> {
+function libraryEditorChoiceMessage(ctx: HandlerContext, diff: clj.Diff): (s:string, library: {name: string, version: string}) => Promise<any> {
     return (text, library) => {
         const message:SlackMessage = {
             attachments: [
@@ -116,8 +86,13 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff): (s:
     };
 }
 
-function checkLibraryGoals(ctx: HandlerContext, diff: impact.Diff): void {
-    impact.checkLibraryGoals(
+function renderDiffSnippet(ctx: HandlerContext, diff: clj.Diff): void {
+    const message:SlackFileMessage = {content: clj.renderDiff(diff), fileType: "text", title: `${diff.owner}/${diff.repo}`};
+    ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
+}
+
+function checkLibraryGoals(ctx: HandlerContext, diff: clj.Diff): void {
+    clj.checkLibraryGoals(
         queryPreferences(ctx.graphClient),
         libraryEditorChoiceMessage(ctx,diff),
         diff
@@ -127,17 +102,17 @@ function checkLibraryGoals(ctx: HandlerContext, diff: impact.Diff): void {
 const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> =
     (event: EventFired<PushImpactEvent.Subscription>, ctx: HandlerContext) => {
         logger.info("handler PushImpactEvent subscription");
-        impact.processPushImpact(
+        clj.processPushImpact(
             event,
             getFingerprintDataCallback(ctx),
             [ 
                 {
                     selector: forFingerprint("npm-project-deps"),
-                    action: (diff: impact.Diff) => {
+                    action: (diff: clj.Diff) => {
                         logger.info(`check for goal diffs here`);
                         checkLibraryGoals(ctx,diff);
                     },
-                    diffAction: (diff: impact.Diff) => {
+                    diffAction: (diff: clj.Diff) => {
                         renderDiffSnippet(ctx,diff);
                     },
                 }
