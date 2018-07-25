@@ -146,6 +146,15 @@ async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLi
 const confirmUpdate: CodeTransform<ConfirmUpdateParameters> = async (p, cli) => {
     await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
     goals.edit((p as GitProject).baseDir,cli.parameters.name,cli.parameters.version);
+    const message: SlackMessage = {
+        attachments: [
+            {text: `Setting version *${cli.parameters.name}:${cli.parameters.version}* in <https://github.com/${cli.parameters.owner}/${cli.parameters.repo}|${cli.parameters.owner}/${cli.parameters.repo}> :heart_eyes:`,
+             mrkdwn_in: ["text"],
+             color: "#45B254",
+             fallback: "none"},
+        ]
+    };
+    await cli.addressChannels(message);
     return p;
 }
 

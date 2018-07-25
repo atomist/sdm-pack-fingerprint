@@ -17,39 +17,40 @@ import {
 } from "../handlers/commands/pushImpactCommandHandlers";
 import { File } from "@atomist/automation-client/project/File";
 
-const npmProjectDeps: PushImpactListener<FingerprinterResult> =
+function abbreviation(name: string): string {
+    switch(name) {
+        case "npm-project-deps": {
+            return "npm-deps";
+        }
+        case "clojure-project-deps": {
+            return "lein-deps";
+        }
+        case "maven-project-deps": {
+            return "maven-deps"
+        }
+    };
+    return "unknown";
+}
+
+const projectDeps: PushImpactListener<FingerprinterResult> =
     async (i: PushImpactListenerInvocation) => {
         try {
-            const data: string = clj.fingerprint(i.project.baseDir);
-            return [{
-                "name": "npm-project-deps",
-                "version": "0.0.1",
-                "abbreviation": "npm-deps",
-                "sha": clj.sha256(data),
-                "data": data,
-                "value": data
-            }];
+            return clj.fingerprint(i.project.baseDir, (name, version, data) => {
+                return [{
+                    "name": name,
+                    "version": version,
+                    "abbreviation": abbreviation(name),
+                    "sha": clj.sha256(data),
+                    "data": data,
+                    "value": data
+                }];
+            });
         } catch (err) {
             return [];
         }
     };
 
-const cljProjectDeps: PushImpactListener<FingerprinterResult> =
-    async (i: PushImpactListenerInvocation) => {
-        try {
-            const data: string = clj.fingerprint(i.project.baseDir);
-            return [{
-                "name": "clojure-project-deps",
-                "version": "0.0.1",
-                "abbreviation": "lein-deps",
-                "sha": clj.sha256(data),
-                "data": data,
-                "value": data
-            }];
-        } catch (err) {
-            return [];
-        }
-    };
+    // npm-project-deps and clojure-project-deps
 
 export const FingerprintSupport: ExtensionPack = {
     ...metadata(),
@@ -64,12 +65,8 @@ export const FingerprintSupport: ExtensionPack = {
         sdm.addCommand(LibraryImpactChooseTeamLibrary);
 
         sdm.addFingerprinterRegistration({
-                name: "clj-fingerprinter",
-                action: cljProjectDeps,
-            })
-            .addFingerprinterRegistration({
-                name: "npm-fingerprinter",
-                action: npmProjectDeps,
+                name: "deps-fingerprinter",
+                action: projectDeps,
             })
             .addFingerprinterRegistration({
                 name: "js-fingerprinter",
