@@ -6,142 +6,141 @@ import {
 } from "@atomist/automation-client";
 import { subscription } from "@atomist/automation-client/graph/graphQL";
 import { OnEvent } from "@atomist/automation-client/onEvent";
-import { buttonForCommand, SlackFileMessage, Destination, SlackDestination, menuForCommand } from "@atomist/automation-client/spi/message/MessageClient";
-import * as impact from "@atomist/clj-editors";
-import { SlackMessage, channel } from "@atomist/slack-messages";
-import { PushImpactEvent, GetFingerprintData } from "../../typings/types";
-import { EventHandlerRegistration } from "@atomist/sdm";
 import { NoParameters } from "@atomist/automation-client/SmartParameters";
-import { QueryOptions, query } from "@atomist/automation-client/internal/graph/graphQL";
 import { QueryNoCacheOptions } from "@atomist/automation-client/spi/graph/GraphClient";
-import _ = require("lodash");
+import {
+    buttonForCommand,
+    SlackFileMessage,
+} from "@atomist/automation-client/spi/message/MessageClient";
+import * as impact from "@atomist/clj-editors";
 import * as clj from "@atomist/clj-editors";
-import { queryPreferences, ConfirmUpdate, SetTeamLibrary, IgnoreVersion } from "../commands/pushImpactCommandHandlers";
+import { EventHandlerRegistration } from "@atomist/sdm";
+import { SlackMessage } from "@atomist/slack-messages";
+import * as _ from "lodash";
+import {
+    GetFingerprintData,
+    PushImpactEvent,
+} from "../../typings/types";
+import {
+    ConfirmUpdate,
+    IgnoreVersion,
+    queryPreferences,
+    SetTeamLibrary,
+} from "../commands/pushImpactCommandHandlers";
 
-function qcon(ctx:HandlerContext, diff: impact.Diff): void {
-    const message: SlackMessage = {
-        text: "improved presentation",
-        attachments: [
-            {
-                text: "do you want to say hello to qcon?",
-                fallback: "fallback message",
-                mrkdwn_in: [
-                    "text",
-                ],
-                callback_id: "cllbck1",
-                actions: [
-                    buttonForCommand({ text: "yes" }, "helloQcon", { sha: diff.to.sha }),
-                ],
-            },
-        ],
-    };
-    ctx.messageClient.addressChannels(message, [ "clj1" ]);
-    return;
-}
-
-function forFingerprint(s:string): (fp: impact.FP) => boolean {
-   return (fp: impact.FP) => {
+function forFingerprint(s:string): (fp: clj.FP) => boolean {
+   return (fp: clj.FP) => {
        logger.info(`check fp ${fp.name}`);
        return (fp.name === s);
    }
 }
 
-function getFingerprintDataCallback(ctx: HandlerContext): (sha:string, name:string) => Promise<string> {
-    return (sha:string, name:string):Promise<string> => {
+function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: string) => Promise<string> {
+    return (sha, name) => {
         return ctx.graphClient.query<GetFingerprintData.Query, GetFingerprintData.Variables>({
             name: "get-fingerprint",
             variables: {
                 sha: sha,
-                name: name
+                name: name,
             },
             options: QueryNoCacheOptions,
         })
-        .then(result => {
-            logger.info(`getFingerprintData:  got successful result ${result}`);
-            const fingerprints =
-                _.get(result, "Commit[0].fingerprints") as GetFingerprintData.Fingerprints[];
-            if (fingerprints) {
-                return fingerprints[0].data as string; 
-            }
-            return "{}";
-        })
-        .catch( (reason) => {
-            logger.info(`error getting fingerprint data ${reason}`);
-            return "{}"
-        });
-    }
+            .then(result => {
+                logger.info(`getFingerprintData:  got successful result ${result}`);
+                const fingerprints =
+                    _.get(result, "Commit[0].fingerprints") as GetFingerprintData.Fingerprints[];
+                if (fingerprints) {
+                    return fingerprints[0].data as string;
+                }
+                return "{}";
+            })
+            .catch((reason) => {
+                logger.info(`error getting fingerprint data ${reason}`);
+                return "{}";
+            });
+    };
 }
 
-function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff): void {
-    const message:SlackFileMessage = {content: clj.renderDiff(diff), fileType: "text", title: `${diff.owner}/${diff.repo}`};
-    // TODO CD recommends we not use messageClient.send until slack team-id is removed from the Destination factory
-    // const destination: SlackDestination = new SlackDestination(ctx.teamId);
-    // ctx.messageClient.send(message,destination.addressChannel(diff.channel));
-    ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
+async function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff) {
+    const message: SlackFileMessage = {
+        content: clj.renderDiff(diff),
+        fileType: "text",
+        title: `${diff.owner}/${diff.repo}`,
+    };
+    return ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }
 
-function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff): (s:string, library: {name: string, version: string}) => Promise<any> {
-    return (text, library) => {
-        const message:SlackMessage = {
+function libraryEditorChoiceMessage(ctx: HandlerContext,diff: impact.Diff): 
+    (s: string, action: {library:{ name: string, version: string }, current: string}) => Promise<any> {
+    return async (text, action) => {
+        const message: SlackMessage = {
             attachments: [
-                {text,
-                 color: "#45B254",
-                 fallback: "none",
-                 mrkdwn_in: ["text"],
-                 actions: [
-                    buttonForCommand(
-                        {text: "Accept"},
-                        ConfirmUpdate.name,
-                        {owner: diff.owner,
-                         repo: diff.repo,
-                         name: library.name,
-                         version: library.version}),
-                    buttonForCommand(
-                        {text: "Set as target"},
-                        SetTeamLibrary.name,
-                        {name: library.name,
-                         version: library.version}
-                    ),
-                    buttonForCommand(
-                        {text: "Ignore"},
-                        IgnoreVersion.name,
-                        {name: library.name,
-                         version: library.version}
-                    )
-                 ],
-                 }
-            ]
+                {
+                    text: text,
+                    color: "#45B254",
+                    fallback: "none",
+                    mrkdwn_in: ["text"],
+                    actions: [
+                        buttonForCommand(
+                            { text: "Accept" },
+                            ConfirmUpdate.name,
+                            {
+                                owner: diff.owner,
+                                repo: diff.repo,
+                                name: action.library.name,
+                                version: action.library.version,
+                            }),
+                        buttonForCommand(
+                            { text: "Set as target" },
+                            SetTeamLibrary.name,
+                            {
+                                name: action.library.name,
+                                version: action.current,
+                            },
+                        ),
+                        buttonForCommand(
+                            { text: "Ignore" },
+                            IgnoreVersion.name,
+                            {
+                                name: action.library.name,
+                                version: action.library.version,
+                            },
+                        ),
+                    ],
+                },
+            ],
         };
+        //return ctx.messageClient.send(message, await addressSlackChannelsFromContext(ctx, diff.channel));
         return ctx.messageClient.addressChannels(message, diff.channel);
     };
 }
 
-function checkLibraryGoals(ctx: HandlerContext, diff: impact.Diff): void {
-    impact.checkLibraryGoals(
+function checkLibraryGoals(ctx: HandlerContext, diff: clj.Diff): void {
+    clj.checkLibraryGoals(
         queryPreferences(ctx.graphClient),
-        libraryEditorChoiceMessage(ctx,diff),
-        diff
+        libraryEditorChoiceMessage(ctx, diff),
+        diff,
     );
 }
 
 const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> =
     (event: EventFired<PushImpactEvent.Subscription>, ctx: HandlerContext) => {
         logger.info("handler PushImpactEvent subscription");
-        impact.processPushImpact(
+        clj.processPushImpact(
             event,
             getFingerprintDataCallback(ctx),
-            [ 
+            [
                 {
                     selector: forFingerprint("npm-project-deps"),
-                    action: (diff: impact.Diff) => {
+                    action: (diff: clj.Diff) => {
                         logger.info(`check for goal diffs here`);
-                        checkLibraryGoals(ctx,diff);
+                        checkLibraryGoals(ctx, diff);
                     },
-                    diffAction: (diff: impact.Diff) => {
-                        renderDiffSnippet(ctx,diff);
+                    diffAction: (diff: clj.Diff) => {
+                        renderDiffSnippet(ctx, diff);
                     },
-                }
-            ]
+                },
+            ],
         );
         return SuccessPromise;
     };
