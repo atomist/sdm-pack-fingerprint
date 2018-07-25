@@ -42,9 +42,9 @@ export const FingerprintSupport: ExtensionPack = {
         sdm.addEvent(PushImpactHandler);
 
         sdm.addCommand(IgnoreVersion);
-        sdm.addCommand(ConfirmUpdate);
+        sdm.addCodeTransformCommand(ConfirmUpdate);
         sdm.addCommand(SetTeamLibrary);
-        sdm.addCommand(ShowGoals);
+        sdm.addCodeInspectionCommand(ShowGoals);
         sdm.addCommand(LibraryImpactChooseTeamLibrary);
 
         sdm.addFingerprinterRegistration({
