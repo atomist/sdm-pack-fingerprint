@@ -70,9 +70,9 @@ async function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff) {
     return ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }
 
-function libraryEditorChoiceMessage(ctx: HandlerContext,
-                                    diff: impact.Diff): (s: string, library: { name: string, version: string }) => Promise<any> {
-    return async (text, library) => {
+function libraryEditorChoiceMessage(ctx: HandlerContext,diff: impact.Diff): 
+    (s: string, action: {library:{ name: string, version: string }, current: string}) => Promise<any> {
+    return async (text, action) => {
         const message: SlackMessage = {
             attachments: [
                 {
@@ -87,23 +87,23 @@ function libraryEditorChoiceMessage(ctx: HandlerContext,
                             {
                                 owner: diff.owner,
                                 repo: diff.repo,
-                                name: library.name,
-                                version: library.version,
+                                name: action.library.name,
+                                version: action.library.version,
                             }),
                         buttonForCommand(
                             { text: "Set as target" },
                             SetTeamLibrary.name,
                             {
-                                name: library.name,
-                                version: library.version,
+                                name: action.library.name,
+                                version: action.current,
                             },
                         ),
                         buttonForCommand(
                             { text: "Ignore" },
                             IgnoreVersion.name,
                             {
-                                name: library.name,
-                                version: library.version,
+                                name: action.library.name,
+                                version: action.library.version,
                             },
                         ),
                     ],

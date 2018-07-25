@@ -144,15 +144,12 @@ async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLi
 }
 
 const confirmUpdate: CodeTransform<ConfirmUpdateParameters> = async (p, cli) => {
-    await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir}`);
+    await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
     return p;
 }
 
 const showGoals: CodeInspection<void, ShowGoalsParameters> = async (p, cli) => {
 
-    // TODO selection is rendering but callback is not working
-    // TODO passing a string works but is not right.  passing the type doesn't work
-    // do you need the handler, instead of the registration?
     const sendMessage = (text: string, options: { text: string, value: string }[]): Promise<void> => {
         const message: SlackMessage = {
             attachments: [
