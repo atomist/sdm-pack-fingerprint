@@ -9,7 +9,6 @@ import { OnEvent } from "@atomist/automation-client/onEvent";
 import { NoParameters } from "@atomist/automation-client/SmartParameters";
 import { QueryNoCacheOptions } from "@atomist/automation-client/spi/graph/GraphClient";
 import {
-    addressSlackChannelsFromContext,
     buttonForCommand,
     SlackFileMessage,
 } from "@atomist/automation-client/spi/message/MessageClient";
@@ -68,7 +67,7 @@ async function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff) {
         fileType: "text",
         title: `${diff.owner}/${diff.repo}`,
     };
-    return ctx.messageClient.send(message, await addressSlackChannelsFromContext(ctx, diff.channel));
+    return ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }
 
 function libraryEditorChoiceMessage(ctx: HandlerContext,
@@ -111,7 +110,8 @@ function libraryEditorChoiceMessage(ctx: HandlerContext,
                 },
             ],
         };
-        return ctx.messageClient.send(message, await addressSlackChannelsFromContext(ctx, diff.channel));
+        //return ctx.messageClient.send(message, await addressSlackChannelsFromContext(ctx, diff.channel));
+        return ctx.messageClient.addressChannels(message, diff.channel);
     };
 }
 

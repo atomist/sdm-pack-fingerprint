@@ -14,12 +14,15 @@ import {
     CodeInspectionRegistration,
     CommandHandlerRegistration,
     CommandListenerInvocation,
+    CodeTransformRegistration,
+    CodeTransform,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import {
     ChatTeamPreferences,
     SetTeamPreference,
 } from "../../typings/types";
+import { GitProject } from "../../../node_modules/@atomist/automation-client/project/git/GitProject";
 
 @Parameters()
 export class IgnoreVersionParameters {
@@ -103,17 +106,6 @@ export function queryPreferences(graphClient: GraphClient): () => Promise<any> {
 }
 
 function mutatePreference(graphClient: GraphClient): (chatTeamId: string, prefsAsJson: string) => Promise<any> {
-<<<<<<< HEAD
-    return (chatTeamId:string,prefsAsJson:string): Promise<any> => {
-        return graphClient.mutate<SetTeamPreference.Mutation,SetTeamPreference.Variables>(
-            {name: "set-chat-team-preference",
-             variables: {name: "atomist:fingerprints:clojure:project-deps",
-                         value: prefsAsJson,
-                         team: chatTeamId}},
-=======
-    // TODO mutate and query don't stop you from parameterizing the functions with the wrong type
-    // TODO mutations can be in the wrong place - folder conventions are relevant
-    // TODO and it just plain doesn't work - where is the correlation-id in my logs!
     return (chatTeamId, prefsAsJson): Promise<any> => {
         return graphClient.mutate<SetTeamPreference.Mutation, SetTeamPreference.Variables>(
             {
@@ -124,13 +116,12 @@ function mutatePreference(graphClient: GraphClient): (chatTeamId: string, prefsA
                     team: chatTeamId,
                 },
             },
->>>>>>> Polish
         );
     };
 }
 
 function ignoreVersion(cli: CommandListenerInvocation<IgnoreVersionParameters>) {
-    return;
+    return cli.addressChannels("TODO");
 }
 
 function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryGoalParameters>) {
@@ -144,10 +135,6 @@ function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryGoalPar
     );
 }
 
-function confirmUpdate(cli: CommandListenerInvocation<ConfirmUpdateParameters>) {
-    return;
-}
-
 async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>) {
     return goals.withNewGoal(
         queryPreferences(cli.context.graphClient),
@@ -156,16 +143,20 @@ async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLi
     );
 }
 
+// const confirmUpdate: CodeTransform<ConfirmUpdateParameters> = async (p, cli) => {
+//     return cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir}`);
+// }
+
+function confirmUpdate(cli: CommandListenerInvocation<ConfirmUpdateParameters>) {
+    return cli.addressChannels(`make an edit to this project ${cli.parameters.name} and ${cli.parameters.version}`);
+}
+
 const showGoals: CodeInspection<void,ShowGoalsParameters> = async (p, cli) => {
 
-<<<<<<< HEAD
-    function sendMessage(text: string, options: { text: string, value: string }[]): Promise<void> {
-=======
     // TODO selection is rendering but callback is not working
     // TODO passing a string works but is not right.  passing the type doesn't work
     // do you need the handler, instead of the registration?
     const sendMessage = (text: string, options: { text: string, value: string }[]): Promise<void> => {
->>>>>>> Polish
         const message: SlackMessage = {
             attachments: [
                 {
@@ -190,7 +181,7 @@ const showGoals: CodeInspection<void,ShowGoalsParameters> = async (p, cli) => {
 
     return goals.withProjectGoals(
         queryPreferences(cli.context.graphClient),
-        p,
+        (p as GitProject).baseDir,
         sendMessage,
     );
 };
@@ -214,11 +205,9 @@ export interface ChooseTeamLibraryGoalParameters {
 
     msgId?: string;
 
-    // TODO this one has name and version in the parameter value
     library: string;
 }
 
-// TODO how does type checking help us when we're referencing this from an Action above?
 export const LibraryImpactChooseTeamLibrary: CommandHandlerRegistration<ChooseTeamLibraryGoalParameters> = {
     name: "LibraryImpactChooseTeamLibrary",
     description: "set library target using version in current project",
@@ -229,11 +218,18 @@ export const LibraryImpactChooseTeamLibrary: CommandHandlerRegistration<ChooseTe
     listener: chooseTeamLibraryGoal,
 };
 
+// export const ConfirmUpdate: CodeTransformRegistration<ConfirmUpdateParameters> = {
+//     name: "LibraryImpactConfirmUpdate",
+//     description: "choose to raise a PR on the current project for a library version update",
+//     paramsMaker: ConfirmUpdateParameters,
+//     transform: confirmUpdate,
+// };
+
 export const ConfirmUpdate: CommandHandlerRegistration<ConfirmUpdateParameters> = {
     name: "LibraryImpactConfirmUpdate",
     description: "choose to raise a PR on the current project for a library version update",
     paramsMaker: ConfirmUpdateParameters,
-    listener: async cli => confirmUpdate(cli),
+    listener: confirmUpdate,
 };
 
 export const ShowGoals: CodeInspectionRegistration<void,ShowGoalsParameters> = {
