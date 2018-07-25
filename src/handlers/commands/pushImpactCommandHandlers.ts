@@ -143,15 +143,12 @@ async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLi
     );
 }
 
-// const confirmUpdate: CodeTransform<ConfirmUpdateParameters> = async (p, cli) => {
-//     return cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir}`);
-// }
-
-function confirmUpdate(cli: CommandListenerInvocation<ConfirmUpdateParameters>) {
-    return cli.addressChannels(`make an edit to this project ${cli.parameters.name} and ${cli.parameters.version}`);
+const confirmUpdate: CodeTransform<ConfirmUpdateParameters> = async (p, cli) => {
+    await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir}`);
+    return p;
 }
 
-const showGoals: CodeInspection<void,ShowGoalsParameters> = async (p, cli) => {
+const showGoals: CodeInspection<void, ShowGoalsParameters> = async (p, cli) => {
 
     // TODO selection is rendering but callback is not working
     // TODO passing a string works but is not right.  passing the type doesn't work
@@ -218,18 +215,11 @@ export const LibraryImpactChooseTeamLibrary: CommandHandlerRegistration<ChooseTe
     listener: chooseTeamLibraryGoal,
 };
 
-// export const ConfirmUpdate: CodeTransformRegistration<ConfirmUpdateParameters> = {
-//     name: "LibraryImpactConfirmUpdate",
-//     description: "choose to raise a PR on the current project for a library version update",
-//     paramsMaker: ConfirmUpdateParameters,
-//     transform: confirmUpdate,
-// };
-
-export const ConfirmUpdate: CommandHandlerRegistration<ConfirmUpdateParameters> = {
+export const ConfirmUpdate: CodeTransformRegistration<ConfirmUpdateParameters> = {
     name: "LibraryImpactConfirmUpdate",
     description: "choose to raise a PR on the current project for a library version update",
     paramsMaker: ConfirmUpdateParameters,
-    listener: confirmUpdate,
+    transform: confirmUpdate,
 };
 
 export const ShowGoals: CodeInspectionRegistration<void,ShowGoalsParameters> = {
