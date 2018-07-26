@@ -1,0 +1,19 @@
+query findLinkedReposWithFingerprint($name: String!) {
+  Repo {
+    name
+    owner
+    channels {
+      name
+      id
+    }
+    branches(name: "master") @required {
+      name
+      commit {
+        fingerprints(name: $name) @required {
+          data
+          name
+        }
+      }
+    }
+  }
+}

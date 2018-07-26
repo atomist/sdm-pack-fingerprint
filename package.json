@@ -23,7 +23,7 @@
     "@atomist/clj-editors": "0.3.0"
   },
   "peerDependencies": {
-    "@atomist/automation-client": "0.18.0-20180724234011",
+    "@atomist/automation-client": "^0.18.0",
     "@atomist/sdm": "^0.3.2",
     "@atomist/sdm-core": "^0.3.2"
   },
