@@ -7,7 +7,6 @@ import {
     Value,
     logger,
     Success,
-    Success,
 } from "@atomist/automation-client";
 import { GraphClient, QueryNoCacheOptions } from "@atomist/automation-client/spi/graph/GraphClient";
 import { menuForCommand, buttonForCommand } from "@atomist/automation-client/spi/message/MessageClient";
@@ -25,8 +24,10 @@ import {
     ChatTeamPreferences,
     SetTeamPreference,
     FindLinkedReposWithFingerprint,
+    ChatTeamById,
 } from "../../typings/types";
 import { GitProject } from "../../../node_modules/@atomist/automation-client/project/git/GitProject";
+import { _ChatChannelOrdering } from "../../../node_modules/@atomist/sdm-core/typings/types";
 
 @Parameters()
 export class IgnoreVersionParameters {
@@ -109,6 +110,19 @@ export function queryPreferences(graphClient: GraphClient): () => Promise<any> {
     };
 }
 
+const queryChatTeamById = async (graphClient: GraphClient, teamid: string): Promise<string> => {
+    return graphClient.query<ChatTeamById.Query, ChatTeamById.Variables>(
+        { 
+            name: "chat-team-by-id",
+            variables: {id: teamid} 
+        },
+    ).then(
+        result => {
+            return result.Team[0].chatTeams[0].id;
+        }
+    );
+};
+
 function queryFingerprints(graphClient: GraphClient): (name: string) => Promise<any> {
     return name => {
         return graphClient.query<FindLinkedReposWithFingerprint.Query, FindLinkedReposWithFingerprint.Variables>(
@@ -143,20 +157,26 @@ function ignoreVersion(cli: CommandListenerInvocation<IgnoreVersionParameters>) 
 }
 
 function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version: string) {
+    const author = cli.context.source.slack.user.id;
     cli.addressChannels(
         {attachments: 
             [{
                 text: `Shall we nudge everyone with a PR for ${name}/${version}`,
                 fallback: "none",
                 actions: [
-                    buttonForCommand({text: "broadcast"}, BroadcastNudge.name, {name, version}),
+                    buttonForCommand(
+                        {
+                            text: "broadcast"}, 
+                            BroadcastNudge.name, 
+                            {name, version, author},
+                        ),
                 ]
             }]
         }
     );
 }
 
-function broadcastNudge(cli: CommandListenerInvocation<SetTeamLibraryGoalParameters>): Promise<any> {
+function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>): Promise<any> {
     return goals.broadcast(
         queryFingerprints(cli.context.graphClient),
         {name: cli.parameters.name,
@@ -165,7 +185,13 @@ function broadcastNudge(cli: CommandListenerInvocation<SetTeamLibraryGoalParamet
             const message: SlackMessage = {
                 attachments: [
                     {
-                        text: `Can we help you upgrade the version of ${cli.parameters.name} to ${cli.parameters.version}`,
+                        text: `> ${cli.parameters.reason}`,
+                        author_name: cli.parameters.author,
+                        fallback: "none",
+                        mrkdwn_in: ["text"]
+                    },
+                    {
+                        text: `this PR would upgrade the version of ${cli.parameters.name} to ${cli.parameters.version}`,
                         fallback: "none",
                         actions: [
                             buttonForCommand(
@@ -303,9 +329,49 @@ export const ShowGoals: CodeInspectionRegistration<void,ShowGoalsParameters> = {
     inspection: showGoals,
 };
 
-export const BroadcastNudge: CommandHandlerRegistration<SetTeamLibraryGoalParameters> = {
+export interface BroadcastNudgeParameters {
+    name: string;
+    version: string;
+    reason: string;
+    author: string;
+}
+
+export const BroadcastNudge: CommandHandlerRegistration<BroadcastNudgeParameters> = {
     name: "BroadcastNudge",
     description: "message all Channels linked to Repos that contain a library",
-    paramsMaker: SetTeamLibraryGoalParameters,
+    parameters: {
+        name: { required: true},
+        version: {required: true},
+        reason: {
+            required:true, 
+            description: "always give a reason why we're releasing the nudge"
+        },
+        author: {
+            required: true,
+            description: "author of the Nudge"
+        },
+    },
     listener: broadcastNudge,
+};
+
+export const ClearLibraryTargets: CommandHandlerRegistration = {
+    name: "ClearLibraryTargets",
+    description: "reset all library targets for this team",
+    intent: "clear library targets",
+    listener: (cli: CommandListenerInvocation) => {
+        const mutatePreferenceUpdate = mutatePreference(cli.context.graphClient);
+        return queryChatTeamById(cli.context.graphClient,cli.context.teamId).then(
+            chatTeamId => {
+                return mutatePreferenceUpdate(chatTeamId,"{}");
+            }
+        ).then(
+            result => {
+                return cli.addressChannels("successfully cleaned preferences");
+            }
+        ).catch(
+            error => {
+                return cli.addressChannels(`unable to clear library targets  ${error}`);
+            }
+        );
+    },
 };

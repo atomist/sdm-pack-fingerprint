@@ -13,7 +13,9 @@ import {
     IgnoreVersion,
     SetTeamLibrary,
     ShowGoals,
-    ChooseTeamLibrary
+    ChooseTeamLibrary,
+    ClearLibraryTargets,
+    BroadcastNudge
 } from "../handlers/commands/pushImpactCommandHandlers";
 import { File } from "@atomist/automation-client/project/File";
 
@@ -63,6 +65,8 @@ export const FingerprintSupport: ExtensionPack = {
         sdm.addCommand(SetTeamLibrary);
         sdm.addCodeInspectionCommand(ShowGoals);
         sdm.addCommand(ChooseTeamLibrary);
+        sdm.addCommand(ClearLibraryTargets);
+        sdm.addCommand(BroadcastNudge);
 
         sdm.addFingerprinterRegistration({
                 name: "deps-fingerprinter",

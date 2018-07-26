@@ -20,7 +20,7 @@
     "url": "https://github.com/atomist/sdm-pack-fingerprints/issues"
   },
   "dependencies": {
-    "@atomist/clj-editors": "0.3.0"
+    "@atomist/clj-editors": "0.3.1"
   },
   "peerDependencies": {
     "@atomist/automation-client": "^0.18.0",
@@ -28,9 +28,9 @@
     "@atomist/sdm-core": "^0.3.2"
   },
   "devDependencies": {
-    "@atomist/automation-client": "0.18.0-20180724234011",
-    "@atomist/sdm": "0.3.2-20180724040432",
-    "@atomist/sdm-core": "0.3.2-20180718062204",
+    "@atomist/automation-client": "0.18.0-20180704102519",
+    "@atomist/sdm": "0.3.2-20180716044057",
+    "@atomist/sdm-core": "0.3.2-20180716045144",
     "@atomist/sdm-pack-spring": "0.1.7-20180715090742",
     "@types/mocha": "^2.2.48",
     "@types/node": "^9.4.1",
