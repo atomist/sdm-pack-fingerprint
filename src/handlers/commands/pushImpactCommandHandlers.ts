@@ -175,13 +175,12 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>
             const message: SlackMessage = {
                 attachments: [
                     {
-                        text: `> ${cli.parameters.reason}`,
-                        author_name: cli.parameters.author,
+                        text: `@${cli.parameters.author} has updated the target version of ${cli.parameters.name}.  The reason provided is:\n> ${cli.parameters.reason}`,
                         fallback: "none",
                         mrkdwn_in: ["text"],
                     },
                     {
-                        text: `this PR would upgrade the version of ${cli.parameters.name} to ${cli.parameters.version}`,
+                        text: `Shall we update library ${cli.parameters.name} to ${cli.parameters.version}?`,
                         fallback: "none",
                         actions: [
                             actionableButton(
