@@ -109,8 +109,8 @@ const queryChatTeamById = async (graphClient: GraphClient, teamid: string): Prom
     );
 };
 
-function queryFingerprints(graphClient: GraphClient): (name: string) => Promise<any> {
-    return name => {
+export function queryFingerprints(graphClient: GraphClient): (name: string) => Promise<any> {
+    return async name => {
         return graphClient.query<FindLinkedReposWithFingerprint.Query, FindLinkedReposWithFingerprint.Variables>(
             {
                 name: "find-linked-repos-with-fingerprint",
@@ -175,7 +175,9 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>
             const message: SlackMessage = {
                 attachments: [
                     {
-                        text: `@${cli.parameters.author} has updated the target version of ${cli.parameters.name}.  The reason provided is:\n> ${cli.parameters.reason}`,
+                        text: `@${cli.parameters.author} has updated the target version of
+                               ${cli.parameters.name}.  The reason provided is:\n
+                               > ${cli.parameters.reason}`,
                         fallback: "none",
                         mrkdwn_in: ["text"],
                     },

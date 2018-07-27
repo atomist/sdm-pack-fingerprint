@@ -43,7 +43,7 @@
     "no-duplicate-super": true,
     "no-duplicate-switch-case": true,
     "no-eval": true,
-    "no-floating-promises": true,
+    "no-floating-promises": false,
     "no-inferred-empty-object-type": true,
     "no-import-side-effect": true,
     "no-invalid-template-strings": false,
