@@ -188,8 +188,7 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>
                                 {
                                     text: "create PR",
                                 },
-                                // TODO remove this cast when we get to latest SDM
-                                ConfirmUpdate as any,
+                                ConfirmUpdate,
                                 {
                                     name: cli.parameters.name,
                                     version: cli.parameters.version,

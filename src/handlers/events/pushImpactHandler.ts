@@ -1,4 +1,4 @@
-import {EventFired, HandlerContext, logger, SuccessPromise} from "@atomist/automation-client";
+import {HandlerContext, logger, SuccessPromise} from "@atomist/automation-client";
 import {subscription} from "@atomist/automation-client/graph/graphQL";
 import {OnEvent} from "@atomist/automation-client/onEvent";
 import {NoParameters} from "@atomist/automation-client/SmartParameters";
@@ -13,7 +13,7 @@ import {GetFingerprintData, PushImpactEvent} from "../../typings/types";
 import {ConfirmUpdate, IgnoreVersion, queryPreferences, SetTeamLibrary} from "../commands/pushImpactCommandHandlers";
 
 function forFingerprint(s: string): (fp: clj.FP) => boolean {
-   return (fp: clj.FP) => {
+   return fp => {
        logger.info(`check fp ${fp.name}`);
        return (fp.name === s);
    };
@@ -67,8 +67,7 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
                     actions: [
                         actionableButton(
                             { text: "Accept" },
-                            // TODO remove this cast on latest SDM
-                            ConfirmUpdate as any,
+                            ConfirmUpdate,
                             {
                                 owner: diff.owner,
                                 repo: diff.repo,
@@ -108,8 +107,7 @@ function checkLibraryGoals(ctx: HandlerContext, diff: clj.Diff): void {
     );
 }
 
-const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> =
-    (event: EventFired<PushImpactEvent.Subscription>, ctx: HandlerContext) => {
+const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = (event, ctx) => {
         logger.info("handler PushImpactEvent subscription");
         clj.processPushImpact(
             event,
