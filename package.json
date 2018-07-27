@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@atomist/automation-client": "0.18.0-20180726075348",
-    "@atomist/sdm": "0.3.2-20180725153700",
+    "@atomist/sdm": "0.3.2-20180727002548",
     "@atomist/sdm-core": "0.3.2-20180725161559",
     "@atomist/sdm-pack-spring": "0.1.7-20180715090742",
     "@types/mocha": "^2.2.48",
