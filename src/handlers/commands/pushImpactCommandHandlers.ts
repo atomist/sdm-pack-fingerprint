@@ -1,15 +1,9 @@
-import {
-    MappedParameter,
-    MappedParameters,
-    Parameter,
-    Parameters,
-    Secret,
-    Value,
-} from "@atomist/automation-client";
+import {MappedParameter, MappedParameters, Parameter, Parameters, Secret, Value} from "@atomist/automation-client";
 import {GraphClient, QueryNoCacheOptions} from "@atomist/automation-client/spi/graph/GraphClient";
-import {buttonForCommand, menuForCommand} from "@atomist/automation-client/spi/message/MessageClient";
+import {menuForCommand} from "@atomist/automation-client/spi/message/MessageClient";
 import * as goals from "@atomist/clj-editors";
 import {
+    actionableButton,
     CodeInspection,
     CodeInspectionRegistration,
     CodeTransform,
@@ -19,11 +13,7 @@ import {
 } from "@atomist/sdm";
 import {SlackMessage} from "@atomist/slack-messages";
 import {GitProject} from "../../../node_modules/@atomist/automation-client/project/git/GitProject";
-import {
-    ChatTeamById,
-    ChatTeamPreferences, FindLinkedReposWithFingerprint,
-    SetTeamPreference,
-} from "../../typings/types";
+import {ChatTeamById, ChatTeamPreferences, FindLinkedReposWithFingerprint, SetTeamPreference} from "../../typings/types";
 
 @Parameters()
 export class IgnoreVersionParameters {
@@ -161,11 +151,11 @@ function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version
                     text: `Shall we nudge everyone with a PR for ${name}/${version}`,
                     fallback: "none",
                     actions: [
-                        buttonForCommand(
+                        actionableButton(
                             {
                                 text: "broadcast",
                             },
-                            BroadcastNudge.name,
+                            BroadcastNudge,
                             {name, version, author},
                         ),
                     ],
@@ -194,11 +184,12 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>
                         text: `this PR would upgrade the version of ${cli.parameters.name} to ${cli.parameters.version}`,
                         fallback: "none",
                         actions: [
-                            buttonForCommand(
+                            actionableButton(
                                 {
                                     text: "create PR",
                                 },
-                                ConfirmUpdate.name,
+                                // TODO remove this cast when we get to latest SDM
+                                ConfirmUpdate as any,
                                 {
                                     name: cli.parameters.name,
                                     version: cli.parameters.version,

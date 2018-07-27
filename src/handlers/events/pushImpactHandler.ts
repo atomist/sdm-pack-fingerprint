@@ -1,32 +1,16 @@
-import {
-    EventFired,
-    HandlerContext,
-    logger,
-    SuccessPromise,
-} from "@atomist/automation-client";
-import { subscription } from "@atomist/automation-client/graph/graphQL";
-import { OnEvent } from "@atomist/automation-client/onEvent";
-import { NoParameters } from "@atomist/automation-client/SmartParameters";
-import { QueryNoCacheOptions } from "@atomist/automation-client/spi/graph/GraphClient";
-import {
-    buttonForCommand,
-    SlackFileMessage,
-} from "@atomist/automation-client/spi/message/MessageClient";
+import {EventFired, HandlerContext, logger, SuccessPromise} from "@atomist/automation-client";
+import {subscription} from "@atomist/automation-client/graph/graphQL";
+import {OnEvent} from "@atomist/automation-client/onEvent";
+import {NoParameters} from "@atomist/automation-client/SmartParameters";
+import {QueryNoCacheOptions} from "@atomist/automation-client/spi/graph/GraphClient";
+import {SlackFileMessage} from "@atomist/automation-client/spi/message/MessageClient";
 import * as impact from "@atomist/clj-editors";
 import * as clj from "@atomist/clj-editors";
-import { EventHandlerRegistration } from "@atomist/sdm";
-import { SlackMessage } from "@atomist/slack-messages";
+import {actionableButton, EventHandlerRegistration} from "@atomist/sdm";
+import {SlackMessage} from "@atomist/slack-messages";
 import * as _ from "lodash";
-import {
-    GetFingerprintData,
-    PushImpactEvent,
-} from "../../typings/types";
-import {
-    ConfirmUpdate,
-    IgnoreVersion,
-    queryPreferences,
-    SetTeamLibrary,
-} from "../commands/pushImpactCommandHandlers";
+import {GetFingerprintData, PushImpactEvent} from "../../typings/types";
+import {ConfirmUpdate, IgnoreVersion, queryPreferences, SetTeamLibrary} from "../commands/pushImpactCommandHandlers";
 
 function forFingerprint(s: string): (fp: clj.FP) => boolean {
    return (fp: clj.FP) => {
@@ -81,26 +65,27 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
                     fallback: "none",
                     mrkdwn_in: ["text"],
                     actions: [
-                        buttonForCommand(
+                        actionableButton(
                             { text: "Accept" },
-                            ConfirmUpdate.name,
+                            // TODO remove this cast on latest SDM
+                            ConfirmUpdate as any,
                             {
                                 owner: diff.owner,
                                 repo: diff.repo,
                                 name: action.library.name,
                                 version: action.library.version,
                             }),
-                        buttonForCommand(
+                        actionableButton(
                             { text: "Set as target" },
-                            SetTeamLibrary.name,
+                            SetTeamLibrary,
                             {
                                 name: action.library.name,
                                 version: action.current,
                             },
                         ),
-                        buttonForCommand(
+                        actionableButton(
                             { text: "Ignore" },
-                            IgnoreVersion.name,
+                            IgnoreVersion,
                             {
                                 name: action.library.name,
                                 version: action.library.version,
