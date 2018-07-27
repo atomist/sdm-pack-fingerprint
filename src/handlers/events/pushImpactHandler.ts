@@ -28,11 +28,11 @@ import {
     SetTeamLibrary,
 } from "../commands/pushImpactCommandHandlers";
 
-function forFingerprint(s:string): (fp: clj.FP) => boolean {
+function forFingerprint(s: string): (fp: clj.FP) => boolean {
    return (fp: clj.FP) => {
        logger.info(`check fp ${fp.name}`);
        return (fp.name === s);
-   }
+   };
 }
 
 function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: string) => Promise<string> {
@@ -40,8 +40,8 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: st
         return ctx.graphClient.query<GetFingerprintData.Query, GetFingerprintData.Variables>({
             name: "get-fingerprint",
             variables: {
-                sha: sha,
-                name: name,
+                sha,
+                name,
             },
             options: QueryNoCacheOptions,
         })
@@ -50,11 +50,11 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: st
                 const fingerprints =
                     _.get(result, "Commit[0].fingerprints") as GetFingerprintData.Fingerprints[];
                 if (fingerprints) {
-                    return fingerprints[0].data as string;
+                    return fingerprints[0].data;
                 }
                 return "{}";
             })
-            .catch((reason) => {
+            .catch(reason => {
                 logger.info(`error getting fingerprint data ${reason}`);
                 return "{}";
             });
@@ -70,13 +70,13 @@ async function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff) {
     return ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }
 
-function libraryEditorChoiceMessage(ctx: HandlerContext,diff: impact.Diff): 
-    (s: string, action: {library:{ name: string, version: string }, current: string}) => Promise<any> {
+function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
+    (s: string, action: {library: { name: string, version: string }, current: string}) => Promise<any> {
     return async (text, action) => {
         const message: SlackMessage = {
             attachments: [
                 {
-                    text: text,
+                    text,
                     color: "#45B254",
                     fallback: "none",
                     mrkdwn_in: ["text"],
@@ -110,7 +110,7 @@ function libraryEditorChoiceMessage(ctx: HandlerContext,diff: impact.Diff):
                 },
             ],
         };
-        //return ctx.messageClient.send(message, await addressSlackChannelsFromContext(ctx, diff.channel));
+        // return ctx.messageClient.send(message, await addressSlackChannelsFromContext(ctx, diff.channel));
         return ctx.messageClient.addressChannels(message, diff.channel);
     };
 }
@@ -137,6 +137,8 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> =
                         checkLibraryGoals(ctx, diff);
                     },
                     diffAction: (diff: clj.Diff) => {
+                        // TODO RJ: diffAction should really be an async function as renderDiffSnippet returns a promise
+                        // tslint:disable-next-line:no-floating-promises
                         renderDiffSnippet(ctx, diff);
                     },
                 },

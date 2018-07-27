@@ -6,21 +6,19 @@ import {
     PushImpactListenerInvocation,
 } from "@atomist/sdm";
 import { metadata } from "@atomist/sdm/api-helper/misc/extensionPack";
-import { PushImpactHandler } from "../handlers/events/pushImpactHandler";
-import { MavenFingerprinter } from "@atomist/sdm-pack-spring";
 import {
+    BroadcastNudge,
+    ChooseTeamLibrary,
+    ClearLibraryTargets,
     ConfirmUpdate,
     IgnoreVersion,
     SetTeamLibrary,
     ShowGoals,
-    ChooseTeamLibrary,
-    ClearLibraryTargets,
-    BroadcastNudge
 } from "../handlers/commands/pushImpactCommandHandlers";
-import { File } from "@atomist/automation-client/project/File";
+import { PushImpactHandler } from "../handlers/events/pushImpactHandler";
 
 function abbreviation(name: string): string {
-    switch(name) {
+    switch (name) {
         case "npm-project-deps": {
             return "npm-deps";
         }
@@ -28,9 +26,9 @@ function abbreviation(name: string): string {
             return "lein-deps";
         }
         case "maven-project-deps": {
-            return "maven-deps"
+            return "maven-deps";
         }
-    };
+    }
     return "unknown";
 }
 
@@ -39,12 +37,12 @@ const projectDeps: PushImpactListener<FingerprinterResult> =
         try {
             return clj.fingerprint(i.project.baseDir, (name, version, data) => {
                 return [{
-                    "name": name,
-                    "version": version,
-                    "abbreviation": abbreviation(name),
-                    "sha": clj.sha256(data),
-                    "data": data,
-                    "value": data
+                    name,
+                    version,
+                    abbreviation: abbreviation(name),
+                    sha: clj.sha256(data),
+                    data,
+                    value: data,
                 }];
             });
         } catch (err) {
@@ -74,7 +72,7 @@ export const FingerprintSupport: ExtensionPack = {
             })
             .addFingerprinterRegistration({
                 name: "js-fingerprinter",
-                action: async (i: PushImpactListenerInvocation) => {
+                action: async i => {
                     return [];
                 },
             });
