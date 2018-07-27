@@ -20,7 +20,7 @@
     "url": "https://github.com/atomist/sdm-pack-fingerprints/issues"
   },
   "dependencies": {
-    "@atomist/clj-editors": "0.3.1"
+    "@atomist/clj-editors": "0.3.2"
   },
   "peerDependencies": {
     "@atomist/automation-client": "^0.18.0",

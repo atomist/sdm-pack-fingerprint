@@ -115,13 +115,10 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = (event, ctx) => 
             [
                 {
                     selector: forFingerprint("npm-project-deps"),
-                    action: (diff: clj.Diff) => {
-                        logger.info(`check for goal diffs here`);
+                    action: async (diff: clj.Diff) => {
                         checkLibraryGoals(ctx, diff);
                     },
-                    diffAction: (diff: clj.Diff) => {
-                        // TODO RJ: diffAction should really be an async function as renderDiffSnippet returns a promise
-                        // tslint:disable-next-line:no-floating-promises
+                    diffAction: async (diff: clj.Diff) => {
                         renderDiffSnippet(ctx, diff);
                     },
                 },
