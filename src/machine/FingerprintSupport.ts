@@ -34,23 +34,20 @@ function abbreviation(name: string): string {
 
 const projectDeps: PushImpactListener<FingerprinterResult> =
     async (i: PushImpactListenerInvocation) => {
-        try {
-            return clj.fingerprint(i.project.baseDir, (name, version, data) => {
-                return [{
-                    name,
-                    version,
-                    abbreviation: abbreviation(name),
-                    sha: clj.sha256(data),
-                    data,
-                    value: data,
-                }];
-            });
-        } catch (err) {
-            return [];
-        }
+        return clj.fingerprint(i.project.baseDir)
+        .then(
+            (result: clj.FP[]) => {
+                return result.map(
+                    (fingerprint: clj.FP) => {
+                        return fingerprint;
+                    })
+        })
+        .catch(
+            error => {
+                return [];
+            }    
+        );
     };
-
-    // npm-project-deps and clojure-project-deps
 
 export const FingerprintSupport: ExtensionPack = {
     ...metadata(),
