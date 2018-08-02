@@ -40,12 +40,12 @@ const projectDeps: PushImpactListener<FingerprinterResult> =
                 return result.map(
                     (fingerprint: clj.FP) => {
                         return fingerprint;
-                    })
+                    });
         })
         .catch(
             error => {
                 return [];
-            }    
+            },
         );
     };
 
