@@ -43,7 +43,7 @@ const projectDeps: PushImpactListener<FingerprinterResult> =
         .catch(
             error => {
                 return [];
-            }    
+            },
         );
     };
 
