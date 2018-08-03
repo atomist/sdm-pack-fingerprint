@@ -16,6 +16,7 @@ import {
     ShowGoals,
 } from "../handlers/commands/pushImpactCommandHandlers";
 import { PushImpactHandler } from "../handlers/events/pushImpactHandler";
+import { Fingerprint } from "../../node_modules/@atomist/automation-client/project/fingerprint/Fingerprint";
 
 function abbreviation(name: string): string {
     switch (name) {
@@ -37,10 +38,7 @@ const projectDeps: PushImpactListener<FingerprinterResult> =
         return clj.fingerprint(i.project.baseDir)
         .then(
             (result: clj.FP[]) => {
-                return result.map(
-                    (fingerprint: clj.FP) => {
-                        return fingerprint;
-                    })
+                return result;
         })
         .catch(
             error => {
