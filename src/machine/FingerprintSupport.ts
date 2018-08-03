@@ -16,22 +16,6 @@ import {
     ShowGoals,
 } from "../handlers/commands/pushImpactCommandHandlers";
 import { PushImpactHandler } from "../handlers/events/pushImpactHandler";
-import { Fingerprint } from "../../node_modules/@atomist/automation-client/project/fingerprint/Fingerprint";
-
-function abbreviation(name: string): string {
-    switch (name) {
-        case "npm-project-deps": {
-            return "npm-deps";
-        }
-        case "clojure-project-deps": {
-            return "lein-deps";
-        }
-        case "maven-project-deps": {
-            return "maven-deps";
-        }
-    }
-    return "unknown";
-}
 
 const projectDeps: PushImpactListener<FingerprinterResult> =
     async (i: PushImpactListenerInvocation) => {
