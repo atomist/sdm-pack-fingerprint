@@ -7,7 +7,7 @@ import {
 } from "@atomist/sdm-core";
 import {IsLein} from "@atomist/sdm-core/pack/clojure/pushTests";
 import {SoftwareDeliveryMachineConfiguration} from "@atomist/sdm/api/machine/SoftwareDeliveryMachineOptions";
-import {FingerprintSupport} from "../src";
+import {FingerprintSupport} from "..";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
