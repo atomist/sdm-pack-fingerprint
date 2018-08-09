@@ -12,7 +12,7 @@ import {
     CommandListenerInvocation,
 } from "@atomist/sdm";
 import {SlackMessage} from "@atomist/slack-messages";
-import {GitProject} from "../../../node_modules/@atomist/automation-client/project/git/GitProject";
+import {GitProject} from "@atomist/automation-client/project/git/GitProject";
 import {ChatTeamById, ChatTeamPreferences, FindLinkedReposWithFingerprint, SetTeamPreference} from "../../typings/types";
 
 @Parameters()
