@@ -1,6 +1,7 @@
 /build/
 node_modules/
 lib/typings
+doc
 *.js
 npm-debug.log
 *.d.ts

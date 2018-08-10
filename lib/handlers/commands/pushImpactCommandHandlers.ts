@@ -1,4 +1,5 @@
 import {MappedParameter, MappedParameters, Parameter, Parameters, Secret, Value} from "@atomist/automation-client";
+import {GitProject} from "@atomist/automation-client/project/git/GitProject";
 import {GraphClient, QueryNoCacheOptions} from "@atomist/automation-client/spi/graph/GraphClient";
 import {menuForCommand} from "@atomist/automation-client/spi/message/MessageClient";
 import * as goals from "@atomist/clj-editors";
@@ -12,7 +13,6 @@ import {
     CommandListenerInvocation,
 } from "@atomist/sdm";
 import {SlackMessage} from "@atomist/slack-messages";
-import {GitProject} from "@atomist/automation-client/project/git/GitProject";
 import {ChatTeamById, ChatTeamPreferences, FindLinkedReposWithFingerprint, SetTeamPreference} from "../../typings/types";
 
 @Parameters()

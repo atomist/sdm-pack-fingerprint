@@ -15,6 +15,7 @@
             true,
             "never-prefix"
         ],
+        "max-classes-per-file": [true, 5, "exclude-class-expressions"],
         "max-line-length": [
             true,
             150

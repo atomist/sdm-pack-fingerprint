@@ -116,10 +116,10 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = (event, ctx) => 
                 {
                     selector: forFingerprint("npm-project-deps"),
                     action: async (diff: clj.Diff) => {
-                        checkLibraryGoals(ctx, diff);
+                        return checkLibraryGoals(ctx, diff);
                     },
                     diffAction: async (diff: clj.Diff) => {
-                        renderDiffSnippet(ctx, diff);
+                        return renderDiffSnippet(ctx, diff);
                     },
                 },
             ],
