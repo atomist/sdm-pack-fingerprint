@@ -116,6 +116,7 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = (event, ctx) => 
                 {
                     selector: forFingerprint("npm-project-deps"),
                     action: async (diff: clj.Diff) => {
+                        // TODO make sure this is a Promise
                         return checkLibraryGoals(ctx, diff);
                     },
                     diffAction: async (diff: clj.Diff) => {

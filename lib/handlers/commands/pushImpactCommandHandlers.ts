@@ -165,6 +165,7 @@ function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version
 }
 
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>): Promise<any> {
+    // TODO return Promise here
     return goals.broadcast(
         queryFingerprints(cli.context.graphClient),
         {
@@ -205,6 +206,7 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>
 }
 
 async function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryGoalParameters>) {
+    // TODO with promise
     goals.withNewGoal(
         queryPreferences(cli.context.graphClient),
         mutatePreference(cli.context.graphClient),
@@ -217,6 +219,7 @@ async function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryG
 }
 
 async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>) {
+    // TODO with promise
     goals.withNewGoal(
         queryPreferences(cli.context.graphClient),
         mutatePreference(cli.context.graphClient),
@@ -269,6 +272,7 @@ const showGoals: CodeInspection<void, ShowGoalsParameters> = async (p, cli) => {
         return cli.addressChannels(message);
     };
 
+    // TODO async
     return goals.withProjectGoals(
         queryPreferences(cli.context.graphClient),
         (p as GitProject).baseDir,
