@@ -1,6 +1,6 @@
 {
   "name": "@atomist/sdm-pack-fingerprints",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "an Atomist SDM Extension Pack for fingerprinting code",
   "author": "Atomist, Inc.",
   "license": "Apache-2.0",
