@@ -247,7 +247,7 @@ const confirmUpdate: CodeTransform<ConfirmUpdateParameters> = async (p, cli) => 
     return p;
 };
 
-const showGoals: CodeInspection<void, ShowGoalsParameters> = async (p, cli) => {
+const showGoals: CodeInspection<boolean, ShowGoalsParameters> = async (p, cli) => {
 
     const sendMessage = (text: string, options: Array<{ text: string, value: string }>): Promise<void> => {
         const message: SlackMessage = {
@@ -272,7 +272,6 @@ const showGoals: CodeInspection<void, ShowGoalsParameters> = async (p, cli) => {
         return cli.addressChannels(message);
     };
 
-    // TODO async
     return goals.withProjectGoals(
         queryPreferences(cli.context.graphClient),
         (p as GitProject).baseDir,
@@ -319,7 +318,7 @@ export const ConfirmUpdate: CodeTransformRegistration<ConfirmUpdateParameters> =
     transform: confirmUpdate,
 };
 
-export const ShowGoals: CodeInspectionRegistration<void, ShowGoalsParameters> = {
+export const ShowGoals: CodeInspectionRegistration<boolean, ShowGoalsParameters> = {
     name: "LibraryImpactShowGoals",
     description: "show the current goals for this team",
     intent: "get library targets",
