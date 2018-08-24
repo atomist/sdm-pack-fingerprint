@@ -207,7 +207,7 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>
 
 async function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryGoalParameters>) {
     // TODO with promise
-    goals.withNewGoal(
+    await goals.withNewGoal(
         queryPreferences(cli.context.graphClient),
         mutatePreference(cli.context.graphClient),
         {
@@ -220,7 +220,7 @@ async function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryG
 
 async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>) {
     // TODO with promise
-    goals.withNewGoal(
+    await goals.withNewGoal(
         queryPreferences(cli.context.graphClient),
         mutatePreference(cli.context.graphClient),
         cli.parameters.library,

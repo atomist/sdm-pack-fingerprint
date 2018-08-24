@@ -99,17 +99,17 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
     };
 }
 
-function checkLibraryGoals(ctx: HandlerContext, diff: clj.Diff): void {
-    clj.checkLibraryGoals(
+async function checkLibraryGoals(ctx: HandlerContext, diff: clj.Diff): Promise<any> {
+    return clj.checkLibraryGoals(
         queryPreferences(ctx.graphClient),
         libraryEditorChoiceMessage(ctx, diff),
         diff,
     );
 }
 
-const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = (event, ctx) => {
+const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = async (event, ctx) => {
         logger.info("handler PushImpactEvent subscription");
-        clj.processPushImpact(
+        await clj.processPushImpact(
             event,
             getFingerprintDataCallback(ctx),
             [
