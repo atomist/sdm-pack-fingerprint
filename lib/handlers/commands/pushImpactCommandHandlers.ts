@@ -357,7 +357,7 @@ export const ClearLibraryTargets: CommandHandlerRegistration = {
     intent: "clear library targets",
     listener: async cli => {
         const mutatePreferenceUpdate = mutatePreference(cli.context.graphClient);
-        return queryChatTeamById(cli.context.graphClient, cli.context.teamId).then(
+        return queryChatTeamById(cli.context.graphClient, cli.context.workspaceId).then(
             chatTeamId => {
                 return mutatePreferenceUpdate(chatTeamId, "{}");
             },
