@@ -19,6 +19,16 @@ function forFingerprint(s: string): (fp: clj.FP) => boolean {
    };
 }
 
+function forFingerprints(...s: string[]): (fp: clj.FP) => boolean {
+    return fp => {
+       logger.info(`check fp ${fp.name} against ${s}`);
+       let m =  s.map((n:string) => {return (fp.name === n)})
+                 .reduce((acc, v) => {return acc || v});
+       logger.info(`match value:  ${m}`);
+       return m;
+    }
+}
+
 function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: string) => Promise<string> {
     return (sha, name) => {
         return ctx.graphClient.query<GetFingerprintData.Query, GetFingerprintData.Variables>({
@@ -114,15 +124,23 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = async (event, ct
             getFingerprintDataCallback(ctx),
             [
                 {
-                    selector: forFingerprint("npm-project-deps"),
+                    selector: forFingerprints("clojure-project-deps","maven-project-deps","npm-project-deps"),
                     action: async (diff: clj.Diff) => {
-                        // TODO make sure this is a Promise
                         return checkLibraryGoals(ctx, diff);
                     },
                     diffAction: async (diff: clj.Diff) => {
                         return renderDiffSnippet(ctx, diff);
                     },
                 },
+                {
+                    selector: forFingerprint("project-coordinates"),
+                    action: async (diff: clj.Diff) => {
+                        return;
+                    },
+                    diffAction: async(diff: clj.Diff) => {
+                        return ctx.messageClient.addressChannels(`change in project coords ${diff}`, diff.channel);
+                    }
+                }
             ],
         );
         return SuccessPromise;

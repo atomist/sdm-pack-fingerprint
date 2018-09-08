@@ -4,6 +4,7 @@ import {
     FingerprinterResult,
     PushImpactListener,
     PushImpactListenerInvocation,
+    logger,
 } from "@atomist/sdm";
 import { metadata } from "@atomist/sdm/api-helper/misc/extensionPack";
 import {
@@ -22,10 +23,12 @@ const projectDeps: PushImpactListener<FingerprinterResult> =
         return clj.fingerprint(i.project.baseDir)
         .then(
             (result: clj.FP[]) => {
+                logger.info("*** result *** "+result.toLocaleString());
                 return result;
         })
         .catch(
             error => {
+                logger.error(error);
                 return [];
             },
         );
