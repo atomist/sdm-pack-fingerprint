@@ -1,5 +1,6 @@
-import {MappedParameter, MappedParameters, Parameter, Parameters, Secret, Value, logger} from "@atomist/automation-client";
+import {logger, MappedParameter, MappedParameters, Parameter, Parameters, Secret, Value} from "@atomist/automation-client";
 import {GitProject} from "@atomist/automation-client/project/git/GitProject";
+import { NoParameters } from "@atomist/automation-client/SmartParameters";
 import {GraphClient, QueryNoCacheOptions} from "@atomist/automation-client/spi/graph/GraphClient";
 import {menuForCommand, SlackFileMessage} from "@atomist/automation-client/spi/message/MessageClient";
 import * as goals from "@atomist/clj-editors";
@@ -14,8 +15,6 @@ import {
 } from "@atomist/sdm";
 import {SlackMessage} from "@atomist/slack-messages";
 import {ChatTeamById, ChatTeamPreferences, FindLinkedReposWithFingerprint, SetTeamPreference} from "../../typings/types";
-import { NoParameters } from "@atomist/automation-client/SmartParameters";
-
 
 export function queryPreferences(graphClient: GraphClient): () => Promise<any> {
     return () => {
@@ -259,7 +258,7 @@ const showTargets = async (cli: CommandListenerInvocation<NoParameters>) => {
         const message: SlackFileMessage = {
             content: c,
             fileType: "text",
-            title: `Team Library Targets`,  
+            title: `Team Library Targets`,
         };
         return cli.addressChannels(message as SlackMessage);
     };
@@ -275,7 +274,7 @@ export const ShowTargets: CommandHandlerRegistration<NoParameters> = {
     description: "show the current targets",
     intent: "show targets",
     listener: showTargets,
-}
+};
 
 // ------------------------------
 // show goals
