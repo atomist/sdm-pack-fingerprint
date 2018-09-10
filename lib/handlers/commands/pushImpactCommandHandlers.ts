@@ -1,7 +1,7 @@
-import {MappedParameter, MappedParameters, Parameter, Parameters, Secret, Value} from "@atomist/automation-client";
+import {MappedParameter, MappedParameters, Parameter, Parameters, Secret, Value, logger} from "@atomist/automation-client";
 import {GitProject} from "@atomist/automation-client/project/git/GitProject";
 import {GraphClient, QueryNoCacheOptions} from "@atomist/automation-client/spi/graph/GraphClient";
-import {menuForCommand} from "@atomist/automation-client/spi/message/MessageClient";
+import {menuForCommand, SlackFileMessage} from "@atomist/automation-client/spi/message/MessageClient";
 import * as goals from "@atomist/clj-editors";
 import {
     actionableButton,
@@ -14,79 +14,8 @@ import {
 } from "@atomist/sdm";
 import {SlackMessage} from "@atomist/slack-messages";
 import {ChatTeamById, ChatTeamPreferences, FindLinkedReposWithFingerprint, SetTeamPreference} from "../../typings/types";
+import { NoParameters } from "@atomist/automation-client/SmartParameters";
 
-@Parameters()
-export class IgnoreVersionParameters {
-
-    @Parameter({required: false, displayable: false})
-    public msgId?: string;
-
-    @MappedParameter(MappedParameters.GitHubOwner)
-    public owner: string;
-
-    @MappedParameter(MappedParameters.GitHubRepository)
-    public repo: string;
-
-    @MappedParameter(MappedParameters.GitHubRepositoryProvider)
-    public providerId: string;
-
-    @Value("name")
-    public name: string;
-
-    @Value("version")
-    public version: string;
-}
-
-@Parameters()
-export class SetTeamLibraryGoalParameters {
-
-    @Parameter({required: false, displayable: false})
-    public msgId?: string;
-
-    @Parameter({required: true})
-    public name: string;
-
-    @Parameter({required: true})
-    public version: string;
-}
-
-@Parameters()
-export class ShowGoalsParameters {
-
-    @MappedParameter(MappedParameters.GitHubOwner)
-    public owner: string;
-
-    @MappedParameter(MappedParameters.GitHubRepository)
-    public repo: string;
-
-    @MappedParameter(MappedParameters.GitHubRepositoryProvider)
-    public providerId: string;
-
-    @Secret("github://user_token?scopes=repo")
-    public userToken: string;
-}
-
-@Parameters()
-export class ConfirmUpdateParameters {
-
-    @Parameter({required: false, displayable: false})
-    public msgId?: string;
-
-    @MappedParameter(MappedParameters.GitHubOwner)
-    public owner: string;
-
-    @MappedParameter(MappedParameters.GitHubRepository)
-    public repo: string;
-
-    @MappedParameter(MappedParameters.GitHubRepositoryProvider)
-    public providerId: string;
-
-    @Parameter({required: true})
-    public name: string;
-
-    @Parameter({required: true})
-    public version: string;
-}
 
 export function queryPreferences(graphClient: GraphClient): () => Promise<any> {
     return () => {
@@ -138,9 +67,46 @@ function mutatePreference(graphClient: GraphClient): (chatTeamId: string, prefsA
     };
 }
 
+// -------------------------------------
+// ignore library target
+// -------------------------------------
+
+@Parameters()
+export class IgnoreVersionParameters {
+
+    @Parameter({required: false, displayable: false})
+    public msgId?: string;
+
+    @MappedParameter(MappedParameters.GitHubOwner)
+    public owner: string;
+
+    @MappedParameter(MappedParameters.GitHubRepository)
+    public repo: string;
+
+    @MappedParameter(MappedParameters.GitHubRepositoryProvider)
+    public providerId: string;
+
+    @Value("name")
+    public name: string;
+
+    @Value("version")
+    public version: string;
+}
+
 function ignoreVersion(cli: CommandListenerInvocation<IgnoreVersionParameters>) {
     return cli.addressChannels("TODO");
 }
+
+export const IgnoreVersion: CommandHandlerRegistration<IgnoreVersionParameters> = {
+    name: "LibraryImpactIgnoreVersion",
+    description: "Allow a Project to skip one version of library goal",
+    paramsMaker: IgnoreVersionParameters,
+    listener: async cli => ignoreVersion(cli),
+};
+
+// -------------------------------------
+// set library target
+// -------------------------------------
 
 function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version: string) {
     const author = cli.context.source.slack.user.id;
@@ -162,6 +128,224 @@ function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version
                 }],
         },
     );
+}
+
+@Parameters()
+export class SetTeamLibraryGoalParameters {
+
+    @Parameter({required: false, displayable: false})
+    public msgId?: string;
+
+    @Parameter({required: true})
+    public name: string;
+
+    @Parameter({required: true})
+    public version: string;
+}
+
+async function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryGoalParameters>) {
+    // TODO with promise
+    await goals.withNewGoal(
+        queryPreferences(cli.context.graphClient),
+        mutatePreference(cli.context.graphClient),
+        {
+            name: cli.parameters.name,
+            version: cli.parameters.version,
+        },
+    );
+    return askAboutBroadcast(cli, cli.parameters.name, cli.parameters.version);
+}
+
+export const SetTeamLibrary: CommandHandlerRegistration<SetTeamLibraryGoalParameters> = {
+    name: "LibraryImpactSetTeamLibrary",
+    intent: "set library target",
+    description: "set a new target for a team to consume a particular version",
+    paramsMaker: SetTeamLibraryGoalParameters,
+    listener: async cli => setTeamLibraryGoal(cli),
+};
+
+// -------------------------------------
+// set library goal from current project
+// -------------------------------------
+
+export interface ChooseTeamLibraryGoalParameters {
+
+    msgId?: string;
+
+    library: string;
+}
+
+async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>) {
+    // TODO with promise
+    await goals.withNewGoal(
+        queryPreferences(cli.context.graphClient),
+        mutatePreference(cli.context.graphClient),
+        cli.parameters.library,
+    );
+    const args: string[] = cli.parameters.library.split(":");
+    return askAboutBroadcast(cli, args[0], args[1]);
+}
+
+export const ChooseTeamLibrary: CommandHandlerRegistration<ChooseTeamLibraryGoalParameters> = {
+    name: "LibraryImpactChooseTeamLibrary",
+    description: "set library target using version in current project",
+    parameters: {
+        msgId: {required: false, displayable: false},
+        library: {},
+    },
+    listener: chooseTeamLibraryGoal,
+};
+
+// ------------------------------
+// update a project dependency
+// ------------------------------
+
+@Parameters()
+export class ConfirmUpdateParameters {
+
+    @Parameter({required: false, displayable: false})
+    public msgId?: string;
+
+    @MappedParameter(MappedParameters.GitHubOwner)
+    public owner: string;
+
+    @MappedParameter(MappedParameters.GitHubRepository)
+    public repo: string;
+
+    @MappedParameter(MappedParameters.GitHubRepositoryProvider)
+    public providerId: string;
+
+    @Parameter({required: true})
+    public name: string;
+
+    @Parameter({required: true})
+    public version: string;
+}
+
+const confirmUpdate: CodeTransform<ConfirmUpdateParameters> = async (p, cli) => {
+    await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
+    goals.edit((p as GitProject).baseDir, cli.parameters.name, cli.parameters.version);
+    const message: SlackMessage = {
+        attachments: [
+            {
+                text: `Setting version *${cli.parameters.name}:${cli.parameters.version}* in <https://github.com/${
+                    cli.parameters.owner}/${cli.parameters.repo}|${cli.parameters.owner}/${cli.parameters.repo}> :heart_eyes:`,
+                mrkdwn_in: ["text"],
+                color: "#45B254",
+                fallback: "none",
+            },
+        ],
+    };
+    await cli.addressChannels(message);
+    return p;
+};
+
+export const ConfirmUpdate: CodeTransformRegistration<ConfirmUpdateParameters> = {
+    name: "LibraryImpactConfirmUpdate",
+    description: "choose to raise a PR on the current project for a library version update",
+    paramsMaker: ConfirmUpdateParameters,
+    transform: confirmUpdate,
+};
+
+// ------------------------------
+// show targets
+// ------------------------------
+
+const showTargets = async (cli: CommandListenerInvocation<NoParameters>) => {
+
+    const sendMessage = (options: Array<{ text: string, value: string }>): Promise<void> => {
+        const c: string = goals.renderOptions(options);
+        logger.info(`content ${c}`);
+        const message: SlackFileMessage = {
+            content: c,
+            fileType: "text",
+            title: `Team Library Targets`,  
+        };
+        return cli.addressChannels(message as SlackMessage);
+    };
+
+    return goals.withPreferences(
+        queryPreferences(cli.context.graphClient),
+        sendMessage,
+    );
+};
+
+export const ShowTargets: CommandHandlerRegistration<NoParameters> = {
+    name: "ShowTargets",
+    description: "show the current targets",
+    intent: "show targets",
+    listener: showTargets,
+}
+
+// ------------------------------
+// show goals
+// ------------------------------
+
+@Parameters()
+export class ShowGoalsParameters {
+
+    @MappedParameter(MappedParameters.GitHubOwner)
+    public owner: string;
+
+    @MappedParameter(MappedParameters.GitHubRepository)
+    public repo: string;
+
+    @MappedParameter(MappedParameters.GitHubRepositoryProvider)
+    public providerId: string;
+
+    @Secret("github://user_token?scopes=repo")
+    public userToken: string;
+}
+
+const showGoals: CodeInspection<boolean, ShowGoalsParameters> = async (p, cli) => {
+
+    const sendMessage = (text: string, options: Array<{ text: string, value: string }>): Promise<void> => {
+        const message: SlackMessage = {
+            attachments: [
+                {
+                    text,
+                    color: "#00a5ff",
+                    fallback: "none",
+                    mrkdwn_in: ["text"],
+                    actions: [
+                        menuForCommand(
+                            {
+                                text: "Add a new target ...",
+                                options,
+                            },
+                            ChooseTeamLibrary.name,
+                            "library"),
+                    ],
+                },
+            ],
+        };
+        return cli.addressChannels(message);
+    };
+
+    return goals.withProjectGoals(
+        queryPreferences(cli.context.graphClient),
+        (p as GitProject).baseDir,
+        sendMessage,
+    );
+};
+
+export const ShowGoals: CodeInspectionRegistration<boolean, ShowGoalsParameters> = {
+    name: "LibraryImpactShowGoals",
+    description: "show the current goals for this team",
+    intent: "get library targets",
+    paramsMaker: ShowGoalsParameters,
+    inspection: showGoals,
+};
+
+// ------------------------------
+// broadcast nudge
+// ------------------------------
+
+export interface BroadcastNudgeParameters {
+    name: string;
+    version: string;
+    reason: string;
+    author: string;
 }
 
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>): Promise<any> {
@@ -205,134 +389,6 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>
     );
 }
 
-async function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryGoalParameters>) {
-    // TODO with promise
-    await goals.withNewGoal(
-        queryPreferences(cli.context.graphClient),
-        mutatePreference(cli.context.graphClient),
-        {
-            name: cli.parameters.name,
-            version: cli.parameters.version,
-        },
-    );
-    return askAboutBroadcast(cli, cli.parameters.name, cli.parameters.version);
-}
-
-async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>) {
-    // TODO with promise
-    await goals.withNewGoal(
-        queryPreferences(cli.context.graphClient),
-        mutatePreference(cli.context.graphClient),
-        cli.parameters.library,
-    );
-    const args: string[] = cli.parameters.library.split(":");
-    return askAboutBroadcast(cli, args[0], args[1]);
-}
-
-const confirmUpdate: CodeTransform<ConfirmUpdateParameters> = async (p, cli) => {
-    await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
-    goals.edit((p as GitProject).baseDir, cli.parameters.name, cli.parameters.version);
-    const message: SlackMessage = {
-        attachments: [
-            {
-                text: `Setting version *${cli.parameters.name}:${cli.parameters.version}* in <https://github.com/${
-                    cli.parameters.owner}/${cli.parameters.repo}|${cli.parameters.owner}/${cli.parameters.repo}> :heart_eyes:`,
-                mrkdwn_in: ["text"],
-                color: "#45B254",
-                fallback: "none",
-            },
-        ],
-    };
-    await cli.addressChannels(message);
-    return p;
-};
-
-const showGoals: CodeInspection<boolean, ShowGoalsParameters> = async (p, cli) => {
-
-    const sendMessage = (text: string, options: Array<{ text: string, value: string }>): Promise<void> => {
-        const message: SlackMessage = {
-            attachments: [
-                {
-                    text,
-                    color: "#00a5ff",
-                    fallback: "none",
-                    mrkdwn_in: ["text"],
-                    actions: [
-                        menuForCommand(
-                            {
-                                text: "Add a new target ...",
-                                options,
-                            },
-                            ChooseTeamLibrary.name,
-                            "library"),
-                    ],
-                },
-            ],
-        };
-        return cli.addressChannels(message);
-    };
-
-    return goals.withProjectGoals(
-        queryPreferences(cli.context.graphClient),
-        (p as GitProject).baseDir,
-        sendMessage,
-    );
-};
-
-export const IgnoreVersion: CommandHandlerRegistration<IgnoreVersionParameters> = {
-    name: "LibraryImpactIgnoreVersion",
-    description: "Allow a Project to skip one version of library goal",
-    paramsMaker: IgnoreVersionParameters,
-    listener: async cli => ignoreVersion(cli),
-};
-
-export const SetTeamLibrary: CommandHandlerRegistration<SetTeamLibraryGoalParameters> = {
-    name: "LibraryImpactSetTeamLibrary",
-    intent: "set library target",
-    description: "set a new target for a team to consume a particular version",
-    paramsMaker: SetTeamLibraryGoalParameters,
-    listener: async cli => setTeamLibraryGoal(cli),
-};
-
-export interface ChooseTeamLibraryGoalParameters {
-
-    msgId?: string;
-
-    library: string;
-}
-
-export const ChooseTeamLibrary: CommandHandlerRegistration<ChooseTeamLibraryGoalParameters> = {
-    name: "LibraryImpactChooseTeamLibrary",
-    description: "set library target using version in current project",
-    parameters: {
-        msgId: {required: false, displayable: false},
-        library: {},
-    },
-    listener: chooseTeamLibraryGoal,
-};
-
-export const ConfirmUpdate: CodeTransformRegistration<ConfirmUpdateParameters> = {
-    name: "LibraryImpactConfirmUpdate",
-    description: "choose to raise a PR on the current project for a library version update",
-    paramsMaker: ConfirmUpdateParameters,
-    transform: confirmUpdate,
-};
-
-export const ShowGoals: CodeInspectionRegistration<boolean, ShowGoalsParameters> = {
-    name: "LibraryImpactShowGoals",
-    description: "show the current goals for this team",
-    intent: "get library targets",
-    paramsMaker: ShowGoalsParameters,
-    inspection: showGoals,
-};
-
-export interface BroadcastNudgeParameters {
-    name: string;
-    version: string;
-    reason: string;
-    author: string;
-}
-
 export const BroadcastNudge: CommandHandlerRegistration<BroadcastNudgeParameters> = {
     name: "BroadcastNudge",
     description: "message all Channels linked to Repos that contain a library",
@@ -350,6 +406,10 @@ export const BroadcastNudge: CommandHandlerRegistration<BroadcastNudgeParameters
     },
     listener: broadcastNudge,
 };
+
+// ------------------------------
+// clear library targets
+// ------------------------------
 
 export const ClearLibraryTargets: CommandHandlerRegistration = {
     name: "ClearLibraryTargets",

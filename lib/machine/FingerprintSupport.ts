@@ -15,6 +15,7 @@ import {
     IgnoreVersion,
     SetTeamLibrary,
     ShowGoals,
+    ShowTargets,
 } from "../handlers/commands/pushImpactCommandHandlers";
 import { PushImpactHandler } from "../handlers/events/pushImpactHandler";
 
@@ -47,6 +48,7 @@ export const FingerprintSupport: ExtensionPack = {
         sdm.addCommand(ChooseTeamLibrary);
         sdm.addCommand(ClearLibraryTargets);
         sdm.addCommand(BroadcastNudge);
+        sdm.addCommand(ShowTargets);
 
         sdm.addFingerprinterRegistration({
                 name: "deps-fingerprinter",

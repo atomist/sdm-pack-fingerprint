@@ -35,9 +35,9 @@
   "devDependencies": {
     "@atomist/automation-client": "^1.0.0-M.3",
     "@atomist/cli": "^1.0.0-M.3",
-    "@atomist/clj-editors": "^0.4.0",
-    "@atomist/sdm": "^1.0.0-M.3",
-    "@atomist/sdm-core": "^1.0.0-M.3",
+    "@atomist/clj-editors": "^0.4.1",
+    "@atomist/sdm": "^1.0.0-master.20180909210749",
+    "@atomist/sdm-core": "^1.0.0-fingerprints.20180908222943",
     "@atomist/slack-messages": "^1.0.0",
     "@types/lodash": "^4.14.116",
     "@types/mocha": "^2.2.48",
