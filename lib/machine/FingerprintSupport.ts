@@ -17,10 +17,13 @@
 import * as clj from "@atomist/clj-editors";
 import {
     ExtensionPack,
+    Fingerprint,
+    FingerprinterRegistration,
     FingerprinterResult,
     logger,
     PushImpactListener,
     PushImpactListenerInvocation,
+    SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import { metadata } from "@atomist/sdm/api-helper/misc/extensionPack";
 import {
@@ -38,43 +41,52 @@ import { PushImpactHandler } from "../handlers/events/pushImpactHandler";
 const projectDeps: PushImpactListener<FingerprinterResult> =
     async (i: PushImpactListenerInvocation) => {
         return clj.fingerprint(i.project.baseDir)
-        .then(
-            (result: clj.FP[]) => {
-                logger.info("*** result *** " + result.toLocaleString());
-                return result;
-        })
-        .catch(
-            error => {
-                logger.error(error);
-                return [];
-            },
-        );
+            .then(
+                (result: clj.FP[]) => {
+                    logger.info("Fingerprint result: %s", JSON.stringify(result));
+                    return result;
+                })
+            .catch(
+                error => {
+                    logger.error(error);
+                    return [];
+                },
+            );
     };
+
+export const DepsFingerprintRegistration: FingerprinterRegistration = {
+    name: "deps-fingerprinter",
+    action: projectDeps,
+};
+
+export function fingerprintSupport(goals: Fingerprint | Fingerprint[] = []): ExtensionPack {
+    (Array.isArray(goals) ? goals : [goals]).forEach(g => g.with(DepsFingerprintRegistration));
+
+    return {
+        ...metadata(),
+        configure,
+    };
+}
 
 export const FingerprintSupport: ExtensionPack = {
     ...metadata(),
     configure: sdm => {
 
-        sdm.addEvent(PushImpactHandler);
+        configure(sdm);
 
-        sdm.addCommand(IgnoreVersion);
-        sdm.addCodeTransformCommand(ConfirmUpdate);
-        sdm.addCommand(SetTeamLibrary);
-        sdm.addCodeInspectionCommand(ShowGoals);
-        sdm.addCommand(ChooseTeamLibrary);
-        sdm.addCommand(ClearLibraryTargets);
-        sdm.addCommand(BroadcastNudge);
-        sdm.addCommand(ShowTargets);
-
-        sdm.addFingerprinterRegistration({
-                name: "deps-fingerprinter",
-                action: projectDeps,
-            })
-            .addFingerprinterRegistration({
-                name: "js-fingerprinter",
-                action: async i => {
-                    return [];
-                },
-            });
+        sdm.addFingerprinterRegistration(DepsFingerprintRegistration);
     },
 };
+
+function configure(sdm: SoftwareDeliveryMachine): void {
+    sdm.addEvent(PushImpactHandler);
+
+    sdm.addCommand(IgnoreVersion);
+    sdm.addCodeTransformCommand(ConfirmUpdate);
+    sdm.addCommand(SetTeamLibrary);
+    sdm.addCodeInspectionCommand(ShowGoals);
+    sdm.addCommand(ChooseTeamLibrary);
+    sdm.addCommand(ClearLibraryTargets);
+    sdm.addCommand(BroadcastNudge);
+    sdm.addCommand(ShowTargets);
+}

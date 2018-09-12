@@ -14,4 +14,8 @@
  * limitations under the License.
  */
 
-export { FingerprintSupport } from "./lib/machine/FingerprintSupport";
+export {
+    FingerprintSupport,
+    fingerprintSupport,
+    DepsFingerprintRegistration,
+} from "./lib/machine/FingerprintSupport";
