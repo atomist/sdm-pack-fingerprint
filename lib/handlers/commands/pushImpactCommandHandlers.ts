@@ -84,7 +84,7 @@ export function queryFingerprints(graphClient: GraphClient): (name: string) => P
     return async name => {
         return graphClient.query<FindLinkedReposWithFingerprint.Query, FindLinkedReposWithFingerprint.Variables>(
             {
-                name: "find-linked-repos-with-fingerprint",
+                name: "findLinkedReposWithFingerprint",
                 options: QueryNoCacheOptions,
                 variables: {
                     name,
