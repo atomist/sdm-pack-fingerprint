@@ -64,7 +64,7 @@ function forFingerprints(...s: string[]): (fp: clj.FP) => boolean {
 function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: string) => Promise<string> {
     return (sha, name) => {
         return ctx.graphClient.query<GetFingerprintData.Query, GetFingerprintData.Variables>({
-            name: "get-fingerprint",
+            name: "GetFingerprintData",
             variables: {
                 sha,
                 name,
@@ -182,6 +182,6 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = async (event, ct
 export const PushImpactHandler: EventHandlerRegistration<PushImpactEvent.Subscription, NoParameters> = {
     name: "PushImpactHandler",
     description: "Register push impact handling functions",
-    subscription: subscription("push-impact"),
+    subscription: subscription("PushImpactEvent"),
     listener: PushImpactHandle,
 };

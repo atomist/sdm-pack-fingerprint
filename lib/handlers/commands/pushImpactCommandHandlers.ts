@@ -62,7 +62,7 @@ import {
 export function queryPreferences(graphClient: GraphClient): () => Promise<any> {
     return () => {
         return graphClient.query<ChatTeamPreferences.Query, ChatTeamPreferences.Variables>(
-            { name: "chat-team-preferences", options: QueryNoCacheOptions },
+            { name: "chatTeamPreferences", options: QueryNoCacheOptions },
         );
     };
 }
@@ -70,7 +70,7 @@ export function queryPreferences(graphClient: GraphClient): () => Promise<any> {
 const queryChatTeamById = async (graphClient: GraphClient, teamid: string): Promise<string> => {
     return graphClient.query<ChatTeamById.Query, ChatTeamById.Variables>(
         {
-            name: "chat-team-by-id",
+            name: "chatTeamById",
             variables: { id: teamid },
         },
     ).then(
@@ -98,7 +98,7 @@ function mutatePreference(graphClient: GraphClient): (chatTeamId: string, prefsA
     return (chatTeamId, prefsAsJson): Promise<any> => {
         return graphClient.mutate<SetTeamPreference.Mutation, SetTeamPreference.Variables>(
             {
-                name: "set-chat-team-preference",
+                name: "setTeamPreference",
                 variables: {
                     name: "atomist:fingerprints:clojure:project-deps",
                     value: prefsAsJson,
