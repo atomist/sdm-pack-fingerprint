@@ -1,8 +1,39 @@
-import {logger, MappedParameter, MappedParameters, Parameter, Parameters, Secret, Value} from "@atomist/automation-client";
-import {GitProject} from "@atomist/automation-client/project/git/GitProject";
+/*
+ * Copyright © 2018 Atomist, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {
+    logger,
+    MappedParameter,
+    MappedParameters,
+    Parameter,
+    Parameters,
+    Secret,
+    Value,
+} from "@atomist/automation-client";
+import { guid } from "@atomist/automation-client/internal/util/string";
+import { GitProject } from "@atomist/automation-client/project/git/GitProject";
 import { NoParameters } from "@atomist/automation-client/SmartParameters";
-import {GraphClient, QueryNoCacheOptions} from "@atomist/automation-client/spi/graph/GraphClient";
-import {menuForCommand, SlackFileMessage} from "@atomist/automation-client/spi/message/MessageClient";
+import {
+    GraphClient,
+    QueryNoCacheOptions,
+} from "@atomist/automation-client/spi/graph/GraphClient";
+import {
+    menuForCommand,
+    SlackFileMessage,
+} from "@atomist/automation-client/spi/message/MessageClient";
 import * as goals from "@atomist/clj-editors";
 import {
     actionableButton,
@@ -13,13 +44,25 @@ import {
     CommandHandlerRegistration,
     CommandListenerInvocation,
 } from "@atomist/sdm";
-import {SlackMessage} from "@atomist/slack-messages";
-import {ChatTeamById, ChatTeamPreferences, FindLinkedReposWithFingerprint, SetTeamPreference} from "../../typings/types";
+import {
+    bold,
+    codeLine,
+    italic,
+    SlackMessage,
+    user,
+} from "@atomist/slack-messages";
+import { footer } from "../../support/util";
+import {
+    ChatTeamById,
+    ChatTeamPreferences,
+    FindLinkedReposWithFingerprint,
+    SetTeamPreference,
+} from "../../typings/types";
 
 export function queryPreferences(graphClient: GraphClient): () => Promise<any> {
     return () => {
         return graphClient.query<ChatTeamPreferences.Query, ChatTeamPreferences.Variables>(
-            {name: "chat-team-preferences", options: QueryNoCacheOptions},
+            { name: "chat-team-preferences", options: QueryNoCacheOptions },
         );
     };
 }
@@ -28,7 +71,7 @@ const queryChatTeamById = async (graphClient: GraphClient, teamid: string): Prom
     return graphClient.query<ChatTeamById.Query, ChatTeamById.Variables>(
         {
             name: "chat-team-by-id",
-            variables: {id: teamid},
+            variables: { id: teamid },
         },
     ).then(
         result => {
@@ -73,7 +116,7 @@ function mutatePreference(graphClient: GraphClient): (chatTeamId: string, prefsA
 @Parameters()
 export class IgnoreVersionParameters {
 
-    @Parameter({required: false, displayable: false})
+    @Parameter({ required: false, displayable: false })
     public msgId?: string;
 
     @MappedParameter(MappedParameters.GitHubOwner)
@@ -113,17 +156,22 @@ function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version
         {
             attachments:
                 [{
-                    text: `Shall we nudge everyone with a PR for ${name}/${version}`,
-                    fallback: "none",
+                    author_name: "Broadcast Library Target",
+                    author_icon: `https://images.atomist.com/rug/warning-yellow.png`,
+                    text: `Shall we nudge everyone with a PR for ${codeLine(`${name}:${version}`)}?`,
+                    fallback: `Boardcast PR for ${name}:${version}`,
+                    color: "#ffcc00",
+                    mrkdwn_in: ["text"],
                     actions: [
                         actionableButton(
                             {
-                                text: "broadcast",
+                                text: "Broadcast",
                             },
                             BroadcastNudge,
-                            {name, version, author},
+                            { name, version, author },
                         ),
                     ],
+                    footer: footer(),
                 }],
         },
     );
@@ -132,13 +180,13 @@ function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version
 @Parameters()
 export class SetTeamLibraryGoalParameters {
 
-    @Parameter({required: false, displayable: false})
+    @Parameter({ required: false, displayable: false })
     public msgId?: string;
 
-    @Parameter({required: true})
+    @Parameter({ required: true })
     public name: string;
 
-    @Parameter({required: true})
+    @Parameter({ required: true })
     public version: string;
 }
 
@@ -189,7 +237,7 @@ export const ChooseTeamLibrary: CommandHandlerRegistration<ChooseTeamLibraryGoal
     name: "LibraryImpactChooseTeamLibrary",
     description: "set library target using version in current project",
     parameters: {
-        msgId: {required: false, displayable: false},
+        msgId: { required: false, displayable: false },
         library: {},
     },
     listener: chooseTeamLibraryGoal,
@@ -202,7 +250,7 @@ export const ChooseTeamLibrary: CommandHandlerRegistration<ChooseTeamLibraryGoal
 @Parameters()
 export class ConfirmUpdateParameters {
 
-    @Parameter({required: false, displayable: false})
+    @Parameter({ required: false, displayable: false })
     public msgId?: string;
 
     @MappedParameter(MappedParameters.GitHubOwner)
@@ -214,24 +262,27 @@ export class ConfirmUpdateParameters {
     @MappedParameter(MappedParameters.GitHubRepositoryProvider)
     public providerId: string;
 
-    @Parameter({required: true})
+    @Parameter({ required: true })
     public name: string;
 
-    @Parameter({required: true})
+    @Parameter({ required: true })
     public version: string;
 }
 
 const confirmUpdate: CodeTransform<ConfirmUpdateParameters> = async (p, cli) => {
-    await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
+    // await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
     goals.edit((p as GitProject).baseDir, cli.parameters.name, cli.parameters.version);
     const message: SlackMessage = {
         attachments: [
             {
-                text: `Setting version *${cli.parameters.name}:${cli.parameters.version}* in <https://github.com/${
-                    cli.parameters.owner}/${cli.parameters.repo}|${cli.parameters.owner}/${cli.parameters.repo}> :heart_eyes:`,
+                author_name: "Library Update",
+                author_icon: `https://images.atomist.com/rug/check-circle.gif?gif=${guid()}`,
+                text: `Updating version to \`${cli.parameters.name}:${cli.parameters.version}\` in <https://github.com/${
+                    cli.parameters.owner}/${cli.parameters.repo}|${cli.parameters.owner}/${cli.parameters.repo}>`,
                 mrkdwn_in: ["text"],
                 color: "#45B254",
                 fallback: "none",
+                footer: footer(),
             },
         ],
     };
@@ -258,7 +309,7 @@ const showTargets = async (cli: CommandListenerInvocation<NoParameters>) => {
         const message: SlackFileMessage = {
             content: c,
             fileType: "text",
-            title: `Team Library Targets`,
+            title: `Library Targets`,
         };
         return cli.addressChannels(message as SlackMessage);
     };
@@ -302,9 +353,10 @@ const showGoals: CodeInspection<boolean, ShowGoalsParameters> = async (p, cli) =
         const message: SlackMessage = {
             attachments: [
                 {
+                    author_name: "Library Targets",
                     text,
                     color: "#00a5ff",
-                    fallback: "none",
+                    fallback: "Library Targets",
                     mrkdwn_in: ["text"],
                     actions: [
                         menuForCommand(
@@ -315,6 +367,7 @@ const showGoals: CodeInspection<boolean, ShowGoalsParameters> = async (p, cli) =
                             ChooseTeamLibrary.name,
                             "library"),
                     ],
+                    footer: footer(),
                 },
             ],
         };
@@ -359,19 +412,24 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>
             const message: SlackMessage = {
                 attachments: [
                     {
-                        text: `@${cli.parameters.author} has updated the target version of
-                               ${cli.parameters.name}.  The reason provided is:\n
-                               > ${cli.parameters.reason}`,
-                        fallback: "none",
+                        author_name: "Library Update",
+                        author_icon: `https://images.atomist.com/rug/warning-yellow.png`,
+                        text: `${user(cli.parameters.author)} has updated the target version of \`${cli.parameters.name}\`.
+
+The reason provided is:
+
+${italic(cli.parameters.reason)}`,
+                        fallback: "Library Update",
                         mrkdwn_in: ["text"],
+                        color: "#ffcc00",
                     },
                     {
-                        text: `Shall we update library ${cli.parameters.name} to ${cli.parameters.version}?`,
+                        text: `Shall we update library \`${cli.parameters.name}\` to ${bold(cli.parameters.version)}?`,
                         fallback: "none",
                         actions: [
                             actionableButton(
                                 {
-                                    text: "create PR",
+                                    text: "Raise PR",
                                 },
                                 ConfirmUpdate,
                                 {
@@ -380,6 +438,8 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>
                                 },
                             ),
                         ],
+                        color: "#ffcc00",
+                        footer: footer(),
                     },
                 ],
             };
@@ -392,8 +452,8 @@ export const BroadcastNudge: CommandHandlerRegistration<BroadcastNudgeParameters
     name: "BroadcastNudge",
     description: "message all Channels linked to Repos that contain a library",
     parameters: {
-        name: {required: true},
-        version: {required: true},
+        name: { required: true },
+        version: { required: true },
         reason: {
             required: true,
             description: "always give a reason why we're releasing the nudge",
