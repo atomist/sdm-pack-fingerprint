@@ -15,7 +15,7 @@
  */
 
 import {Configuration} from "@atomist/automation-client";
-import {PushTest, pushTest, SoftwareDeliveryMachine, whenPushSatisfies, Fingerprint} from "@atomist/sdm";
+import {Fingerprint, PushTest, pushTest, SoftwareDeliveryMachine, whenPushSatisfies} from "@atomist/sdm";
 import {
     configureSdm,
     createSoftwareDeliveryMachine,
