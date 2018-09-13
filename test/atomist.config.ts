@@ -15,14 +15,14 @@
  */
 
 import {Configuration} from "@atomist/automation-client";
-import {FingerprintGoal, PushTest, pushTest, SoftwareDeliveryMachine, whenPushSatisfies} from "@atomist/sdm";
+import {PushTest, pushTest, SoftwareDeliveryMachine, whenPushSatisfies, Fingerprint} from "@atomist/sdm";
 import {
     configureSdm,
     createSoftwareDeliveryMachine,
 
 } from "@atomist/sdm-core";
 import {SoftwareDeliveryMachineConfiguration} from "@atomist/sdm/api/machine/SoftwareDeliveryMachineOptions";
-import {FingerprintSupport} from "..";
+import { fingerprintSupport } from "..";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -30,6 +30,8 @@ const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
 const IsLein: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("project.clj")),
 );
+
+export const FingerprintGoal = new Fingerprint();
 
 export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
 
@@ -44,10 +46,9 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             .itMeans("fingeprint an npm project")
             .setGoals(FingerprintGoal));
 
-    sdm.addExtensionPacks(FingerprintSupport);
+    sdm.addExtensionPacks(fingerprintSupport(FingerprintGoal));
 
     return sdm;
-
 }
 
 export const configuration: Configuration = {

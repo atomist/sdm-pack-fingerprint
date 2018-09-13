@@ -14,22 +14,38 @@ software.
 
 ## Usage
 
-1. Add the extension pack to your machine
+Make the following updates to your machine:
+
+1. Add the imports and create a Goal to represent dependency fingerprinting
 
 ```
-import { FingerprintSupport } from "@atomist/sdm-pack-fingerprints"
+import { fingerprintSupport } from "@atomist/sdm-pack-fingerprints";
+import { Fingerprint } from "@atomist/sdm";
 
-sdm.addExtensionPacks(
-    FingerprintSupport
-)
+// create a goal to fingerprint all new Pushes
+export FingerprintGoal = new Fingerprint();
 ```
 
-2. Enable the `FingerprintGoal` in some push rules
+2. Enable the `FingerprintGoal` for some push rules.  Normally, this is done as part of creating your machine:
 
 ```
-whenPushSatisfies(IsLein)
-            .itMeans("run some fingerprints on your clojure code")
-            .setGoals([FingerprintGoal]),
+    // there will usually be more than one Push rule here
+    const sdm = createSoftwareDeliveryMachine({
+            ...config
+        },
+        whenPushSatisfies(IsLein)
+            .itMeans("fingerprint a clojure project")
+            .setGoals(FingerprintGoal));
+
+```
+
+3.  Add the pack to your new `sdm` definition
+
+```
+    // add this pack to your SDM
+    sdm.addExtensionPacks(
+        fingerprintSupport(FingerprintGoal),
+    )
 ```
 
 ## Support

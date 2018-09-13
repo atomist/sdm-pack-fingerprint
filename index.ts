@@ -15,7 +15,6 @@
  */
 
 export {
-    FingerprintSupport,
     fingerprintSupport,
     DepsFingerprintRegistration,
 } from "./lib/machine/FingerprintSupport";
