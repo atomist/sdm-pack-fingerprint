@@ -68,16 +68,6 @@ export function fingerprintSupport(goals: Fingerprint | Fingerprint[] = []): Ext
     };
 }
 
-export const FingerprintSupport: ExtensionPack = {
-    ...metadata(),
-    configure: sdm => {
-
-        configure(sdm);
-
-        sdm.addFingerprinterRegistration(DepsFingerprintRegistration);
-    },
-};
-
 function configure(sdm: SoftwareDeliveryMachine): void {
     sdm.addEvent(PushImpactHandler);
 

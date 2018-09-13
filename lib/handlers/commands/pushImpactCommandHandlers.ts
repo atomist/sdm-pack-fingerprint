@@ -401,7 +401,6 @@ export interface BroadcastNudgeParameters {
 }
 
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>): Promise<any> {
-    // TODO return Promise here
     return goals.broadcast(
         queryFingerprints(cli.context.graphClient),
         {
