@@ -157,7 +157,10 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = async (event, ct
         getFingerprintDataCallback(ctx),
         [
             {
-                selector: forFingerprints("clojure-project-deps", "maven-project-deps", "npm-project-deps"),
+                selector: forFingerprints(
+                    "clojure-project-deps", 
+                    "maven-project-deps", 
+                    "npm-project-deps"),
                 action: async (diff: clj.Diff) => {
                     return checkLibraryGoals(ctx, diff);
                 },
@@ -166,12 +169,17 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = async (event, ct
                 },
             },
             {
-                selector: forFingerprint("project-coordinates"),
+                selector: forFingerprints(
+                    "clojure-project-coordinates", 
+                    "maven-project-coordinates", 
+                    "npm-project-coordinates"),
                 action: async (diff: clj.Diff) => {
                     return;
                 },
                 diffAction: async (diff: clj.Diff) => {
-                    return ctx.messageClient.addressChannels(`change in project coords ${diff}`, diff.channel);
+                    return ctx.messageClient.addressChannels(
+                        `change in ${diff.from.name} project coords ${clj.renderData(diff.data)}`, 
+                        diff.channel);
                 },
             },
         ],
