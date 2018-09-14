@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-import {Configuration} from "@atomist/automation-client";
-import {Fingerprint, PushTest, pushTest, SoftwareDeliveryMachine, whenPushSatisfies} from "@atomist/sdm";
+import { Configuration } from "@atomist/automation-client";
 import {
     configureSdm,
     createSoftwareDeliveryMachine,
-
-} from "@atomist/sdm-core";
-import {SoftwareDeliveryMachineConfiguration} from "@atomist/sdm/api/machine/SoftwareDeliveryMachineOptions";
+    Fingerprint,
+    pushTest,
+    PushTest,
+    SoftwareDeliveryMachine,
+    SoftwareDeliveryMachineConfiguration,
+    whenPushSatisfies,
+} from "@atomist/sdm";
 import { fingerprintSupport } from "..";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>

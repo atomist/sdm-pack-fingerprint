@@ -15,25 +15,21 @@
  */
 
 import {
+    GitProject,
+    GraphClient,
+    guid,
     logger,
     MappedParameter,
     MappedParameters,
+    menuForCommand,
+    NoParameters,
     Parameter,
     Parameters,
+    QueryNoCacheOptions,
     Secret,
+    SlackFileMessage,
     Value,
 } from "@atomist/automation-client";
-import { guid } from "@atomist/automation-client/internal/util/string";
-import { GitProject } from "@atomist/automation-client/project/git/GitProject";
-import { NoParameters } from "@atomist/automation-client/SmartParameters";
-import {
-    GraphClient,
-    QueryNoCacheOptions,
-} from "@atomist/automation-client/spi/graph/GraphClient";
-import {
-    menuForCommand,
-    SlackFileMessage,
-} from "@atomist/automation-client/spi/message/MessageClient";
 import * as goals from "@atomist/clj-editors";
 import {
     actionableButton,

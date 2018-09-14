@@ -17,13 +17,13 @@
 import {
     HandlerContext,
     logger,
+    NoParameters,
+    OnEvent,
+    QueryNoCacheOptions,
+    SlackFileMessage,
+    subscription,
     SuccessPromise,
 } from "@atomist/automation-client";
-import { subscription } from "@atomist/automation-client/graph/graphQL";
-import { OnEvent } from "@atomist/automation-client/onEvent";
-import { NoParameters } from "@atomist/automation-client/SmartParameters";
-import { QueryNoCacheOptions } from "@atomist/automation-client/spi/graph/GraphClient";
-import { SlackFileMessage } from "@atomist/automation-client/spi/message/MessageClient";
 import * as impact from "@atomist/clj-editors";
 import * as clj from "@atomist/clj-editors";
 import {
