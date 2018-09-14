@@ -24,9 +24,9 @@ import {
     metadata,
     PushImpactListener,
     PushImpactListenerInvocation,
-    SendFingerprintToAtomist,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
+import { SendFingerprintToAtomist } from "@atomist/sdm-core/lib/util/webhook/sendFingerprintToAtomist";
 import {
     BroadcastNudge,
     ChooseTeamLibrary,

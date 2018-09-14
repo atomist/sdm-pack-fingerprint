@@ -16,8 +16,6 @@
 
 import { Configuration } from "@atomist/automation-client";
 import {
-    configureSdm,
-    createSoftwareDeliveryMachine,
     Fingerprint,
     pushTest,
     PushTest,
@@ -25,6 +23,10 @@ import {
     SoftwareDeliveryMachineConfiguration,
     whenPushSatisfies,
 } from "@atomist/sdm";
+import {
+    configureSdm,
+    createSoftwareDeliveryMachine,
+} from "@atomist/sdm-core";
 import { fingerprintSupport } from "..";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
