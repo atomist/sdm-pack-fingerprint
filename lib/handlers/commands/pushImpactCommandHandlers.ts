@@ -503,14 +503,14 @@ export const DumpLibraryPreferences: CommandHandlerRegistration = {
                 const message: SlackFileMessage = {
                     title: "library prefs",
                     content: goals.renderData(result),
-                    fileType: "text"
+                    fileType: "text",
                 };
                 return cli.addressChannels(message);
-            }
+            },
         ).catch(
             error => {
-                return cli.addressChannels(`unable to fetch preferences ${error}`)
-            }
+                return cli.addressChannels(`unable to fetch preferences ${error}`);
+            },
         );
     },
 };
