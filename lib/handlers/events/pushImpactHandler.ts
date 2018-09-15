@@ -46,17 +46,14 @@ import {
 
 function forFingerprint(s: string): (fp: clj.FP) => boolean {
     return fp => {
-        logger.info(`check fp ${fp.name}`);
         return (fp.name === s);
     };
 }
 
 function forFingerprints(...s: string[]): (fp: clj.FP) => boolean {
     return fp => {
-        logger.info(`check fp ${fp.name} against ${s}`);
         const m = s.map((n: string) => (fp.name === n))
             .reduce((acc, v) => acc || v);
-        logger.info(`match value:  ${m}`);
         return m;
     };
 }
@@ -168,7 +165,7 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = async (event, ct
             {
                 selector: forFingerprint("project-coordinates"),
                 action: async (diff: clj.Diff) => {
-                    return;
+                    return SuccessPromise;
                 },
                 diffAction: async (diff: clj.Diff) => {
                     return ctx.messageClient.addressChannels(`change in project coords ${diff}`, diff.channel);
