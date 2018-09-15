@@ -21,12 +21,12 @@ import {
     FingerprinterRegistration,
     FingerprinterResult,
     logger,
+    metadata,
     PushImpactListener,
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import { SendFingerprintToAtomist } from "@atomist/sdm-core/util/webhook/sendFingerprintToAtomist";
-import { metadata } from "@atomist/sdm/api-helper/misc/extensionPack";
+import { SendFingerprintToAtomist } from "@atomist/sdm-core/lib/util/webhook/sendFingerprintToAtomist";
 import {
     BroadcastNudge,
     ChooseTeamLibrary,

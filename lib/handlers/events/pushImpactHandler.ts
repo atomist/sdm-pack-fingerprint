@@ -17,13 +17,13 @@
 import {
     HandlerContext,
     logger,
+    NoParameters,
+    OnEvent,
+    QueryNoCacheOptions,
+    SlackFileMessage,
     SuccessPromise,
 } from "@atomist/automation-client";
-import { subscription } from "@atomist/automation-client/graph/graphQL";
-import { OnEvent } from "@atomist/automation-client/onEvent";
-import { NoParameters } from "@atomist/automation-client/SmartParameters";
-import { QueryNoCacheOptions } from "@atomist/automation-client/spi/graph/GraphClient";
-import { SlackFileMessage } from "@atomist/automation-client/spi/message/MessageClient";
+import { subscription } from "@atomist/automation-client/lib/graph/graphQL";
 import * as impact from "@atomist/clj-editors";
 import * as clj from "@atomist/clj-editors";
 import {
@@ -43,12 +43,6 @@ import {
     queryPreferences,
     SetTeamLibrary,
 } from "../commands/pushImpactCommandHandlers";
-
-function forFingerprint(s: string): (fp: clj.FP) => boolean {
-    return fp => {
-        return (fp.name === s);
-    };
-}
 
 function forFingerprints(...s: string[]): (fp: clj.FP) => boolean {
     return fp => {
@@ -154,7 +148,10 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = async (event, ct
         getFingerprintDataCallback(ctx),
         [
             {
-                selector: forFingerprints("clojure-project-deps", "maven-project-deps", "npm-project-deps"),
+                selector: forFingerprints(
+                    "clojure-project-deps",
+                    "maven-project-deps",
+                    "npm-project-deps"),
                 action: async (diff: clj.Diff) => {
                     return checkLibraryGoals(ctx, diff);
                 },
@@ -163,12 +160,17 @@ const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = async (event, ct
                 },
             },
             {
-                selector: forFingerprint("project-coordinates"),
+                selector: forFingerprints(
+                    "clojure-project-coordinates",
+                    "maven-project-coordinates",
+                    "npm-project-coordinates"),
                 action: async (diff: clj.Diff) => {
                     return SuccessPromise;
                 },
                 diffAction: async (diff: clj.Diff) => {
-                    return ctx.messageClient.addressChannels(`change in project coords ${diff}`, diff.channel);
+                    return ctx.messageClient.addressChannels(
+                        `change in ${diff.from.name} project coords ${clj.renderData(diff.data)}`,
+                        diff.channel);
                 },
             },
         ],
