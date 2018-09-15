@@ -36,6 +36,7 @@ import {
     SetTeamLibrary,
     ShowGoals,
     ShowTargets,
+    DumpLibraryPreferences,
 } from "../handlers/commands/pushImpactCommandHandlers";
 import { PushImpactHandler } from "../handlers/events/pushImpactHandler";
 
@@ -83,4 +84,5 @@ function configure(sdm: SoftwareDeliveryMachine): void {
     sdm.addCommand(ClearLibraryTargets);
     sdm.addCommand(BroadcastNudge);
     sdm.addCommand(ShowTargets);
+    sdm.addCommand(DumpLibraryPreferences);
 }

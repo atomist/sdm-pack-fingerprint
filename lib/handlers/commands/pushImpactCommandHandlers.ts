@@ -486,3 +486,31 @@ export const ClearLibraryTargets: CommandHandlerRegistration = {
         );
     },
 };
+
+// ----------
+// show prefs
+// ----------
+
+export const DumpLibraryPreferences: CommandHandlerRegistration = {
+    name: "DumpLibraryPreferences",
+    description: "dump current prefs into a JSON file",
+    intent: "dump preferences",
+    listener: async cli => {
+        const query = queryPreferences(cli.context.graphClient);
+        return query()
+        .then(
+            result => {
+                const message: SlackFileMessage = {
+                    title: "library prefs",
+                    content: goals.renderData(result),
+                    fileType: "text"
+                };
+                return cli.addressChannels(message);
+            }
+        ).catch(
+            error => {
+                return cli.addressChannels(`unable to fetch preferences ${error}`)
+            }
+        );
+    },
+};
