@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@atomist/clj-editors": "0.5.3",
-    "@atomist/slack-messages": "1.0.1-master.20180830190736",
+    "@atomist/slack-messages": "1.0.0",
     "lodash": "^4.17.10"
   },
   "peerDependencies": {
