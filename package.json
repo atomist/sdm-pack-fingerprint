@@ -24,7 +24,7 @@
     "url": "https://github.com/atomist/sdm-pack-fingerprints/issues"
   },
   "dependencies": {
-    "@atomist/clj-editors": "0.5.3",
+    "@atomist/clj-editors": "0.5.5",
     "@atomist/slack-messages": "1.0.0",
     "lodash": "^4.17.10"
   },
