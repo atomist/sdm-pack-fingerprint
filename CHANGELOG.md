@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased](https://github.com/atomist/sdm-pack-fingerprints/compare/1.0.0-M.4...HEAD)
 
+### Fixed
+
+-   Fix GraphQL warnings. [#3](https://github.com/atomist/sdm-pack-fingerprints/issues/3)
+
 ## [1.0.0-M.4](https://github.com/atomist/sdm-pack-fingerprints/tree/1.0.0-M.4) - 2018-09-16
 
 ### Changed
