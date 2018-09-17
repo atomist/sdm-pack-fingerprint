@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 -   Fix GraphQL warnings. [#3](https://github.com/atomist/sdm-pack-fingerprints/issues/3)
+-   Remove message on project coordinate changes. [#12](https://github.com/atomist/sdm-pack-fingerprints/issues/12)
 
 ## [1.0.0-M.4](https://github.com/atomist/sdm-pack-fingerprints/tree/1.0.0-M.4) - 2018-09-16
 
