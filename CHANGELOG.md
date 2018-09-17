@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased](https://github.com/atomist/sdm-pack-fingerprints/compare/1.0.0-M.4...HEAD)
 
+### Added
+
+-   Make spammy messages optional. [#11](https://github.com/atomist/sdm-pack-fingerprints/issues/11)
+
 ### Fixed
 
 -   Fix GraphQL warnings. [#3](https://github.com/atomist/sdm-pack-fingerprints/issues/3)
