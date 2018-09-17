@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { HandlerContext } from "@atomist/automation-client";
 import * as clj from "@atomist/clj-editors";
 import {
     ExtensionPack,
@@ -38,7 +39,7 @@ import {
     ShowGoals,
     ShowTargets,
 } from "../handlers/commands/pushImpactCommandHandlers";
-import { PushImpactHandler } from "../handlers/events/pushImpactHandler";
+import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
 
 const projectDeps: PushImpactListener<FingerprinterResult> =
     async (i: PushImpactListenerInvocation) => {
@@ -61,7 +62,12 @@ export const DepsFingerprintRegistration: FingerprinterRegistration = {
     action: projectDeps,
 };
 
-export function fingerprintSupport(goals: Fingerprint | Fingerprint[] = []): ExtensionPack {
+export interface FingerprintHandler {
+    selector: (name: clj.FP) => boolean;
+    diffHandler?: (context: HandlerContext, diff: clj.Diff) => Promise<any>;
+}
+
+export function fingerprintSupport(goals: Fingerprint | Fingerprint[] = [], ...handlers: FingerprintHandler[]): ExtensionPack {
     (Array.isArray(goals) ? goals : [goals]).forEach(g => {
         g.with(DepsFingerprintRegistration);
         g.withListener(SendFingerprintToAtomist);
@@ -69,13 +75,14 @@ export function fingerprintSupport(goals: Fingerprint | Fingerprint[] = []): Ext
 
     return {
         ...metadata(),
-        configure,
+        configure: (sdm: SoftwareDeliveryMachine) => {
+            configure( sdm, handlers);
+        },
     };
 }
 
-function configure(sdm: SoftwareDeliveryMachine): void {
-    sdm.addEvent(PushImpactHandler);
-
+function configure(sdm: SoftwareDeliveryMachine, handlers: FingerprintHandler[]): void {
+    sdm.addEvent(pushImpactHandler(handlers));
     sdm.addCommand(IgnoreVersion);
     sdm.addCodeTransformCommand(ConfirmUpdate);
     sdm.addCommand(SetTeamLibrary);

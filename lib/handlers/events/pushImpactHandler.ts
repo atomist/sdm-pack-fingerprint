@@ -32,6 +32,7 @@ import {
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
+import { FingerprintHandler } from "../../machine/FingerprintSupport";
 import { footer } from "../../support/util";
 import {
     GetFingerprintData,
@@ -44,7 +45,7 @@ import {
     SetTeamLibrary,
 } from "../commands/pushImpactCommandHandlers";
 
-function forFingerprints(...s: string[]): (fp: clj.FP) => boolean {
+export function forFingerprints(...s: string[]): (fp: clj.FP) => boolean {
     return fp => {
         const m = s.map((n: string) => (fp.name === n))
             .reduce((acc, v) => acc || v);
@@ -78,7 +79,7 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: st
     };
 }
 
-async function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff) {
+export async function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff) {
     const message: SlackFileMessage = {
         content: clj.renderDiff(diff),
         fileType: "text",
@@ -142,45 +143,40 @@ async function checkLibraryGoals(ctx: HandlerContext, diff: clj.Diff): Promise<a
     );
 }
 
-const PushImpactHandle: OnEvent<PushImpactEvent.Subscription> = async (event, ctx) => {
-    await clj.processPushImpact(
-        event,
-        getFingerprintDataCallback(ctx),
-        [
-            {
-                selector: forFingerprints(
-                    "clojure-project-deps",
-                    "maven-project-deps",
-                    "npm-project-deps"),
-                action: async (diff: clj.Diff) => {
-                    return checkLibraryGoals(ctx, diff);
+function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEvent.Subscription> {
+    return async (event, ctx) => {
+        await clj.processPushImpact(
+            event,
+            getFingerprintDataCallback(ctx),
+            [
+                ...handlers.map(h => {
+                    return {
+                        selector: h.selector,
+                        diffAction: (diff: clj.Diff) => {
+                            return h.diffHandler(ctx, diff);
+                        },
+                    };
+                }),
+                {
+                    selector: forFingerprints(
+                        "clojure-project-deps",
+                        "maven-project-deps",
+                        "npm-project-deps"),
+                    action: async (diff: clj.Diff) => {
+                        return checkLibraryGoals(ctx, diff);
+                    },
                 },
-                diffAction: async (diff: clj.Diff) => {
-                    return renderDiffSnippet(ctx, diff);
-                },
-            },
-            {
-                selector: forFingerprints(
-                    "clojure-project-coordinates",
-                    "maven-project-coordinates",
-                    "npm-project-coordinates"),
-                action: async (diff: clj.Diff) => {
-                    return SuccessPromise;
-                },
-                diffAction: async (diff: clj.Diff) => {
-                    return ctx.messageClient.addressChannels(
-                        `change in ${diff.from.name} project coords ${clj.renderData(diff.data)}`,
-                        diff.channel);
-                },
-            },
-        ],
-    );
-    return SuccessPromise;
-};
+            ],
+        );
+        return SuccessPromise;
+    };
+}
 
-export const PushImpactHandler: EventHandlerRegistration<PushImpactEvent.Subscription, NoParameters> = {
-    name: "PushImpactHandler",
-    description: "Register push impact handling functions",
-    subscription: subscription("PushImpactEvent"),
-    listener: PushImpactHandle,
-};
+export function pushImpactHandler(handlers: FingerprintHandler[]): EventHandlerRegistration<PushImpactEvent.Subscription, NoParameters> {
+    return {
+        name: "PushImpactHandler",
+        description: "Register push impact handling functions",
+        subscription: subscription("PushImpactEvent"),
+        listener: pushImpactHandle(handlers),
+    };
+}

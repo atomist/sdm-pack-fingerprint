@@ -15,6 +15,7 @@
  */
 
 import { Configuration } from "@atomist/automation-client";
+import { renderData } from "@atomist/clj-editors";
 import {
     Fingerprint,
     pushTest,
@@ -27,7 +28,7 @@ import {
     configureSdm,
     createSoftwareDeliveryMachine,
 } from "@atomist/sdm-core";
-import { fingerprintSupport } from "..";
+import { fingerprintSupport, forFingerprints, renderDiffSnippet } from "..";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -51,7 +52,29 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             .itMeans("fingeprint an npm project")
             .setGoals(FingerprintGoal));
 
-    sdm.addExtensionPacks(fingerprintSupport(FingerprintGoal));
+    sdm.addExtensionPacks(
+        fingerprintSupport(
+            FingerprintGoal,
+            {
+                selector: forFingerprints(
+                    "clojure-project-deps",
+                    "maven-project-deps",
+                    "npm-project-deps"),
+                diffHandler: renderDiffSnippet,
+            },
+            {
+                selector: forFingerprints(
+                    "clojure-project-coordinates",
+                    "maven-project-coordinates",
+                    "npm-project-coordinates"),
+                diffHandler: (ctx, diff) => {
+                    return ctx.messageClient.addressChannels(
+                        `change in ${diff.from.name} project coords ${renderData(diff.data)}`,
+                        diff.channel);
+                },
+            },
+        ),
+    );
 
     return sdm;
 }

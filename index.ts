@@ -18,3 +18,7 @@ export {
     fingerprintSupport,
     DepsFingerprintRegistration,
 } from "./lib/machine/FingerprintSupport";
+export {
+    forFingerprints,
+    renderDiffSnippet,
+} from "./lib/handlers/events/pushImpactHandler";
