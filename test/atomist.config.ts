@@ -28,7 +28,11 @@ import {
     configureSdm,
     createSoftwareDeliveryMachine,
 } from "@atomist/sdm-core";
-import { fingerprintSupport, forFingerprints, renderDiffSnippet } from "..";
+import {
+    fingerprintSupport,
+    forFingerprints,
+    renderDiffSnippet,
+} from "..";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
