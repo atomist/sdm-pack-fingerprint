@@ -118,7 +118,7 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
                             },
                         ),
                         actionableButton(
-                            { text: "Ignore" },
+                            { text: "TODO" },
                             IgnoreVersion,
                             {
                                 name: action.library.name,
