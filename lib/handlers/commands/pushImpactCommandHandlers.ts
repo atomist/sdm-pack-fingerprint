@@ -146,7 +146,7 @@ export class IgnoreVersionParameters {
 }
 
 async function ignoreVersion(cli: CommandListenerInvocation<IgnoreVersionParameters>) {
-    goals.withNewIgnore(
+    return goals.withNewIgnore(
         queryPreferences(cli.context.graphClient),
         mutateIgnores(cli.context.graphClient),
         {
