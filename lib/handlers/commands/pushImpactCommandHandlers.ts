@@ -28,7 +28,6 @@ import {
     QueryNoCacheOptions,
     Secret,
     SlackFileMessage,
-    Value,
 } from "@atomist/automation-client";
 import * as goals from "@atomist/clj-editors";
 import {
@@ -90,6 +89,21 @@ export function queryFingerprints(graphClient: GraphClient): (name: string) => P
     };
 }
 
+function mutateIgnores(graphClient: GraphClient): (chatTeamId: string, prefsAsJson: string) => Promise<any> {
+    return (chatTeamId, prefsAsJson): Promise<any> => {
+        return graphClient.mutate<SetTeamPreference.Mutation, SetTeamPreference.Variables>(
+            {
+                name: "setTeamPreference",
+                variables: {
+                    name: "fingerprints.deps.ignore",
+                    value: prefsAsJson,
+                    team: chatTeamId,
+                },
+            },
+        );
+    };
+}
+
 function mutatePreference(graphClient: GraphClient): (chatTeamId: string, prefsAsJson: string) => Promise<any> {
     return (chatTeamId, prefsAsJson): Promise<any> => {
         return graphClient.mutate<SetTeamPreference.Mutation, SetTeamPreference.Variables>(
@@ -124,15 +138,30 @@ export class IgnoreVersionParameters {
     @MappedParameter(MappedParameters.GitHubRepositoryProvider)
     public providerId: string;
 
-    @Value("name")
+    @Parameter({ required: true })
     public name: string;
 
-    @Value("version")
+    @Parameter({ required: true })
     public version: string;
 }
 
-function ignoreVersion(cli: CommandListenerInvocation<IgnoreVersionParameters>) {
-    return cli.addressChannels("TODO");
+async function ignoreVersion(cli: CommandListenerInvocation<IgnoreVersionParameters>) {
+    goals.withNewIgnore(
+        queryPreferences(cli.context.graphClient),
+        mutateIgnores(cli.context.graphClient),
+        {
+            owner: cli.parameters.owner,
+            repo: cli.parameters.repo,
+            name: cli.parameters.name,
+            version: cli.parameters.version,
+        },
+    ).then(v => {
+        if (v) {
+            return cli.addressChannels(`now ignoring ${cli.parameters.name}/${cli.parameters.version}`);
+        } else {
+            return cli.addressChannels("failed to update ignore");
+        }
+    });
 }
 
 export const IgnoreVersion: CommandHandlerRegistration<IgnoreVersionParameters> = {

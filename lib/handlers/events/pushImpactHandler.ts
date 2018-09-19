@@ -91,6 +91,7 @@ export async function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff) 
 function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
     (s: string, action: { library: { name: string, version: string }, current: string }) => Promise<any> {
     return async (text, action) => {
+        const msgId = clj.consistentHash([action.library.name, action.library.version, diff.channel, diff.owner, diff.repo, action.current]);
         const message: SlackMessage = {
             attachments: [
                 {
@@ -104,6 +105,7 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
                             { text: "Accept" },
                             ConfirmUpdate,
                             {
+                                msgId,
                                 owner: diff.owner,
                                 repo: diff.repo,
                                 name: action.library.name,
@@ -113,6 +115,7 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
                             { text: "Set as Target" },
                             SetTeamLibrary,
                             {
+                                msgId,
                                 name: action.library.name,
                                 version: action.current,
                             },
@@ -121,6 +124,7 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
                             { text: "Ignore" },
                             IgnoreVersion,
                             {
+                                msgId,
                                 name: action.library.name,
                                 version: action.library.version,
                             },
@@ -130,8 +134,7 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
                 },
             ],
         };
-        // return ctx.messageClient.send(message, await addressSlackChannelsFromContext(ctx, diff.channel));
-        return ctx.messageClient.addressChannels(message, diff.channel);
+        return ctx.messageClient.addressChannels(message, diff.channel, {id: msgId});
     };
 }
 
