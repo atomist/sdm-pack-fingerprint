@@ -426,6 +426,7 @@ export interface BroadcastNudgeParameters {
 }
 
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>): Promise<any> {
+    const msgId = `broadcastNudge-${cli.parameters.name}-${cli.parameters.version}`;
     return goals.broadcast(
         queryFingerprints(cli.context.graphClient),
         {
@@ -457,6 +458,7 @@ ${italic(cli.parameters.reason)}`,
                                 },
                                 ConfirmUpdate,
                                 {
+                                    msgId,
                                     name: cli.parameters.name,
                                     version: cli.parameters.version,
                                 },
@@ -467,7 +469,7 @@ ${italic(cli.parameters.reason)}`,
                     },
                 ],
             };
-            return cli.context.messageClient.addressChannels(message, channel);
+            return cli.context.messageClient.addressChannels(message, channel, {id: msgId});
         },
     );
 }
