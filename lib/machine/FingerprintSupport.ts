@@ -38,6 +38,7 @@ import {
     SetTeamLibrary,
     ShowGoals,
     ShowTargets,
+    UseLatest,
 } from "../handlers/commands/pushImpactCommandHandlers";
 import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
 
@@ -92,4 +93,5 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: FingerprintHandler[])
     sdm.addCommand(BroadcastNudge);
     sdm.addCommand(ShowTargets);
     sdm.addCommand(DumpLibraryPreferences);
+    sdm.addCommand(UseLatest);
 }

@@ -118,6 +118,7 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
                                 msgId,
                                 name: action.library.name,
                                 version: action.current,
+                                fp: diff.from.name,
                             },
                         ),
                         actionableButton(

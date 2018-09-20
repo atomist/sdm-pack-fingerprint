@@ -175,7 +175,7 @@ export const IgnoreVersion: CommandHandlerRegistration<IgnoreVersionParameters> 
 // set library target
 // -------------------------------------
 
-function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version: string) {
+function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version: string, fp: string) {
     const author = cli.context.source.slack.user.id;
     return cli.addressChannels(
         {
@@ -193,7 +193,7 @@ function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version
                                 text: "Broadcast",
                             },
                             BroadcastNudge,
-                            { name, version, author },
+                            { name, version, author, fp},
                         ),
                     ],
                     footer: footer(),
@@ -213,6 +213,9 @@ export class SetTeamLibraryGoalParameters {
 
     @Parameter({ required: true })
     public version: string;
+
+    @Parameter({ required: true })
+    public fp: string;
 }
 
 async function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryGoalParameters>) {
@@ -225,7 +228,7 @@ async function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryG
             version: cli.parameters.version,
         },
     );
-    return askAboutBroadcast(cli, cli.parameters.name, cli.parameters.version);
+    return askAboutBroadcast(cli, cli.parameters.name, cli.parameters.version, cli.parameters.fp);
 }
 
 export const SetTeamLibrary: CommandHandlerRegistration<SetTeamLibraryGoalParameters> = {
@@ -243,8 +246,8 @@ export const SetTeamLibrary: CommandHandlerRegistration<SetTeamLibraryGoalParame
 export interface ChooseTeamLibraryGoalParameters {
 
     msgId?: string;
-
     library: string;
+    fp: string;
 }
 
 async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>) {
@@ -255,7 +258,7 @@ async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLi
         cli.parameters.library,
     );
     const args: string[] = cli.parameters.library.split(":");
-    return askAboutBroadcast(cli, args[0], args[1]);
+    return askAboutBroadcast(cli, args[0], args[1], args[2]);
 }
 
 export const ChooseTeamLibrary: CommandHandlerRegistration<ChooseTeamLibraryGoalParameters> = {
@@ -264,6 +267,7 @@ export const ChooseTeamLibrary: CommandHandlerRegistration<ChooseTeamLibraryGoal
     parameters: {
         msgId: { required: false, displayable: false },
         library: {},
+        fp: { required: true, displayable: false},
     },
     listener: chooseTeamLibraryGoal,
 };
@@ -390,7 +394,8 @@ const showGoals: CodeInspection<boolean, ShowGoalsParameters> = async (p, cli) =
                                 options,
                             },
                             ChooseTeamLibrary.name,
-                            "library"),
+                            "library",
+                            ),
                     ],
                     footer: footer(),
                 },
@@ -423,6 +428,7 @@ export interface BroadcastNudgeParameters {
     version: string;
     reason: string;
     author: string;
+    fp: string;
 }
 
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>): Promise<any> {
@@ -432,6 +438,7 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>
         {
             name: cli.parameters.name,
             version: cli.parameters.version,
+            fp: cli.parameters.fp,
         },
         (owner: string, repo: string, channel: string) => {
             const message: SlackMessage = {
@@ -466,6 +473,7 @@ ${italic(cli.parameters.reason)}`,
                         ],
                         color: "#ffcc00",
                         footer: footer(),
+                        callback_id: "atm-confirm-done",
                     },
                 ],
             };
@@ -480,6 +488,8 @@ export const BroadcastNudge: CommandHandlerRegistration<BroadcastNudgeParameters
     parameters: {
         name: { required: true },
         version: { required: true },
+        fp: { required: false,
+              description: "npm-project-deps, maven-project-deps, or clojure-project-deps"},
         reason: {
             required: true,
             description: "always give a reason why we're releasing the nudge",
@@ -543,5 +553,47 @@ export const DumpLibraryPreferences: CommandHandlerRegistration = {
                 return cli.addressChannels(`unable to fetch preferences ${error}`);
             },
         );
+    },
+};
+
+export interface UseLatestParameters {
+    name: string;
+    version: string;
+}
+
+export const UseLatest: CommandHandlerRegistration<UseLatestParameters> = {
+    name: "UseLatestLibrary",
+    description: "use the latest library",
+    intent: "use latest",
+    parameters: {
+        name: {required: true},
+    },
+    listener: async cli => {
+        const latest: string = await goals.npmLatest(cli.parameters.name);
+        const message: SlackMessage = {
+            attachments: [
+                {
+                    text: `Shall we update library \`${cli.parameters.name}\` to ${bold(latest)}?`,
+                    fallback: "none",
+                    actions: [
+                        actionableButton(
+                            {
+                                text: "Set Target",
+                            },
+                            SetTeamLibrary,
+                            {
+                                name: cli.parameters.name,
+                                version: latest,
+                                fp: "npm-project-deps",
+                            },
+                        ),
+                    ],
+                    color: "#ffcc00",
+                    footer: footer(),
+                    callback_id: "atm-confirm-done",
+                },
+            ],
+        };
+        return cli.addressChannels(message);
     },
 };
