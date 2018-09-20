@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 -   Make spammy messages optional. [#11](https://github.com/atomist/sdm-pack-fingerprints/issues/11)
+-   Rewrite messages who’s buttons we clicked. [#15](https://github.com/atomist/sdm-pack-fingerprints/issues/15)
 
 ### Fixed
 
