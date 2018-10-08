@@ -18,6 +18,7 @@ import {
     GitProject,
     GraphClient,
     guid,
+    HandlerContext,
     logger,
     MappedParameter,
     MappedParameters,
@@ -609,3 +610,31 @@ export const UseLatest: CommandHandlerRegistration<UseLatestParameters> = {
         return cli.addressChannels(message);
     },
 };
+
+export function setNewTarget(ctx: HandlerContext, name: string, version: string, channel: string) {
+    const message: SlackMessage = {
+        attachments: [
+            {
+                text: `Shall we update library target of \`${name}\` to ${version}?`,
+                fallback: "none",
+                actions: [
+                    actionableButton(
+                        {
+                            text: "Set Target",
+                        },
+                        SetTeamLibrary,
+                        {
+                            name,
+                            version,
+                            fp: "npm-project-deps",
+                        },
+                    ),
+                ],
+                color: "#ffcc00",
+                footer: footer(),
+                callback_id: "atm-confirm-done",
+            },
+        ],
+    };
+    return ctx.messageClient.addressChannels(message, channel);
+}

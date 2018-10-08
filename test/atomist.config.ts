@@ -33,6 +33,7 @@ import {
     forFingerprints,
     renderDiffSnippet,
 } from "..";
+import { setNewTarget } from "../lib/handlers/commands/pushImpactCommandHandlers";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -71,9 +72,16 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     "clojure-project-coordinates",
                     "maven-project-coordinates",
                     "npm-project-coordinates"),
-                diffHandler: (ctx, diff) => {
-                    return ctx.messageClient.addressChannels(
-                        `change in ${diff.from.name} project coords ${renderData(diff.data)}`,
+                diffHandler: async (ctx, diff) => {
+
+                    await ctx.messageClient.addressChannels(
+                        `change in ${diff.to.data.name} from ${diff.from.data.version} to ${diff.to.data.version} for project coords ${renderData(diff.data)}`,
+                        diff.channel);
+
+                    return setNewTarget(
+                        ctx,
+                        diff.to.data.name,
+                        diff.to.data.version,
                         diff.channel);
                 },
             },
