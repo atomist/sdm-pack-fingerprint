@@ -75,7 +75,8 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 diffHandler: async (ctx, diff) => {
 
                     await ctx.messageClient.addressChannels(
-                        `change in ${diff.to.data.name} from ${diff.from.data.version} to ${diff.to.data.version} for project coords ${renderData(diff.data)}`,
+                        `change in ${diff.to.data.name} from ${diff.from.data.version}
+                         to ${diff.to.data.version} for project coords ${renderData(diff.data)}`,
                         diff.channel);
 
                     return setNewTarget(
