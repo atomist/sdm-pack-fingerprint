@@ -612,7 +612,7 @@ export const UseLatest: CommandHandlerRegistration<UseLatestParameters> = {
 };
 
 export function setNewTarget(ctx: HandlerContext, fp: string, name: string, version: string, channel: string) {
-    const coordToDeps = new Map<string,string>();
+    const coordToDeps = new Map<string, string>();
     coordToDeps.set("npm-project-coordinates", "npm-project-deps");
     coordToDeps.set("clojure-project-coordinates", "clojure-project-deps");
     const libTargetNs: string = coordToDeps.get(fp);
@@ -630,7 +630,7 @@ export function setNewTarget(ctx: HandlerContext, fp: string, name: string, vers
                         {
                             name,
                             version,
-                            fp: libTargetNs
+                            fp: libTargetNs,
                         },
                     ),
                 ],
