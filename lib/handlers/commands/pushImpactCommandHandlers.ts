@@ -611,7 +611,11 @@ export const UseLatest: CommandHandlerRegistration<UseLatestParameters> = {
     },
 };
 
-export function setNewTarget(ctx: HandlerContext, name: string, version: string, channel: string) {
+export function setNewTarget(ctx: HandlerContext, fp: string, name: string, version: string, channel: string) {
+    const coordToDeps = new Map<string,string>();
+    coordToDeps.set("npm-project-coordinates", "npm-project-deps");
+    coordToDeps.set("clojure-project-coordinates", "clojure-project-deps");
+    const libTargetNs: string = coordToDeps.get(fp);
     const message: SlackMessage = {
         attachments: [
             {
@@ -626,7 +630,7 @@ export function setNewTarget(ctx: HandlerContext, name: string, version: string,
                         {
                             name,
                             version,
-                            fp: "npm-project-deps",
+                            fp: libTargetNs
                         },
                     ),
                 ],

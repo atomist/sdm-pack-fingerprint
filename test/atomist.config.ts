@@ -54,7 +54,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             .itMeans("fingerprint a clojure project")
             .setGoals(FingerprintGoal),
         whenPushSatisfies(IsNpm)
-            .itMeans("fingeprint an npm project")
+            .itMeans("fingerprint an npm project")
             .setGoals(FingerprintGoal));
 
     sdm.addExtensionPacks(
@@ -70,17 +70,11 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             {
                 selector: forFingerprints(
                     "clojure-project-coordinates",
-                    "maven-project-coordinates",
                     "npm-project-coordinates"),
                 diffHandler: async (ctx, diff) => {
-
-                    await ctx.messageClient.addressChannels(
-                        `change in ${diff.to.data.name} from ${diff.from.data.version}
-                         to ${diff.to.data.version} for project coords ${renderData(diff.data)}`,
-                        diff.channel);
-
                     return setNewTarget(
                         ctx,
+                        diff.to.name,
                         diff.to.data.name,
                         diff.to.data.version,
                         diff.channel);

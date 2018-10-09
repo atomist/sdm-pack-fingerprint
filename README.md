@@ -12,6 +12,25 @@ software.
 
 [atomist-doc]: https://docs.atomist.com/ (Atomist Documentation)
 
+## Features
+
+This pack sets a goal to monitor all git pushes and trackes the following features:
+
+* leiningen `project.clj` files are monitored for updates to library dependencies and project version.
+* maven `pom.xml` files are monitored for updates to maven library dependencies and version coordinates.
+* npm `package.json` files are monitored for updates to module dependencies and package version changes.
+
+This monitoring happens computing a set of fingerprints on every commit.  The fingerprints that are computed
+depend on the type of project.  We currently compute fingerprints for maven, clojure, and npm projects.
+
+* npm-project-deps, clojure-project-deps, and maven-project-deps
+* npm-project-coordinates, clojure-project-coordinates, maven-project-coordinates
+
+When a new fingerprint is computed, we can drive interesting behaviors such as:
+
+* check whether a library is up to date with a set of team-wide goals and offer to push a PR if not
+* check whether a new version of a library is available and check whether consumers need to update to this new version
+
 ## Usage
 
 Make the following updates to your machine:
@@ -46,6 +65,33 @@ export FingerprintGoal = new Fingerprint();
     sdm.addExtensionPacks(
         fingerprintSupport(FingerprintGoal),
     )
+```
+
+Out of the box, this pack adds functionality to watch for library versions out of
+sync with your team's version goals.  However, other fingerprint diff handlers can be added to the
+call to `fingerprintSupport`:
+
+```
+    // add this pack to your SDM
+    sdm.addExtensionPacks(
+        fingerprintSupport(
+            FingerprintGoal,
+            {
+                selector: forFingerprints(
+                    "clojure-project-coordinates",
+                    "npm-project-coordinates"),
+                diffHandler: async (ctx, diff) => {
+                    return setNewTarget(
+                        ctx,
+                        diff.to.name,
+                        diff.to.data.name,
+                        diff.to.data.version,
+                        diff.channel);
+                },
+            },
+        ),        
+    )
+
 ```
 
 ## Support
