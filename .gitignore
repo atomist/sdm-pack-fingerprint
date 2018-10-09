@@ -21,3 +21,6 @@ atomisthq.sh
 *.log
 *.log.gz
 /graphql.schema.json
+
+out/
+target/

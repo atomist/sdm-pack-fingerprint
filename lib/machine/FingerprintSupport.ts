@@ -15,7 +15,6 @@
  */
 
 import { HandlerContext } from "@atomist/automation-client";
-import * as clj from "@atomist/clj-editors";
 import {
     ExtensionPack,
     Fingerprint,
@@ -28,6 +27,7 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import { SendFingerprintToAtomist } from "@atomist/sdm-core/lib/util/webhook/sendFingerprintToAtomist";
+import * as clj from "../../fingerprints/index";
 import {
     BroadcastNudge,
     ChooseTeamLibrary,
