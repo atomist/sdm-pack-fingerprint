@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-import { HandlerContext } from "@atomist/automation-client";
+import {
+    HandlerContext,
+    logger,
+} from "@atomist/automation-client";
 import * as clj from "@atomist/clj-editors";
 import {
     ExtensionPack,
     Fingerprint,
     FingerprinterRegistration,
     FingerprinterResult,
-    logger,
     metadata,
     PushImpactListener,
     PushImpactListenerInvocation,
