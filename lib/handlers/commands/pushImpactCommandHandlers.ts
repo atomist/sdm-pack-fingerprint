@@ -15,6 +15,7 @@
  */
 
 import {
+    editModes,
     GitProject,
     GraphClient,
     guid,
@@ -26,7 +27,6 @@ import {
     NoParameters,
     Parameter,
     Parameters,
-    editModes,
     QueryNoCacheOptions,
     Secret,
     SlackFileMessage,
