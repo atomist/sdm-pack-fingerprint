@@ -24,14 +24,14 @@ import {
     SuccessPromise,
 } from "@atomist/automation-client";
 import { subscription } from "@atomist/automation-client/lib/graph/graphQL";
-import * as impact from "@atomist/clj-editors";
-import * as clj from "@atomist/clj-editors";
 import {
     actionableButton,
     EventHandlerRegistration,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
+import * as clj from "../../../fingerprints/index";
+import * as impact from "../../../fingerprints/index";
 import { FingerprintHandler } from "../../machine/FingerprintSupport";
 import { footer } from "../../support/util";
 import {

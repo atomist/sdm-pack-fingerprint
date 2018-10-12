@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.dealer.webplatform</groupId>
+    <artifactId>jvms-parent-pom</artifactId>
+    <version>2.6.4-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <!-- Also change in jvm-scripts-parent properties -->
+        <version>2.0.3.RELEASE</version>
+        <relativePath />
+    </parent>
+
+    <name>${project.artifactId}</name>
+    <description>Parent pom for jvm services</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <maven.compiler.version>${java.version}</maven.compiler.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+
+        <!-- TODO: fragile -->
+        <jvms-parent-pom.version>${project.parent.version}</jvms-parent-pom.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-bom</artifactId>
+                <version>1.11.308</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>24.0-jre</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.dealer.webplatform</groupId>
+            <artifactId>jvms-spring-boot-starter</artifactId>
+            <version>2.6.4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dealer.webplatform</groupId>
+            <artifactId>jvms-spring-boot-test</artifactId>
+            <version>2.6.4-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>eb-zip</id>
+            <activation>
+                <file>
+                    <missing>${basedir}/src/main/docker/Dockerfile</missing>
+                </file>
+            </activation>
+            <properties>
+                <newrelic-agent.version>4.2.0</newrelic-agent.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.newrelic.agent.java</groupId>
+                    <artifactId>newrelic-agent</artifactId>
+                    <version>${newrelic-agent.version}</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>3.0.2</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>properties</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>unpack-eb-runtime</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>com.dealer.webplatform</groupId>
+                                            <artifactId>jvms-eb-runtime</artifactId>
+                                            <version>${jvms-parent-pom.version}</version>
+                                            <type>zip</type>
+                                        </artifactItem>
+                                    </artifactItems>
+                                    <outputDirectory>${project.build.directory}/eb-runtime</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.dealer.webplatform</groupId>
+                                <artifactId>jvms-eb-runtime</artifactId>
+                                <version>${jvms-parent-pom.version}</version>
+                            </dependency>
+                        </dependencies>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <appendAssemblyId>false</appendAssemblyId>
+                                    <descriptorRefs>
+                                        <descriptorRef>eb-zip</descriptorRef>
+                                    </descriptorRefs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>docker-build</id>
+            <activation>
+                <file>
+                    <exists>${basedir}/src/main/docker/Dockerfile</exists>
+                </file>
+                <property>
+                    <name>docker.build.name</name>
+                </property>
+            </activation>
+            <build>
+                <finalName>${project.artifactId}</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>com.spotify</groupId>
+                        <artifactId>dockerfile-maven-plugin</artifactId>
+                        <version>1.4.3</version>
+                        <executions>
+                            <execution>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <contextDirectory>src/main/docker</contextDirectory>
+                            <repository>${docker.build.name}</repository>
+                            <buildArgs>
+                                <JAR_FILE>${project.build.finalName}.${project.packaging}</JAR_FILE>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

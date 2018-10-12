@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "lib1": "v1"
+  },
+  "devDependencies": {
+    "lib2": "v2"
+  },
+  "name": "name1",
+  "version": "version1"
+}

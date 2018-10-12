@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import {
-    HandlerContext,
-    logger,
-} from "@atomist/automation-client";
-import * as clj from "@atomist/clj-editors";
+import { HandlerContext, logger } from "@atomist/automation-client";
 import {
     ExtensionPack,
     Fingerprint,
@@ -30,6 +26,7 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import { SendFingerprintToAtomist } from "@atomist/sdm-core/lib/util/webhook/sendFingerprintToAtomist";
+import * as clj from "../../fingerprints/index";
 import {
     BroadcastNudge,
     ChooseTeamLibrary,
