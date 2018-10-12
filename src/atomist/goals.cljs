@@ -32,7 +32,7 @@
   (log/info t ": " (with-out-str (pprint o))))
 
 (defn- get-options
-  "libs - set of lib dependencies in the current project [[name version ...] ...]
+  "libs - set of lib dependencies in the current project [[name version fp-name] ...]
    goals - current set of library goals {name version}"
   [libs goals]
   (let [current-goals (->> goals keys (map name) set)]
@@ -71,14 +71,18 @@
           :value
           (json/json->clj)))
 
-(defn- options [preferences project-path type]
+(defn- options
+  "construct the set of options for with-project-goals messages"
+  [preferences project-path type]
   (let [goals (preferences->goals preferences type)
         local-libs (deps/get-deps project-path)
         options (get-options local-libs goals)]
     (log/info "goals are " goals)
     [(message goals) options]))
 
-(defn- prefs->options [preferences type]
+(defn- prefs->options
+  "returns library target preferences as a [{:text \"\" :value \"\"}]"
+  [preferences type]
   (log/info "preferences" (with-out-str preferences))
   (->> (preferences->goals preferences type)
        (map (fn [[k v]] {:text k :value v}))
@@ -109,7 +113,6 @@
    returns a channel with the value of the promise returned by calling the send-message callback"
   [query-prefs project-path send-message]
   (go
-   (log/info "start by calling f1 with no args")
    (let [preferences (<! (from-promise (query-prefs)))]
      (pretty-log "Preference GraphQL query:  " preferences)
      (log/info "project should be in basedir " project-path)
@@ -126,14 +129,14 @@
    params
      query-refs - ()=>Promise
      mutate-prefs - (team json)=>Promise
-     parameters - {:keys [name version]} | string
+     parameters - {:keys [name version]} | string with name:version:fp-name
 
    returns a channel with the value of the promise returned by calling the mutate-prefs callback"
   [query-prefs mutate-prefs parameters]
   (go
-   (let [[lib-name lib-version] (cond
-                                  (map? parameters) [(:name parameters) (:version parameters)]
-                                  (string? parameters) (drop 1 (re-find #"(.*):(.*)" parameters)))
+   (let [[lib-name lib-version fp-name] (cond
+                                          (map? parameters) [(:name parameters) (:version parameters)]
+                                          (string? parameters) (drop 1 (re-find #"(.*):(.*):(.*)" parameters)))
          preferences (<! (from-promise (query-prefs)))
          chat-team-id (some-> preferences
                               :ChatTeam
@@ -141,6 +144,7 @@
                               :id)
          goals (preferences->goals preferences "clojure")]
      (pretty-log "Preference GraphQL query:  " preferences)
+     (log/infof "-> %s/%s" lib-name lib-version)
      (log/info "update goals to " (json/json-str (assoc goals lib-name lib-version)))
      (let [v (<! (from-promise (mutate-prefs chat-team-id (json/json-str (assoc goals lib-name lib-version)))))]
        (log/info "mutation finished " v)

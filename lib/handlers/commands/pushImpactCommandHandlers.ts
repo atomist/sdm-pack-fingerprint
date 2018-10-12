@@ -225,6 +225,7 @@ async function setTeamLibraryGoal(cli: CommandListenerInvocation<SetTeamLibraryG
     await goals.withNewGoal(
         queryPreferences(cli.context.graphClient),
         mutatePreference(cli.context.graphClient),
+        cli.parameters.fp,
         {
             name: cli.parameters.name,
             version: cli.parameters.version,
@@ -246,17 +247,16 @@ export const SetTeamLibrary: CommandHandlerRegistration<SetTeamLibraryGoalParame
 // -------------------------------------
 
 export interface ChooseTeamLibraryGoalParameters {
-
     msgId?: string;
     library: string;
     fp: string;
 }
 
 async function chooseTeamLibraryGoal(cli: CommandListenerInvocation<ChooseTeamLibraryGoalParameters>) {
-    // TODO with promise
     await goals.withNewGoal(
         queryPreferences(cli.context.graphClient),
         mutatePreference(cli.context.graphClient),
+        cli.parameters.fp,
         cli.parameters.library,
     );
     const args: string[] = cli.parameters.library.split(":");

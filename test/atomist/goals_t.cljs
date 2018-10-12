@@ -129,7 +129,7 @@
                         (js/Promise.
                          (fn [resolve reject]
                            (resolve :done))))
-                      "librarya:v2"))))))))
+                      "librarya:v2:clojure-project-deps"))))))))
 
 (deftest check-library-goals-tests
   (testing "that goals of librarya/v1 and a change to v2 will trigger a message of v1"
