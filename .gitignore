@@ -2,10 +2,15 @@
 node_modules/
 lib/typings
 doc
-*.js
+lib/**/*.js
+test/**/*.js
 npm-debug.log
-*.d.ts
+lib/**/*.d.ts
+test/**/*.d.ts
 *.js.map
+index.d.ts
+index.js
+unit-tests.js
 
 .idea/
 *.iml

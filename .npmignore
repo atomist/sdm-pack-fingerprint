@@ -23,3 +23,8 @@
 *.txt
 *.ts
 !*.d.ts
+test-resources/*
+unit-tests.js
+project.clj
+tslint.json
+tsconfig.json
