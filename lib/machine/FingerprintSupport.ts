@@ -28,7 +28,6 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import { SendFingerprintToAtomist } from "@atomist/sdm-core/lib/util/webhook/sendFingerprintToAtomist";
 import * as clj from "../../fingerprints/index";
 import {
     BroadcastNudge,
@@ -73,7 +72,6 @@ export interface FingerprintHandler {
 export function fingerprintSupport(goals: Fingerprint | Fingerprint[] = [], ...handlers: FingerprintHandler[]): ExtensionPack {
     (Array.isArray(goals) ? goals : [goals]).forEach(g => {
         g.with(DepsFingerprintRegistration);
-        g.withListener(SendFingerprintToAtomist);
     });
 
     return {
