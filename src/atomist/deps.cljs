@@ -14,7 +14,7 @@
             [cljs.test :refer-macros [deftest testing is run-tests async] :refer [report testing-vars-str empty-env get-current-env]]
             [goog.string :as gstring]
             [goog.string.format]
-            [editors.core :as lein]
+            [atomist.lein :as lein]
             [cljs.spec.alpha :as spec]
             [atomist.specs :as schema]))
 

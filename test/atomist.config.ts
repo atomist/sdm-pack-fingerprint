@@ -37,9 +37,6 @@ import { setNewTarget } from "../lib/handlers/commands/pushImpactCommandHandlers
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
 );
-const IsLein: PushTest = pushTest(`contains package.json file`, async pci =>
-    !!(await pci.project.getFile("project.clj")),
-);
 
 export const FingerprintGoal = new Fingerprint();
 
@@ -49,9 +46,6 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             name: `${configuration.name}-test`,
             configuration: config,
         },
-        whenPushSatisfies(IsLein)
-            .itMeans("fingerprint a clojure project")
-            .setGoals(FingerprintGoal),
         whenPushSatisfies(IsNpm)
             .itMeans("fingerprint an npm project")
             .setGoals(FingerprintGoal));
@@ -61,14 +55,11 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             FingerprintGoal,
             {
                 selector: forFingerprints(
-                    "clojure-project-deps",
-                    "maven-project-deps",
                     "npm-project-deps"),
                 diffHandler: renderDiffSnippet,
             },
             {
                 selector: forFingerprints(
-                    "clojure-project-coordinates",
                     "npm-project-coordinates"),
                 diffHandler: async (ctx, diff) => {
                     return setNewTarget(
@@ -77,6 +68,18 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                         diff.to.data.name,
                         diff.to.data.version,
                         diff.channel);
+                },
+            },
+            {
+                selector: forFingerprints("backpack-react-scripts"),
+                diffHandler: async (ctx, diff) => {
+                    return setNewTarget(
+                        ctx,
+                        diff.to.name,
+                        diff.to.data.name,
+                        diff.to.data.version,
+                        diff.channel,
+                    );
                 },
             },
         ),

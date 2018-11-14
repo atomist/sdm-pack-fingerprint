@@ -35,7 +35,7 @@
    :compile-path]
   :cljsbuild {:builds [{:id "prod"
                         :source-paths ["src"]
-                        :compiler {:main editors.main
+                        :compiler {:main atomist.main
                                    :target :nodejs
                                    :output-to "fingerprints/main.js"
                                    :output-dir "out"
