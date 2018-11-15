@@ -32,7 +32,7 @@
 (defn backpack-data [package-json]
   (->> (seq (-> package-json (get "backpack-react-scripts") (get "externals")))
        (filter (fn [[k v]] (#{"react" "react-dom"} k)))
-       (into [])))
+       (map (fn [[k v]] [(str k) v]))))
 
 (defn- spawn [basedir cmd & args]
   (log/info basedir cmd args)

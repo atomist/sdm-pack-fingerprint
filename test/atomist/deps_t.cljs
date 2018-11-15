@@ -14,7 +14,7 @@
             [cljs.test :refer-macros [deftest testing is run-tests async] :refer [report testing-vars-str empty-env get-current-env]]
             [goog.string :as gstring]
             [goog.string.format]
-            [editors.core :as lein]
+            [atomist.lein :as lein]
             [atomist.deps :refer [get-fingerprint get-deps]]))
 
 (deftest deps-tests
@@ -41,7 +41,12 @@
                        :data (json/json-str {:name "name" :version "version"})
                        :abbreviation "coords"
                        :version "0.0.1"
-                       :sha "4aae388815805a3f589a060a9f02d30e8840cbeb620769bad381ec36b06c8b32"}]
+                       :sha "4aae388815805a3f589a060a9f02d30e8840cbeb620769bad381ec36b06c8b32"}
+                      {:name "backpack-react-scripts"
+                       :data (json/json-str [["react" "v1"] ["react-dom" "v2"]])
+                       :abbreviation "backpack"
+                       :version "0.0.1"
+                       :sha "9cf71219a243f35743ed71b2054e1ba7ee90844de41cedd5d349058b6f53c1b7"}]
         test-maven-fps [{:name "maven-project-deps"
                          :data (json/json-str [["org.springframework.boot/spring-boot-starter-parent"
                                                 "2.0.3.RELEASE"]

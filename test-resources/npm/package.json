@@ -4,5 +4,11 @@
     "@atomist/clj-editors": "v2"
   },
   "name": "name",
-  "version": "version"
+  "version": "version",
+  "backpack-react-scripts": {
+    "externals": {
+      "react": "v1",
+      "react-dom": "v2"
+    }
+  }
 }

@@ -20,6 +20,21 @@
 (defn failure-promise [e]
   (js/Promise. (fn [resolve error] (error (clj->js e)))))
 
+(deftest diff-fingerprint-data-tests
+  (is (=
+       (#'atomist.impact/diff-fingerprint-data
+        {"react" "v1"
+         "react-dom" "v2"}
+        {"react" "v1"
+         "react-dom" "v2"})
+       {:from nil :to nil}))
+  (is (= (#'atomist.impact/diff-fingerprint-data
+          {"react" "v0"
+           "react-dom" "v2"}
+          {"react" "v1"
+           "react-dom" "v2"})
+         {:from #{["react" "v0"]} :to #{["react" "v1"]}})))
+
 (deftest process-push-test
   (let [whatever {:data
                   {:PushImpact
@@ -139,17 +154,17 @@
                                                                       :action (constantly (success-promise :success))}])))))
         (testing "a PushImpact for a fingerprint with a change and a failing Promise"
           (is (= [[] [{:failure "holy crap"}]] (<! (impact/process-push-impact
-                              whatever1
-                              (graphql-response "{}")
-                              [{:selector (constantly true)
-                                :action (fn [x]
-                                          (is (=
-                                               {:data {:from nil, :to nil}
-                                                :owner "org"
-                                                :repo "repo"
-                                                :channel "commit-sha1"
-                                                :from {:name "fp1", :sha "sha2", :data {}}
-                                                :to {:name "fp1", :sha "sha1", :data {}}}
-                                               (-> x (js->clj :keywordize-keys true))))
-                                          (failure-promise "holy crap"))}]
-                              []))))))))))
+                                                    whatever1
+                                                    (graphql-response "{}")
+                                                    [{:selector (constantly true)
+                                                      :action (fn [x]
+                                                                (is (=
+                                                                     {:data {:from nil, :to nil}
+                                                                      :owner "org"
+                                                                      :repo "repo"
+                                                                      :channel "commit-sha1"
+                                                                      :from {:name "fp1", :sha "sha2", :data {}}
+                                                                      :to {:name "fp1", :sha "sha1", :data {}}}
+                                                                     (-> x (js->clj :keywordize-keys true))))
+                                                                (failure-promise "holy crap"))}]
+                                                    []))))))))))
