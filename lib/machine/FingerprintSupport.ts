@@ -29,18 +29,12 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import * as clj from "../../fingerprints/index";
-import {
-    BroadcastNudge,
-    ChooseTeamLibrary,
-    ClearLibraryTargets,
-    ConfirmUpdate,
-    DumpLibraryPreferences,
-    IgnoreVersion,
-    SetTeamLibrary,
-    ShowGoals,
-    ShowTargets,
-    UseLatest,
-} from "../handlers/commands/pushImpactCommandHandlers";
+import { BroadcastNudge } from "../handlers/commands/broadcast";
+import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
+import { IgnoreVersion } from "../handlers/commands/ignoreVersion";
+import { ChooseTeamLibrary, SetTeamLibrary } from "../handlers/commands/setLibraryGoal";
+import { ClearLibraryTargets, DumpLibraryPreferences, ShowGoals, ShowTargets } from "../handlers/commands/showTargets";
+import { UseLatest } from "../handlers/commands/useLatest";
 import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
 
 const projectDeps: PushImpactListener<FingerprinterResult> =

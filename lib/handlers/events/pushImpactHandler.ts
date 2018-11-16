@@ -32,18 +32,16 @@ import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
 import * as clj from "../../../fingerprints/index";
 import * as impact from "../../../fingerprints/index";
+import { queryPreferences } from "../../adhoc/preferences";
 import { FingerprintHandler } from "../../machine/FingerprintSupport";
 import { footer } from "../../support/util";
 import {
     GetFingerprintData,
     PushImpactEvent,
 } from "../../typings/types";
-import {
-    ConfirmUpdate,
-    IgnoreVersion,
-    queryPreferences,
-    SetTeamLibrary,
-} from "../commands/pushImpactCommandHandlers";
+import { ConfirmUpdate } from "../commands/confirmUpdate";
+import { IgnoreVersion } from "../commands/ignoreVersion";
+import { SetTeamLibrary } from "../commands/setLibraryGoal";
 
 export function forFingerprints(...s: string[]): (fp: clj.FP) => boolean {
     return fp => {

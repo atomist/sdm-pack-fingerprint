@@ -32,7 +32,7 @@ import {
     forFingerprints,
     renderDiffSnippet,
 } from "..";
-import { setNewTarget } from "../lib/handlers/commands/pushImpactCommandHandlers";
+import { setNewTarget } from "../lib/handlers/commands/setLibraryGoal";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -73,13 +73,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             {
                 selector: forFingerprints("backpack-react-scripts"),
                 diffHandler: async (ctx, diff) => {
-                    return setNewTarget(
-                        ctx,
-                        diff.to.name,
-                        diff.to.data.name,
-                        diff.to.data.version,
-                        diff.channel,
-                    );
+                    return renderDiffSnippet( ctx, diff);
                 },
             },
         ),
