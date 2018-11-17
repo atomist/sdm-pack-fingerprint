@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-import { actionableButton, CommandHandlerRegistration } from "@atomist/sdm";
-import { bold, SlackMessage } from "@atomist/slack-messages";
+import {
+    actionableButton,
+    CommandHandlerRegistration,
+} from "@atomist/sdm";
+import {
+    bold,
+    SlackMessage,
+} from "@atomist/slack-messages";
 import * as goals from "../../../fingerprints/index";
 import { footer } from "../../support/util";
 import { SetTeamLibrary } from "./setLibraryGoal";

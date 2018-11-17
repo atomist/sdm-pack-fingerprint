@@ -23,17 +23,22 @@ import {
     NoParameters,
     Parameters,
     Secret,
-    SlackFileMessage } from "@atomist/automation-client";
+    SlackFileMessage,
+} from "@atomist/automation-client";
 import {
     CodeInspection,
     CodeInspectionRegistration,
     CommandHandlerRegistration,
-    CommandListenerInvocation } from "@atomist/sdm";
+    CommandListenerInvocation,
+} from "@atomist/sdm";
 
 import { SlackMessage } from "@atomist/slack-messages";
 import * as goals from "../../../fingerprints/index";
 import { queryChatTeamById } from "../../adhoc/fingerprints";
-import { mutatePreference, queryPreferences } from "../../adhoc/preferences";
+import {
+    mutatePreference,
+    queryPreferences,
+} from "../../adhoc/preferences";
 import { footer } from "../../support/util";
 import { ChooseTeamLibrary } from "./setLibraryGoal";
 

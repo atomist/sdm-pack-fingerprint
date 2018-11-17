@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-import { GraphClient, QueryNoCacheOptions } from "@atomist/automation-client";
-import { ChatTeamPreferences, SetTeamPreference } from "../typings/types";
+import {
+    GraphClient,
+    QueryNoCacheOptions,
+} from "@atomist/automation-client";
+import {
+    ChatTeamPreferences,
+    SetTeamPreference,
+} from "../typings/types";
 
 // TODO this assumes one ChatTeam per graphql endpoint - the whole preference model will move to a custom type
 export function queryPreferences(graphClient: GraphClient): () => Promise<any> {

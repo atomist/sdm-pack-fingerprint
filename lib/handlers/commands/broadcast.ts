@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 
-import { actionableButton, CommandHandlerRegistration, CommandListenerInvocation } from "@atomist/sdm";
-import { bold, codeLine, italic, SlackMessage, user } from "@atomist/slack-messages";
+import {
+    actionableButton,
+    CommandHandlerRegistration,
+    CommandListenerInvocation,
+} from "@atomist/sdm";
+import {
+    bold,
+    codeLine,
+    italic,
+    SlackMessage,
+    user,
+} from "@atomist/slack-messages";
 import * as goals from "../../../fingerprints/index";
 import { queryFingerprints } from "../../adhoc/fingerprints";
 import { footer } from "../../support/util";

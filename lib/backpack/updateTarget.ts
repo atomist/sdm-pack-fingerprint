@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-import { GraphClient, Parameter, Parameters } from "@atomist/automation-client";
-import { CommandHandlerRegistration, CommandListenerInvocation } from "@atomist/sdm";
+import {
+    GraphClient,
+    Parameter,
+    Parameters,
+} from "@atomist/automation-client";
+import {
+    CommandHandlerRegistration,
+    CommandListenerInvocation,
+} from "@atomist/sdm";
 import * as goals from "../../fingerprints/index";
 import { queryFingerprintBySha } from "../adhoc/fingerprints";
-import { mutatePreference, queryPreferences } from "../adhoc/preferences";
+import {
+    mutatePreference,
+    queryPreferences,
+} from "../adhoc/preferences";
 
 @Parameters()
 export class UpdateTargetFingerprintParameters {

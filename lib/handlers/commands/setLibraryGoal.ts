@@ -14,11 +14,22 @@
  * limitations under the License.
  */
 
-import { HandlerContext, Parameter, Parameters } from "@atomist/automation-client";
-import { actionableButton, CommandHandlerRegistration, CommandListenerInvocation } from "@atomist/sdm";
+import {
+    HandlerContext,
+    Parameter,
+    Parameters,
+} from "@atomist/automation-client";
+import {
+    actionableButton,
+    CommandHandlerRegistration,
+    CommandListenerInvocation,
+} from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as goals from "../../../fingerprints/index";
-import { mutatePreference, queryPreferences } from "../../adhoc/preferences";
+import {
+    mutatePreference,
+    queryPreferences,
+} from "../../adhoc/preferences";
 import { footer } from "../../support/util";
 import { askAboutBroadcast } from "./broadcast";
 

@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-import { GraphClient, QueryNoCacheOptions } from "@atomist/automation-client";
-import { ChatTeamById, FindLinkedReposWithFingerprint, GetFingerprintBySha } from "../typings/types";
+import {
+    GraphClient,
+    QueryNoCacheOptions,
+} from "@atomist/automation-client";
+import {
+    ChatTeamById,
+    FindLinkedReposWithFingerprint,
+    GetFingerprintBySha,
+} from "../typings/types";
 
 export const queryChatTeamById = async (graphClient: GraphClient, teamid: string): Promise<string> => {
     return graphClient.query<ChatTeamById.Query, ChatTeamById.Variables>(

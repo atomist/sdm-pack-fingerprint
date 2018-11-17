@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
-import { MappedParameter, MappedParameters, Parameter, Parameters } from "@atomist/automation-client";
-import { CommandHandlerRegistration, CommandListenerInvocation } from "@atomist/sdm";
+import {
+    MappedParameter,
+    MappedParameters,
+    Parameter,
+    Parameters,
+} from "@atomist/automation-client";
+import {
+    CommandHandlerRegistration,
+    CommandListenerInvocation,
+} from "@atomist/sdm";
 import * as goals from "../../../fingerprints/index";
-import { mutateIgnores, queryPreferences } from "../../adhoc/preferences";
+import {
+    mutateIgnores,
+    queryPreferences,
+} from "../../adhoc/preferences";
 
 @Parameters()
 export class IgnoreVersionParameters {

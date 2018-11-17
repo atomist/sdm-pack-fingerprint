@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-import { editModes, GitProject, GraphClient, guid, MappedParameter, MappedParameters, Parameter, Parameters } from "@atomist/automation-client";
-import { CodeTransform, CodeTransformRegistration } from "@atomist/sdm";
+import {
+    editModes,
+    GitProject,
+    GraphClient,
+    guid,
+    MappedParameter,
+    MappedParameters,
+    Parameter,
+    Parameters,
+} from "@atomist/automation-client";
+import {
+    CodeTransform,
+    CodeTransformRegistration,
+} from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as goals from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
