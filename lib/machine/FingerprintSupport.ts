@@ -32,8 +32,16 @@ import * as clj from "../../fingerprints/index";
 import { BroadcastNudge } from "../handlers/commands/broadcast";
 import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
 import { IgnoreVersion } from "../handlers/commands/ignoreVersion";
-import { ChooseTeamLibrary, SetTeamLibrary } from "../handlers/commands/setLibraryGoal";
-import { ClearLibraryTargets, DumpLibraryPreferences, ShowGoals, ShowTargets } from "../handlers/commands/showTargets";
+import {
+    ChooseTeamLibrary,
+    SetTeamLibrary,
+} from "../handlers/commands/setLibraryGoal";
+import {
+    ClearLibraryTargets,
+    DumpLibraryPreferences,
+    ShowGoals,
+    ShowTargets,
+} from "../handlers/commands/showTargets";
 import { UseLatest } from "../handlers/commands/useLatest";
 import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
 import { UpdateTargetFingerprint } from "../backpack/updateTarget";
