@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { Parameter, Parameters } from "@atomist/automation-client";
+import {
+    Parameter,
+    Parameters,
+} from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 import * as goals from "../../fingerprints/index";
 import { queryFingerprintBySha } from "../adhoc/fingerprints";
