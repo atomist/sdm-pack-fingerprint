@@ -74,3 +74,8 @@
   (get-file basedir "package.json" (fn [f] (npm/edit {:basedir basedir :path "package.json"} {:name n :version v})))
   (get-file basedir "project.clj" (fn [f] (spit f (lein/edit-library (slurp f) n v))))
   (get-file basedir "pom.xml" (fn [f] (maven/edit basedir n v))))
+
+(defn apply-fingerprint
+  ""
+  [basedir {:keys [name] :as fingerprint}]
+  (get-file basedir "package.json" (fn [f] (npm/apply-fingerprint f fingerprint))))

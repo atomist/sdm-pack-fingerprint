@@ -1,5 +1,5 @@
 import { GraphClient, QueryNoCacheOptions } from "@atomist/automation-client";
-import { ChatTeamById, FindLinkedReposWithFingerprint } from "../typings/types";
+import { ChatTeamById, FindLinkedReposWithFingerprint, GetFingerprintBySha } from "../typings/types";
 
 export const queryChatTeamById = async (graphClient: GraphClient, teamid: string): Promise<string> => {
     return graphClient.query<ChatTeamById.Query, ChatTeamById.Variables>(
@@ -22,6 +22,21 @@ export function queryFingerprints(graphClient: GraphClient): (name: string) => P
                 options: QueryNoCacheOptions,
                 variables: {
                     name,
+                },
+            },
+        );
+    };
+}
+
+export function queryFingerprintBySha(graphClient: GraphClient): (name: string, sha: string) => Promise<any> {
+    return async (name, sha) => {
+        return graphClient.query<GetFingerprintBySha.Query, GetFingerprintBySha.Variables>(
+            {
+                name: "get-fingerprint-by-sha",
+                options: QueryNoCacheOptions,
+                variables: {
+                    name,
+                    sha,
                 },
             },
         );

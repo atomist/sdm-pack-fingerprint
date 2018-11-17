@@ -1,5 +1,7 @@
 (ns atomist.main
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs-node-io.core :as io :refer [slurp spit]]
+            [cljs.core.async :refer [chan <! >!]]
             [cljs.analyzer :as cljs]
             [cljs.spec.alpha :as s]
             [clojure.pprint :refer [pprint]]
@@ -52,6 +54,14 @@
 
 (defn ^:export edit [f1 n v]
   (deps/edit f1 n v))
+
+(defn ^:export applyFingerprint
+  "returns void"
+  [f1 query-fn fp-name]
+  (go
+   (let [fp (<! (goals/get-fingerprint-preference query-fn fp-name))]
+     (log/info "apply fingerprint " fp " to basedir " f1)
+     (deps/apply-fingerprint f1 fp))))
 
 (defn format-list [xs]
   (->> xs
@@ -114,12 +124,21 @@
   (promise/chan->promise
    (goals/with-new-goal pref-query pref-editor (js->clj lib-goal :keywordize-keys true))))
 
+(defn ^:export setGoalFingerprint
+  "update a goal in the current project
+
+   returns Promise<boolean>"
+  [pref-query query-fingerprint-by-sha pref-editor fp-name fp-sha]
+  (log/info "withGoalFingerprint")
+  (promise/chan->promise
+   (goals/set-fingerprint-preference pref-query query-fingerprint-by-sha pref-editor fp-name fp-sha)))
+
 (defn ^:export withNewIgnore
   "update a goal in the current project
 
    returns Promise<boolean>"
   [pref-query pref-editor library]
-  (log/info "cj-editors withNewGoal")
+  (log/info "withNewGoal")
   (promise/chan->promise
    (goals/with-new-ignore pref-query pref-editor (js->clj library :keywordize-keys true))))
 
@@ -128,9 +147,18 @@
 
    returns Promise<boolean>"
   [pref-query send-message diff]
-  (log/info "clj-editors checkLibraryGoals")
+  (log/info "checkLibraryGoals")
   (promise/chan->promise
    (goals/check-library-goals pref-query send-message (js->clj diff :keywordize-keys true))))
+
+(defn ^:export checkFingerprintGoals
+  "check a project for whether it's dependencies are aligned with the current goals
+
+   returns Promise<boolean>"
+  [pref-query send-message diff]
+  (log/info "checkFingerprintGoals")
+  (promise/chan->promise
+   (goals/check-fingerprint-goals pref-query send-message (js->clj diff :keywordize-keys true))))
 
 (defn ^:export broadcast
   "use fingerprints to scan for projects that could be impacted by this new lib version

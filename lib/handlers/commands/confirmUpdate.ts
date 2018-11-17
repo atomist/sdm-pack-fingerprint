@@ -4,10 +4,6 @@ import { SlackMessage } from "@atomist/slack-messages";
 import * as goals from "../../../fingerprints/index";
 import { footer } from "../../support/util";
 
-// ------------------------------
-// update a project dependency
-// ------------------------------
-
 @Parameters()
 export class ConfirmUpdateParameters {
 

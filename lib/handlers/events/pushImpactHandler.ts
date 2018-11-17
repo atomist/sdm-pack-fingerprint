@@ -133,7 +133,7 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
                 },
             ],
         };
-        return ctx.messageClient.addressChannels(message, diff.channel, {id: msgId});
+        return ctx.messageClient.addressChannels(message, diff.channel, { id: msgId });
     };
 }
 
@@ -152,12 +152,21 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
             getFingerprintDataCallback(ctx),
             [
                 ...handlers.map(h => {
-                    return {
-                        selector: h.selector,
-                        diffAction: (diff: clj.Diff) => {
-                            return h.diffHandler(ctx, diff);
-                        },
-                    };
+                    if (h.diffHandler) {
+                        return {
+                            selector: h.selector,
+                            diffAction: (diff: clj.Diff) => {
+                                return h.diffHandler(ctx, diff);
+                            },
+                        };
+                    } else {
+                        return {
+                            selector: h.selector,
+                            action: (diff: clj.Diff) => {
+                                return h.handler(ctx, diff);
+                            },
+                        };
+                    }
                 }),
                 {
                     selector: forFingerprints(

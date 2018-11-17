@@ -91,3 +91,20 @@
 (spec/fdef run
            :args (spec/cat :file ::schema/file)
            :ret ::schema/fingerprints)
+
+(defn apply-fingerprint
+  ""
+  [f {:keys [name data] :as fingerprint}]
+  (log/info "package.json " f)
+  (if-let [package-json (io/file f)]
+    (if (.exists package-json)
+      (cond
+        (= name "backpack-react-scripts")
+        (spit f (-> (get-json package-json)
+                    (assoc-in ["backpack-react-scripts" "externals"] (into {} data))
+                    (json/clj->json)))
+        :else
+        (log/warn "fingerprint application not supported for" name)))))
+(spec/fdef apply-fingerprint
+           :args (spec/cat :file ::schema/file
+                           :fp ::schema/fp))

@@ -61,6 +61,7 @@ export const DepsFingerprintRegistration: FingerprinterRegistration = {
 export interface FingerprintHandler {
     selector: (name: clj.FP) => boolean;
     diffHandler?: (context: HandlerContext, diff: clj.Diff) => Promise<any>;
+    handler?: (context: HandlerContext, diff: clj.Diff) => Promise<any>;
 }
 
 export function fingerprintSupport(goals: Fingerprint | Fingerprint[] = [], ...handlers: FingerprintHandler[]): ExtensionPack {

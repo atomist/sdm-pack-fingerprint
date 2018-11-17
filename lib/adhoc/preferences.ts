@@ -25,13 +25,13 @@ export function mutateIgnores(graphClient: GraphClient): (chatTeamId: string, pr
     };
 }
 
-export function mutatePreference(graphClient: GraphClient): (chatTeamId: string, prefsAsJson: string) => Promise<any> {
-    return (chatTeamId, prefsAsJson): Promise<any> => {
+export function mutatePreference(graphClient: GraphClient): (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any> {
+    return (prefName: string, chatTeamId, prefsAsJson): Promise<any> => {
         return graphClient.mutate<SetTeamPreference.Mutation, SetTeamPreference.Variables>(
             {
                 name: "setTeamPreference",
                 variables: {
-                    name: "atomist:fingerprints:clojure:project-deps",
+                    name: prefName,
                     value: prefsAsJson,
                     team: chatTeamId,
                 },

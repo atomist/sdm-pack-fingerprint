@@ -126,7 +126,7 @@ export const ClearLibraryTargets: CommandHandlerRegistration = {
         const mutatePreferenceUpdate = mutatePreference(cli.context.graphClient);
         return queryChatTeamById(cli.context.graphClient, cli.context.workspaceId).then(
             chatTeamId => {
-                return mutatePreferenceUpdate(chatTeamId, "{}");
+                return mutatePreferenceUpdate("atomist:fingerprints:clojure:project-deps", chatTeamId, "{}");
             },
         ).then(
             result => {
