@@ -232,7 +232,35 @@
                                                      :value (json/clj->json fp-current-goal)}]}]})))))
                (fn [text fingerprint]
                  (is (= text "Target fingerprint *my-fingerprint* is *[]*\nCurrently *[]* in <https://github.com/owner/repo|owner/repo>"))
-                 (is (= fp-current-goal (js->clj fingerprint :keywordize-keys true)))
+                 (is (= fp-to (js->clj fingerprint :keywordize-keys true)))
+                 (js/Promise.
+                  (fn [resolve reject]
+                    (resolve :done))))
+               {:owner owner
+                :repo repo
+                :to fp-to})))))))
+  (testing "empty preferences for a fingerprint"
+    (let [fp-name "my-fingerprint"
+          owner "owner"
+          repo "repo"
+          fp-current-goal {:name fp-name
+                           :sha "sha1"
+                           :data []}
+          fp-to {:name fp-name
+                 :sha "sha2"
+                 :data []}]
+      (async done
+        (go
+         (done
+          (<! (check-fingerprint-goals
+               (fn []
+                 (js/Promise.
+                  (fn [resolve reject]
+                    (resolve (clj->js {:ChatTeam [{:preferences
+                                                   [{:name "something-else"
+                                                     :value (json/clj->json fp-current-goal)}]}]})))))
+               (fn [text fingerprint]
+                 ;; should not be called
                  (js/Promise.
                   (fn [resolve reject]
                     (resolve :done))))

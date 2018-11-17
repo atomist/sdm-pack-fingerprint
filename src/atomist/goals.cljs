@@ -319,9 +319,11 @@
   (go
    (let [preferences (<! (from-promise (query-prefs)))
          fp-goal (get-fp-from-preferences preferences (:name fingerprint))]
-     (log/info "check-fingerprint-goals compare " (:data fingerprint) (:data fp-goal))
-     (when (not
-            (= (:sha fingerprint) (:sha fp-goal)))
+     (log/info "check-fingerprint-goals compare " (:sha fingerprint) " and then " fp-goal " ----")
+     (if (and
+          fp-goal
+          (not
+           (= (:sha fingerprint) (:sha fp-goal))))
        (<! (from-promise
             (send-message
              (str
@@ -330,7 +332,8 @@
               (gstring/format "Currently *%s* in <https://github.com/%s/%s|%s/%s>"
                               (-> fingerprint :data str)
                               owner repo owner repo))
-             (clj->js fp-goal)))))
+             (clj->js fingerprint))))
+       (log/info (:name fingerprint) " is okay"))
      :done)))
 
 (defn get-fingerprint-preference

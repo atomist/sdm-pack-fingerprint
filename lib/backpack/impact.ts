@@ -4,8 +4,8 @@ import { SlackMessage } from "@atomist/slack-messages";
 import * as fingerprints from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import { footer } from "../support/util";
-import { applyTargetFingerprint } from "./applyFingerprint";
-import { updateTargetFingerprint } from "./updateTarget";
+import { ApplyTargetFingerprint } from "./applyFingerprint";
+import { UpdateTargetFingerprint } from "./updateTarget";
 
 // when we discover a backpack dependency that is not the target state
 // then we ask the user whether they want to update to the new target version
@@ -25,7 +25,7 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff):
                     actions: [
                         actionableButton(
                             { text: "Accept" },
-                            applyTargetFingerprint(ctx.graphClient),
+                            ApplyTargetFingerprint,
                             {
                                 msgId,
                                 owner: diff.owner,
@@ -34,7 +34,7 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff):
                             }),
                         actionableButton(
                             { text: "Set as Target" },
-                            updateTargetFingerprint(ctx.graphClient),
+                            UpdateTargetFingerprint,
                             {
                                 msgId,
                                 name: fingerprint.name,

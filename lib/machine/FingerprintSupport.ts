@@ -36,6 +36,8 @@ import { ChooseTeamLibrary, SetTeamLibrary } from "../handlers/commands/setLibra
 import { ClearLibraryTargets, DumpLibraryPreferences, ShowGoals, ShowTargets } from "../handlers/commands/showTargets";
 import { UseLatest } from "../handlers/commands/useLatest";
 import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
+import { UpdateTargetFingerprint } from "../backpack/updateTarget";
+import { ApplyTargetFingerprint } from "../backpack/applyFingerprint";
 
 const projectDeps: PushImpactListener<FingerprinterResult> =
     async (i: PushImpactListenerInvocation) => {
@@ -89,4 +91,6 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: FingerprintHandler[])
     sdm.addCommand(ShowTargets);
     sdm.addCommand(DumpLibraryPreferences);
     sdm.addCommand(UseLatest);
+    sdm.addCommand(UpdateTargetFingerprint);
+    sdm.addCodeTransformCommand(ApplyTargetFingerprint);
 }
