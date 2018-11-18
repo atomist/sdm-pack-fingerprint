@@ -39,14 +39,13 @@ export class UpdateTargetFingerprintParameters {
     public name: string;
 }
 
-export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFingerprintParameters> =
-{
+export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFingerprintParameters> = {
     name: "RegisterTargetFingerprint",
     intent: "set fingerprint goal",
     description: "set a new target for a team to consume a particular version",
     paramsMaker: UpdateTargetFingerprintParameters,
     listener: async cli => {
-        cli.context.messageClient.respond(`updating the goal state for all ${cli.parameters.name} fingerprints`);
+        await cli.context.messageClient.respond(`updating the goal state for all ${cli.parameters.name} fingerprints`);
         return goals.setGoalFingerprint(
             queryPreferences(cli.context.graphClient),
             queryFingerprintBySha(cli.context.graphClient),

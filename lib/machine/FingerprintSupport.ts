@@ -21,7 +21,6 @@ import {
 import {
     ExtensionPack,
     Fingerprint,
-    FingerprinterRegistration,
     FingerprinterResult,
     metadata,
     PushImpactListener,
@@ -29,6 +28,8 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import * as clj from "../../fingerprints/index";
+import { ApplyTargetFingerprint } from "../backpack/applyFingerprint";
+import { UpdateTargetFingerprint } from "../backpack/updateTarget";
 import { BroadcastNudge } from "../handlers/commands/broadcast";
 import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
 import { IgnoreVersion } from "../handlers/commands/ignoreVersion";
@@ -44,9 +45,13 @@ import {
 } from "../handlers/commands/showTargets";
 import { UseLatest } from "../handlers/commands/useLatest";
 import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
-import { UpdateTargetFingerprint } from "../backpack/updateTarget";
-import { ApplyTargetFingerprint } from "../backpack/applyFingerprint";
 
+/**
+ * run fingerprints on every Push
+ * send them in batch
+ *
+ * @param i
+ */
 const projectDeps: PushImpactListener<FingerprinterResult> =
     async (i: PushImpactListenerInvocation) => {
         return clj.fingerprint(i.project.baseDir)
@@ -63,11 +68,6 @@ const projectDeps: PushImpactListener<FingerprinterResult> =
             );
     };
 
-export const DepsFingerprintRegistration: FingerprinterRegistration = {
-    name: "deps-fingerprinter",
-    action: projectDeps,
-};
-
 export interface FingerprintHandler {
     selector: (name: clj.FP) => boolean;
     diffHandler?: (context: HandlerContext, diff: clj.Diff) => Promise<any>;
@@ -76,7 +76,10 @@ export interface FingerprintHandler {
 
 export function fingerprintSupport(goals: Fingerprint | Fingerprint[] = [], ...handlers: FingerprintHandler[]): ExtensionPack {
     (Array.isArray(goals) ? goals : [goals]).forEach(g => {
-        g.with(DepsFingerprintRegistration);
+        g.with({
+            name: "deps-fingerprinter",
+            action: projectDeps,
+        });
     });
 
     return {

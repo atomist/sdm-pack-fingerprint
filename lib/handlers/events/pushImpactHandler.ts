@@ -145,6 +145,13 @@ async function checkLibraryGoals(ctx: HandlerContext, diff: clj.Diff): Promise<a
     );
 }
 
+/**
+ * handlers are usually defined by the sdm pulling in this pack
+ * by default, we always add the checkLibraryGoals handler for
+ * some of our out of the box fingerprints
+ *
+ * @param handlers
+ */
 function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEvent.Subscription> {
     return async (event, ctx) => {
         await clj.processPushImpact(

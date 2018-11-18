@@ -56,12 +56,13 @@
   (deps/edit f1 n v))
 
 (defn ^:export applyFingerprint
-  "returns void"
+  "returns Promise<any>"
   [f1 query-fn fp-name]
-  (go
-   (let [fp (<! (goals/get-fingerprint-preference query-fn fp-name))]
-     (log/info "apply fingerprint " fp " to basedir " f1)
-     (deps/apply-fingerprint f1 fp))))
+  (promise/chan->promise
+   (go
+    (let [fp (<! (goals/get-fingerprint-preference query-fn fp-name))]
+      (log/info "apply fingerprint " fp " to basedir " f1)
+      (deps/apply-fingerprint f1 fp)))))
 
 (defn format-list [xs]
   (->> xs

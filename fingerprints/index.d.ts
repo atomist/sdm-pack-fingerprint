@@ -9,7 +9,7 @@ export declare interface FP {name: string, sha: string, data: any, version: stri
  */
 export declare function fingerprint( f1:string ): Promise<FP[]>
 export declare function edit(f1:string,n:string,v:string): void
-export declare function applyFingerprint(f1:string, query: () => Promise<any> ,fpName:string): void
+export declare function applyFingerprint(f1:string, query: () => Promise<any> ,fpName:string): Promise<any>
 
 /**
  * Utility functions to rewrite in typescript

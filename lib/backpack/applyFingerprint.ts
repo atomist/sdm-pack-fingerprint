@@ -54,7 +54,10 @@ export class ApplyTargetFingerprintParameters {
 function confirmUpdate(): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
         // await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
-        goals.applyFingerprint((p as GitProject).baseDir, queryPreferences(cli.context.graphClient), cli.parameters.fingerprint);
+        await goals.applyFingerprint(
+            (p as GitProject).baseDir,
+            queryPreferences(cli.context.graphClient),
+            cli.parameters.fingerprint);
         const message: SlackMessage = {
             attachments: [
                 {
@@ -74,8 +77,7 @@ function confirmUpdate(): CodeTransform<ApplyTargetFingerprintParameters> {
     };
 }
 
-export const ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerprintParameters> =
-{
+export const ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerprintParameters> = {
     name: "ApplyTargetFingerprint",
     description: "choose to raise a PR on the current project to apply a target fingerprint",
     paramsMaker: ApplyTargetFingerprintParameters,
