@@ -118,7 +118,6 @@
   [query-prefs project-path send-message]
   (go
    (let [preferences (<! (from-promise (query-prefs)))]
-     (pretty-log "Preference GraphQL query:  " preferences)
      (log/info "project should be in basedir " project-path)
      (let [[message options] (options preferences project-path "clojure")]
        (let [v (<! (from-promise (send-message message (clj->js options))))]

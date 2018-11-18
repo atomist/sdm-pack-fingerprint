@@ -150,13 +150,6 @@
                  (js/Promise. (fn [resolve] (resolve :done))))
                {:to {:data {:librarya "v2"}} :owner "owner" :repo "repo"}))))))))
 
-(defmethod report [:cljs.test/default :begin-test-var] [m]
-  (println (gstring/format "--------\n:begin-test-var:   %s\n---------\n" (testing-vars-str m))))
-
-(defmethod report [:cljs.test/default :end-test-var] [m]
-  (println (gstring/format "--------\n:end-test-var:   %s\n---------\n" (testing-vars-str m)))
-  (pprint (get-current-env)))
-
 (deftest set-fingerprint-preference-tests
   (testing "that an existing fingerprint calls the pref updater correctly"
     (let [fp-name "fingerprint-name"

@@ -3,7 +3,7 @@
   (:require [clojure.test :refer [deftest run-tests is run-tests]]
             [spec-tools.visitor :as visitor]
             [cljs.spec.alpha :as s]
-            [editors.main]))
+            [atomist.main]))
 
 (deftest impact-tests
   (with-redefs [atomist.impact/process-push-impact
@@ -11,7 +11,7 @@
                   (is (= :event event))
                   (is (= [{:selector :a :action :b}] no-diff))
                   (go 0))]
-    (editors.main/processPushImpact
+    (atomist.main/processPushImpact
      :event
      (constantly "{}")
      [{:selector :a :action :b}]))
@@ -20,7 +20,7 @@
                   (is (= :event event))
                   (is (= [{:selector :a :action :c}] diff))
                   (go 0))]
-    (editors.main/processPushImpact
+    (atomist.main/processPushImpact
      :event
      (constantly "{}")
      [{:selector :a :diffAction :c}]))
@@ -30,7 +30,7 @@
                   (is (= [{:selector :a :action :b}] no-diff))
                   (is (= [{:selector :a :action :c}] diff))
                   (go 0))]
-    (editors.main/processPushImpact
+    (atomist.main/processPushImpact
      :event
      (constantly "{}")
      [{:selector :a :action :b}

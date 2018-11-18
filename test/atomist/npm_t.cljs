@@ -53,7 +53,6 @@
 (deftest npm-editor-tests
   (testing "backpack editing"
     (with-redefs [spit (fn [f content]
-                         (println content)
                          (is (= {"dependencies" {"lib1" "v1", "@atomist/clj-editors" "v2"},
                                  "name" "name",
                                  "version" "version",
