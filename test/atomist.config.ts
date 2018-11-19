@@ -56,7 +56,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
         fingerprintSupport(
             FingerprintGoal,
             async (basedir: string) => {
-                return await fingerprints.fingerprint(basedir);
+                return fingerprints.fingerprint(basedir);
             },
             {
                 selector: forFingerprints(
