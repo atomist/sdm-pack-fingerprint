@@ -32,6 +32,7 @@ import {
     forFingerprints,
     renderDiffSnippet,
 } from "..";
+import * as fingerprints from "../fingerprints/index";
 import { checkBackpackTargets } from "../lib/backpack/impact";
 import { setNewTarget } from "../lib/handlers/commands/setLibraryGoal";
 
@@ -44,9 +45,9 @@ export const FingerprintGoal = new Fingerprint();
 export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
 
     const sdm = createSoftwareDeliveryMachine({
-            name: `${configuration.name}-test`,
-            configuration: config,
-        },
+        name: `${configuration.name}-test`,
+        configuration: config,
+    },
         whenPushSatisfies(IsNpm)
             .itMeans("fingerprint an npm project")
             .setGoals(FingerprintGoal));
@@ -54,6 +55,9 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
     sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
+            async (basedir: string) => {
+                return await fingerprints.fingerprint(basedir);
+            },
             {
                 selector: forFingerprints(
                     "npm-project-deps"),
@@ -74,7 +78,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             {
                 selector: forFingerprints("backpack-react-scripts"),
                 diffHandler: async (ctx, diff) => {
-                    return renderDiffSnippet( ctx, diff);
+                    return renderDiffSnippet(ctx, diff);
                 },
             },
             {

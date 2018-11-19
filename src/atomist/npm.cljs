@@ -100,9 +100,11 @@
     (if (.exists package-json)
       (cond
         (= name "backpack-react-scripts")
-        (spit f (-> (get-json package-json)
-                    (assoc-in ["backpack-react-scripts" "externals"] (into {} data))
-                    (json/clj->json)))
+        (do
+          (spit f (-> (get-json package-json)
+                      (assoc-in ["backpack-react-scripts" "externals"] (into {} data))
+                      (json/clj->json)))
+          true)
         :else
         (log/warn "fingerprint application not supported for" name)))))
 (spec/fdef apply-fingerprint
