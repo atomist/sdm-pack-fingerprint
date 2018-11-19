@@ -29,6 +29,11 @@
        (seq)
        (map (fn [[k v]] [(str k) v]))))
 
+(defn backpack-data [package-json]
+  (->> (seq (-> package-json (get "backpack-react-scripts") (get "externals")))
+       (filter (fn [[k v]] (#{"react" "react-dom"} k)))
+       (map (fn [[k v]] [(str k) v]))))
+
 (defn- spawn [basedir cmd & args]
   (log/info basedir cmd args)
   (let [{:keys [pid status output] :as process} (js->clj (proc/spawn-sync cmd args (if basedir {:cwd basedir} {})) :keywordize-keys true)]
@@ -73,6 +78,10 @@
                      :data {:name (get json "name")
                             :version (get json "version")}
                      :abbreviation "coords"
+                     :version "0.0.1"})
+              (conj {:name "backpack-react-scripts"
+                     :data (backpack-data json)
+                     :abbreviation "backpack"
                      :version "0.0.1"})))
         []))
     (catch :default e
@@ -82,3 +91,22 @@
 (spec/fdef run
            :args (spec/cat :file ::schema/file)
            :ret ::schema/fingerprints)
+
+(defn apply-fingerprint
+  ""
+  [f {:keys [name data] :as fingerprint}]
+  (log/info "package.json " f)
+  (if-let [package-json (io/file f)]
+    (if (.exists package-json)
+      (cond
+        (= name "backpack-react-scripts")
+        (do
+          (spit f (-> (get-json package-json)
+                      (assoc-in ["backpack-react-scripts" "externals"] (into {} data))
+                      (json/clj->json)))
+          true)
+        :else
+        (log/warn "fingerprint application not supported for" name)))))
+(spec/fdef apply-fingerprint
+           :args (spec/cat :file ::schema/file
+                           :fp ::schema/fp))

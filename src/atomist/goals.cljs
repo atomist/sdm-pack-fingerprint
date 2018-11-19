@@ -51,7 +51,9 @@
                                                                (gstring/format "*%s:%s*" (name k) v)) goals)))
                                       "NONE")))
 
-(defn- preferences->goals [preferences type]
+(defn- preferences->goals
+  "only supports reading from one scope right now because the writing function is not prioritized"
+  [preferences type]
   (some-> preferences
           :ChatTeam
           first
@@ -61,7 +63,9 @@
           :value
           (json/json->clj)))
 
-(defn- preferences->ignores [preferences type]
+(defn- preferences->ignores
+  "unscoped"
+  [preferences type]
   (some-> preferences
           :ChatTeam
           first
@@ -114,7 +118,6 @@
   [query-prefs project-path send-message]
   (go
    (let [preferences (<! (from-promise (query-prefs)))]
-     (pretty-log "Preference GraphQL query:  " preferences)
      (log/info "project should be in basedir " project-path)
      (let [[message options] (options preferences project-path "clojure")]
        (let [v (<! (from-promise (send-message message (clj->js options))))]
@@ -146,7 +149,7 @@
      (pretty-log "Preference GraphQL query:  " preferences)
      (log/infof "-> %s/%s" lib-name lib-version)
      (log/info "update goals to " (json/json-str (assoc goals lib-name lib-version)))
-     (let [v (<! (from-promise (mutate-prefs chat-team-id (json/json-str (assoc goals lib-name lib-version)))))]
+     (let [v (<! (from-promise (mutate-prefs "atomist:fingerprints:clojure:project-deps" chat-team-id (json/json-str (assoc goals lib-name lib-version)))))]
        (log/info "mutation finished " v)
        v))))
 
@@ -292,3 +295,68 @@
                     (async/reduce conj [])))]
        (log/info "callback returns" callback-return-values)
        callback-return-values))))
+
+;;----------------------------
+;; fingerprint goals
+;;----------------------------
+
+(defn- get-fp-from-preferences
+  "ChatTeam preferences may contain a fingerprint goal"
+  [preferences fp-name]
+  (some-> preferences
+          :ChatTeam
+          first
+          :preferences
+          (->> (filter #(= fp-name (:name %))))
+          first
+          :value
+          (json/json->clj :keywordize-keys true)))
+
+(defn check-fingerprint-goals
+  "check a to fingerprint for whether it's in sync with "
+  [query-prefs send-message {:keys [owner repo] fingerprint :to}]
+  (go
+   (let [preferences (<! (from-promise (query-prefs)))
+         fp-goal (get-fp-from-preferences preferences (:name fingerprint))]
+     (log/info "check-fingerprint-goals compare " (:sha fingerprint) " and then " fp-goal " ----")
+     (if (and
+          fp-goal
+          (not
+           (= (:sha fingerprint) (:sha fp-goal))))
+       (<! (from-promise
+            (send-message
+             (str
+              (gstring/format "Target fingerprint *%s* is *%s*" (:name fp-goal) (-> fp-goal :data str))
+              "\n"
+              (gstring/format "Currently *%s* in <https://github.com/%s/%s|%s/%s>"
+                              (-> fingerprint :data str)
+                              owner repo owner repo))
+             (clj->js fingerprint))))
+       (log/info (:name fingerprint) " is okay"))
+     :done)))
+
+(defn get-fingerprint-preference
+  "a fingerprint can itself be a preference and we must fetch it
+   when it's time to apply it as an editor"
+  [query-prefs fp-name]
+  (go
+   (let [preferences (<! (from-promise (query-prefs)))
+         goal-fingerprint (get-fp-from-preferences preferences fp-name)]
+     (log/info "get-fingerprint goal-fingerprint" goal-fingerprint)
+     goal-fingerprint)))
+
+(defn set-fingerprint-preference
+  "set or replace a fingerprint preference "
+  [query-prefs query-fingerprint-by-sha pref-editor fp-name fp-sha]
+  (go
+   (let [preferences (<! (from-promise (query-prefs)))
+         fps (<! (from-promise (query-fingerprint-by-sha fp-name fp-sha)))
+         chat-team-id (-> preferences :ChatTeam first :id)
+         fp (-> fps :Fingerprint first)
+         fingerprint (assoc fp :data (-> fp :data (json/json->clj :keywordize-keys true)))]
+     (log/info "set-fingerprint-preference to team " chat-team-id " and fingerprint " fingerprint)
+     (if fingerprint
+       (do
+         (<! (from-promise (pref-editor fp-name chat-team-id (json/clj->json fingerprint))))
+         true)
+       false))))

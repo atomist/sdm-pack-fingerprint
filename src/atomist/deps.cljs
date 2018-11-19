@@ -14,7 +14,7 @@
             [cljs.test :refer-macros [deftest testing is run-tests async] :refer [report testing-vars-str empty-env get-current-env]]
             [goog.string :as gstring]
             [goog.string.format]
-            [editors.core :as lein]
+            [atomist.lein :as lein]
             [cljs.spec.alpha :as spec]
             [atomist.specs :as schema]))
 
@@ -74,3 +74,8 @@
   (get-file basedir "package.json" (fn [f] (npm/edit {:basedir basedir :path "package.json"} {:name n :version v})))
   (get-file basedir "project.clj" (fn [f] (spit f (lein/edit-library (slurp f) n v))))
   (get-file basedir "pom.xml" (fn [f] (maven/edit basedir n v))))
+
+(defn apply-fingerprint
+  ""
+  [basedir {:keys [name] :as fingerprint}]
+  (get-file basedir "package.json" (fn [f] (npm/apply-fingerprint f fingerprint))))

@@ -16,62 +16,65 @@
 
 import {
     HandlerContext,
-    logger,
 } from "@atomist/automation-client";
 import {
     ExtensionPack,
     Fingerprint,
-    FingerprinterRegistration,
     FingerprinterResult,
     metadata,
     PushImpactListener,
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import * as clj from "../../fingerprints/index";
+import * as fingerprints from "../../fingerprints/index";
+import { ApplyTargetFingerprint } from "../backpack/applyFingerprint";
+import { UpdateTargetFingerprint } from "../backpack/updateTarget";
+import { BroadcastNudge } from "../handlers/commands/broadcast";
+import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
+import { IgnoreVersion } from "../handlers/commands/ignoreVersion";
 import {
-    BroadcastNudge,
     ChooseTeamLibrary,
-    ClearLibraryTargets,
-    ConfirmUpdate,
-    DumpLibraryPreferences,
-    IgnoreVersion,
     SetTeamLibrary,
+} from "../handlers/commands/setLibraryGoal";
+import {
+    ClearLibraryTargets,
+    DumpLibraryPreferences,
     ShowGoals,
     ShowTargets,
-    UseLatest,
-} from "../handlers/commands/pushImpactCommandHandlers";
+} from "../handlers/commands/showTargets";
+import { UseLatest } from "../handlers/commands/useLatest";
 import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
 
-const projectDeps: PushImpactListener<FingerprinterResult> =
-    async (i: PushImpactListenerInvocation) => {
-        return clj.fingerprint(i.project.baseDir)
-            .then(
-                (result: clj.FP[]) => {
-                    logger.info("Fingerprint result: %s", JSON.stringify(result));
-                    return result;
-                })
-            .catch(
-                error => {
-                    logger.error(error);
-                    return [];
-                },
-            );
+/**
+ * run fingerprints on every Push
+ * send them in batch
+ *
+ * @param i
+ */
+function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
+    return async (i: PushImpactListenerInvocation) => {
+        return fingerprinter((i.project).baseDir);
     };
-
-export const DepsFingerprintRegistration: FingerprinterRegistration = {
-    name: "deps-fingerprinter",
-    action: projectDeps,
-};
-
-export interface FingerprintHandler {
-    selector: (name: clj.FP) => boolean;
-    diffHandler?: (context: HandlerContext, diff: clj.Diff) => Promise<any>;
 }
 
-export function fingerprintSupport(goals: Fingerprint | Fingerprint[] = [], ...handlers: FingerprintHandler[]): ExtensionPack {
+export type FingerprintRunner = (basedir: string) => Promise<fingerprints.FP[]>;
+
+export interface FingerprintHandler {
+    selector: (name: fingerprints.FP) => boolean;
+    diffHandler?: (context: HandlerContext, diff: fingerprints.Diff) => Promise<any>;
+    handler?: (context: HandlerContext, diff: fingerprints.Diff) => Promise<any>;
+}
+
+export function fingerprintSupport(
+    goals: Fingerprint | Fingerprint[] = [],
+    fingerprinter: FingerprintRunner,
+    ...handlers: FingerprintHandler[]): ExtensionPack {
+
     (Array.isArray(goals) ? goals : [goals]).forEach(g => {
-        g.with(DepsFingerprintRegistration);
+        g.with({
+            name: "fingerprinter",
+            action: runFingerprints(fingerprinter),
+        });
     });
 
     return {
@@ -94,4 +97,6 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: FingerprintHandler[])
     sdm.addCommand(ShowTargets);
     sdm.addCommand(DumpLibraryPreferences);
     sdm.addCommand(UseLatest);
+    sdm.addCommand(UpdateTargetFingerprint);
+    sdm.addCodeTransformCommand(ApplyTargetFingerprint);
 }

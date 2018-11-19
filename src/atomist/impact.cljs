@@ -8,7 +8,8 @@
             [cljs.core.async :refer [chan <! >!]]
             [cljs.test :refer-macros [deftest testing is run-tests]]
             [cljs.core.async :as async]
-            [atomist.promise :as promise]))
+            [atomist.promise :as promise]
+            [cljs.spec.alpha :as s]))
 
 (defn- push-impact?
   [x]
@@ -43,12 +44,19 @@
   (some-> event :data :PushImpact first :data (json/read-str :key-fn keyword) push-impact?))
 
 (defn- diff-fingerprint-data
+  "diffs two collections of things"
   [fp-data1 fp-data2]
   (zipmap
    [:from :to]
    (clojure.data/diff
     (into #{} fp-data1)
     (into #{} fp-data2))))
+(s/def ::from any?)
+(s/def ::to any?)
+(s/fdef diff-fingerprint-data
+        :args (s/cat :first (s/map-of string? any?)
+                     :second (s/map-of string? any?))
+        :ret (s/keys :req-un [::from ::to]))
 
 (defn- call-js [callback & args]
   (let [js-args (into-array (map clj->js args))]

@@ -1,13 +1,3 @@
-/**
- * clojure-sdm editors
- */
-export declare function setVersion( f: string, version: string): Promise<any>
-export declare function getVersion( f: string): string
-export declare function getName( f: string): string
-export declare function projectDeps( f: string): void
-export declare function cljfmt(f: string): Promise<any>
-export declare function updateProjectDep( f: string, libname: string, version: string): void
-export declare function vault( key: string, f: string): Map<string,string>
 
 /**
  * Types:  project Fingerprint types
@@ -19,6 +9,7 @@ export declare interface FP {name: string, sha: string, data: any, version: stri
  */
 export declare function fingerprint( f1:string ): Promise<FP[]>
 export declare function edit(f1:string,n:string,v:string): void
+export declare function applyFingerprint(f1:string, query: () => Promise<any> ,fpName:string): Promise<any>
 
 /**
  * Utility functions to rewrite in typescript
@@ -66,10 +57,19 @@ export declare function withPreferences( queryPreferences: () => Promise<any>,
 // choose a new library target and set it in the team wide preferences
 // we use this to set a new library goal
 export declare function withNewGoal( queryPreferences: () => Promise<any>,
-                                     mutatePreference: (chatTeamId: string, prefsAsJson: string) => Promise<any>,
+                                     mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
                                      namespace: string,
                                      library: {name: string, version: string} | string
                                      ): Promise<boolean>
+// choose a new library target and set it in the team wide preferences
+// we use this to set a new library goal
+export declare function setGoalFingerprint( queryPreferences: () => Promise<any>,
+                                            queryFingerprintBySha: (name: string, sha: string) => Promise<any>,
+                                            mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
+                                            name: string,
+                                            sha: string
+                                            ): Promise<boolean>
+
 
 // choose a new library target and set it in the team wide preferences
 // we use this to set a new library goal
@@ -86,6 +86,13 @@ export declare function checkLibraryGoals(queryPreferences: () => Promise<any>,
                                           diff: Diff
                                           ): Promise<boolean>
 
+// send a message if any project fingerprints are out of sync with the target state
+export declare function checkFingerprintGoals(queryPreferences: () => Promise<any>,
+                                              sendMessage: (s: string, fingerprint: FP) => Promise<any>,
+                                              diff: Diff
+                                              ): Promise<boolean>
+
+
 // fire callbacks for all project consuming a library when a new library target is set
 // we use this to broadcast a new library goal to all projects that might be impacted
 export declare function broadcast( queryFingerprints: (name: string) => Promise<any>,
@@ -94,4 +101,3 @@ export declare function broadcast( queryFingerprints: (name: string) => Promise<
                                    ): Promise<any>
 
 export declare function npmLatest( package: string ): Promise<string>
-

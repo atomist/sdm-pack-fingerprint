@@ -14,10 +14,12 @@
 (spec/def ::deps (spec/coll-of ::lib-spec))
 
 (spec/def :fp/data any?)
-(spec/def ::fp (spec/keys :req-un [::name ::version ::abbreviation :fp/data]))
+(spec/def ::fp (spec/keys :req-un [::name :fp/data]
+                          :opt-un [::abbreviation ::sha ::version]))
 (spec/def ::fingerprints (spec/coll-of ::fp))
 
-(spec/def ::fingerprint (spec/keys :req-un [::name ::sha ::data ::value ::version ::abbreviation]))
+(spec/def ::fingerprint (spec/keys :req-un [::name ::sha ::data]
+                                   :opt-un [::abbreviation ::value ::version]))
 
 (spec/def :diff/to (spec/coll-of any?))
 (spec/def :diff/from (spec/coll-of any?))

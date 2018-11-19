@@ -62,9 +62,9 @@
   },
   "scripts": {
     "autotest": "supervisor --watch index.ts,lib,test --extensions ts --no-restart-on exit --quiet --exec npm -- test",
-    "build": "npm-run-all gql:gen compile:ts test lint doc",
+    "build": "npm-run-all gql:gen compile:cljs compile:ts test lint doc",
     "clean": "npm-run-all clean:compile clean:doc clean:run",
-    "compile": "npm-run-all compile:cljs compile:ts",
+    "compile": "npm-run-all gql:gen compile:cljs compile:ts",
     "compile:cljs": "lein cljsbuild once prod",
     "test:cljs": "lein doo node unit-tests once",
     "clean:compile": "rimraf build dist git-info.json \"index.{d.ts,js*}\" \"{lib,test}/**/*.{d.ts,js*}\" lib/typings/types.ts",

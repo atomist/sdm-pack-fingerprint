@@ -24,7 +24,9 @@
 
   :profiles {:dev {:dependencies [[cider/piggieback "0.3.1"]
                                   [org.clojure/tools.nrepl "0.2.13"]
-                                  [tubular "1.0.0"]]
+                                  [tubular "1.0.0"]
+                                  [com.bhauman/figwheel-main "0.1.9"]
+                                  [com.bhauman/rebel-readline-cljs "0.1.4"]]
                    :source-paths ["dev"]
                    :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]
                                   :init-ns user}}}
@@ -35,7 +37,7 @@
    :compile-path]
   :cljsbuild {:builds [{:id "prod"
                         :source-paths ["src"]
-                        :compiler {:main editors.main
+                        :compiler {:main atomist.main
                                    :target :nodejs
                                    :output-to "fingerprints/main.js"
                                    :output-dir "out"

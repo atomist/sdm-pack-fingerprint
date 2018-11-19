@@ -32,18 +32,16 @@ import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
 import * as clj from "../../../fingerprints/index";
 import * as impact from "../../../fingerprints/index";
+import { queryPreferences } from "../../adhoc/preferences";
 import { FingerprintHandler } from "../../machine/FingerprintSupport";
 import { footer } from "../../support/util";
 import {
     GetFingerprintData,
     PushImpactEvent,
 } from "../../typings/types";
-import {
-    ConfirmUpdate,
-    IgnoreVersion,
-    queryPreferences,
-    SetTeamLibrary,
-} from "../commands/pushImpactCommandHandlers";
+import { ConfirmUpdate } from "../commands/confirmUpdate";
+import { IgnoreVersion } from "../commands/ignoreVersion";
+import { SetTeamLibrary } from "../commands/setLibraryGoal";
 
 export function forFingerprints(...s: string[]): (fp: clj.FP) => boolean {
     return fp => {
@@ -135,7 +133,7 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
                 },
             ],
         };
-        return ctx.messageClient.addressChannels(message, diff.channel, {id: msgId});
+        return ctx.messageClient.addressChannels(message, diff.channel, { id: msgId });
     };
 }
 
@@ -147,6 +145,13 @@ async function checkLibraryGoals(ctx: HandlerContext, diff: clj.Diff): Promise<a
     );
 }
 
+/**
+ * handlers are usually defined by the sdm pulling in this pack
+ * by default, we always add the checkLibraryGoals handler for
+ * some of our out of the box fingerprints
+ *
+ * @param handlers
+ */
 function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEvent.Subscription> {
     return async (event, ctx) => {
         await clj.processPushImpact(
@@ -154,12 +159,21 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
             getFingerprintDataCallback(ctx),
             [
                 ...handlers.map(h => {
-                    return {
-                        selector: h.selector,
-                        diffAction: (diff: clj.Diff) => {
-                            return h.diffHandler(ctx, diff);
-                        },
-                    };
+                    if (h.diffHandler) {
+                        return {
+                            selector: h.selector,
+                            diffAction: (diff: clj.Diff) => {
+                                return h.diffHandler(ctx, diff);
+                            },
+                        };
+                    } else {
+                        return {
+                            selector: h.selector,
+                            action: (diff: clj.Diff) => {
+                                return h.handler(ctx, diff);
+                            },
+                        };
+                    }
                 }),
                 {
                     selector: forFingerprints(
