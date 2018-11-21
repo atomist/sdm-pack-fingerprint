@@ -47,7 +47,7 @@ export FingerprintGoal = new Fingerprint();
 
 2. Enable the `FingerprintGoal` for some push rules.  Normally, this is done as part of creating your machine:
 
-```
+```ts
     // there will usually be more than one Push rule here
     const sdm = createSoftwareDeliveryMachine({
             ...config
@@ -58,40 +58,28 @@ export FingerprintGoal = new Fingerprint();
 
 ```
 
-3.  Add the pack to your new `sdm` definition
+3.  Add the pack to your new `sdm` definition.  
 
-```
-    // add this pack to your SDM
-    sdm.addExtensionPacks(
-        fingerprintSupport(FingerprintGoal),
-    )
-```
-
-Out of the box, this pack adds functionality to watch for library versions out of
-sync with your team's version goals.  However, other fingerprint diff handlers can be added to the
-call to `fingerprintSupport`:
-
-```
+```ts
     // add this pack to your SDM
     sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
+            async (basedir: string) => {
+                // COMPUTE fingerprint: called on every Push
+            },
+            async (p: GitProject, prefs: ()=>Promise<any>, fpName: string) => {
+                // APPLY fingerprint to Project
+            },
             {
                 selector: forFingerprints(
-                    "clojure-project-coordinates",
-                    "npm-project-coordinates"),
+                    "named-fingerprint"),
                 diffHandler: async (ctx, diff) => {
-                    return setNewTarget(
-                        ctx,
-                        diff.to.name,
-                        diff.to.data.name,
-                        diff.to.data.version,
-                        diff.channel);
+                    // HANDLE change:  react to a diffed fingerprint
                 },
             },
-        ),        
+        ),
     )
-
 ```
 
 ## Support

@@ -66,7 +66,7 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff):
     };
 }
 
-export async function checkBackpackTargets(ctx: HandlerContext, diff: fingerprints.Diff): Promise<any> {
+export async function checkFingerprintTargets(ctx: HandlerContext, diff: fingerprints.Diff): Promise<any> {
     return fingerprints.checkFingerprintGoals(
         queryPreferences(ctx.graphClient),
         callback(ctx, diff),

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Configuration } from "@atomist/automation-client";
+import { Configuration, GitProject } from "@atomist/automation-client";
 import {
     Fingerprint,
     pushTest,
@@ -33,7 +33,7 @@ import {
     renderDiffSnippet,
 } from "..";
 import * as fingerprints from "../fingerprints/index";
-import { checkBackpackTargets } from "../lib/backpack/impact";
+import { checkFingerprintTargets } from "../lib/fingerprints/impact";
 import { setNewTarget } from "../lib/handlers/commands/setLibraryGoal";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
@@ -57,6 +57,9 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             FingerprintGoal,
             async (basedir: string) => {
                 return fingerprints.fingerprint(basedir);
+            },
+            async (p: GitProject, preferences: () => Promise<any>, fpName: string) => {
+                return await fingerprints.applyFingerprint(p.baseDir,preferences,fpName);
             },
             {
                 selector: forFingerprints(
@@ -84,7 +87,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             {
                 selector: forFingerprints("backpack-react-scripts"),
                 handler: async (ctx, diff) => {
-                    return checkBackpackTargets(ctx, diff);
+                    return checkFingerprintTargets(ctx, diff);
                 },
             },
         ),
