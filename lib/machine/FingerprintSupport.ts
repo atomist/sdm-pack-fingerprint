@@ -15,7 +15,8 @@
  */
 
 import {
-    GitProject, HandlerContext,
+    GitProject,
+    HandlerContext,
 } from "@atomist/automation-client";
 import {
     ExtensionPack,
@@ -27,7 +28,10 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import * as fingerprints from "../../fingerprints/index";
-import { applyTargetFingerprint, FingerprintPusher } from "../fingerprints/applyFingerprint";
+import {
+    applyTargetFingerprint,
+    FingerprintPusher,
+} from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
 import { UpdateTargetFingerprint } from "../fingerprints/updateTarget";
 import { BroadcastNudge } from "../handlers/commands/broadcast";
