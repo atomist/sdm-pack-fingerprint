@@ -15,7 +15,7 @@
  */
 
 import {
-    HandlerContext,
+    HandlerContext, GitProject,
 } from "@atomist/automation-client";
 import {
     ExtensionPack,
@@ -28,6 +28,7 @@ import {
 } from "@atomist/sdm";
 import * as fingerprints from "../../fingerprints/index";
 import { applyTargetFingerprint, FingerprintPusher } from "../fingerprints/applyFingerprint";
+import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
 import { UpdateTargetFingerprint } from "../fingerprints/updateTarget";
 import { BroadcastNudge } from "../handlers/commands/broadcast";
 import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
@@ -45,7 +46,6 @@ import {
 import { UseLatest } from "../handlers/commands/useLatest";
 import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
 
-
 /**
  * run fingerprints on every Push
  * send them in batch
@@ -54,11 +54,11 @@ import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
  */
 function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
     return async (i: PushImpactListenerInvocation) => {
-        return fingerprinter((i.project).baseDir);
+        return fingerprinter(i.project);
     };
 }
 
-export type FingerprintRunner = (basedir: string) => Promise<fingerprints.FP[]>;
+export type FingerprintRunner = (p: GitProject) => Promise<fingerprints.FP[]>;
 
 export interface FingerprintHandler {
     selector: (name: fingerprints.FP) => boolean;
@@ -100,5 +100,6 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: FingerprintHandler[],
     sdm.addCommand(DumpLibraryPreferences);
     sdm.addCommand(UseLatest);
     sdm.addCommand(UpdateTargetFingerprint);
+    sdm.addCommand(BroadcastFingerprintNudge);
     sdm.addCodeTransformCommand(applyTargetFingerprint(fingerprintPusher));
 }

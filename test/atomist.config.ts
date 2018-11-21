@@ -55,11 +55,13 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
     sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
-            async (basedir: string) => {
-                return fingerprints.fingerprint(basedir);
+            // runs on every push!!
+            async (p: GitProject) => {
+                return fingerprints.fingerprint(p.baseDir);
             },
-            async (p: GitProject, preferences: () => Promise<any>, fpName: string) => {
-                return await fingerprints.applyFingerprint(p.baseDir,preferences,fpName);
+            // currently scheduled only when a user chooses to apply the fingerprint
+            async (p: GitProject, fp: fingerprints.FP) => {
+                return fingerprints.applyFingerprint(p.baseDir, fp);
             },
             {
                 selector: forFingerprints(
@@ -80,14 +82,11 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             },
             {
                 selector: forFingerprints("backpack-react-scripts"),
-                diffHandler: async (ctx, diff) => {
-                    return renderDiffSnippet(ctx, diff);
-                },
-            },
-            {
-                selector: forFingerprints("backpack-react-scripts"),
                 handler: async (ctx, diff) => {
                     return checkFingerprintTargets(ctx, diff);
+                },
+                diffHandler: async (ctx, diff) => {
+                    return renderDiffSnippet(ctx, diff);
                 },
             },
         ),

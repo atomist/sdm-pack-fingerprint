@@ -9,7 +9,8 @@ export declare interface FP {name: string, sha: string, data: any, version: stri
  */
 export declare function fingerprint( f1:string ): Promise<FP[]>
 export declare function edit(f1:string,n:string,v:string): void
-export declare function applyFingerprint(f1:string, query: () => Promise<any> ,fpName:string): Promise<any>
+export declare function getFingerprintPreference(query: () => Promise<any> ,fpName:string): Promise<FP>
+export declare function applyFingerprint(f1:string, fp: FP): Promise<any>
 
 /**
  * Utility functions to rewrite in typescript
@@ -92,6 +93,11 @@ export declare function checkFingerprintGoals(queryPreferences: () => Promise<an
                                               diff: Diff
                                               ): Promise<boolean>
 
+// fire callbacks for all project consuming a library when a new library target is set
+// we use this to broadcast a new library goal to all projects that might be impacted
+export declare function broadcastFingerprint( queryFingerprints: (name: string) => Promise<any>,
+                                              fingerprint: {name: string, version: string, sha: string},
+                                              callback: (owner: string, repo: string, channel: string) => Promise<any>                                             ): Promise<any>
 
 // fire callbacks for all project consuming a library when a new library target is set
 // we use this to broadcast a new library goal to all projects that might be impacted

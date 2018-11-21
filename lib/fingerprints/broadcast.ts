@@ -20,7 +20,6 @@ import {
     CommandListenerInvocation,
 } from "@atomist/sdm";
 import {
-    bold,
     codeLine,
     italic,
     SlackMessage,
@@ -29,18 +28,18 @@ import {
 import * as goals from "../../fingerprints/index";
 import { queryFingerprints } from "../adhoc/fingerprints";
 import { footer } from "../support/util";
-import { UpdateTargetFingerprint } from "./updateTarget";
+import { ApplyTargetFingerprint } from "./applyFingerprint";
 
-export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version: string, fp: string) {
+export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version: string, sha: string) {
     const author = cli.context.source.slack.user.id;
     return cli.addressChannels(
         {
             attachments:
                 [{
-                    author_name: "Broadcast Library Target",
+                    author_name: "Broadcast Fingerprint Target",
                     author_icon: `https://images.atomist.com/rug/warning-yellow.png`,
-                    text: `Shall we nudge everyone with a PR for ${codeLine(`${name}:${version}`)}?`,
-                    fallback: `Boardcast PR for ${name}:${version}`,
+                    text: `Shall we nudge everyone with a PR for ${codeLine(`${name}:${sha}`)}?`,
+                    fallback: `Boardcast PR for ${name}:${sha}`,
                     color: "#ffcc00",
                     mrkdwn_in: ["text"],
                     actions: [
@@ -48,8 +47,8 @@ export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, 
                             {
                                 text: "Broadcast",
                             },
-                            BroadcastNudge,
-                            { name, version, author, fp},
+                            BroadcastFingerprintNudge,
+                            { name, version, author, sha},
                         ),
                     ],
                     footer: footer(),
@@ -62,22 +61,22 @@ export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, 
 // broadcast nudge
 // ------------------------------
 
-export interface BroadcastNudgeParameters {
+export interface BroadcastFingerprintNudgeParameters {
     name: string;
     version: string;
+    sha: string;
     reason: string;
     author: string;
-    sha: string;
 }
 
-function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>): Promise<any> {
-    const msgId = `broadcastNudge-${cli.parameters.name}-${cli.parameters.version}`;
-    return goals.broadcast(
+function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>): Promise<any> {
+    const msgId = `broadcastNudge-${cli.parameters.name}-${cli.parameters.sha}`;
+    return goals.broadcastFingerprint(
         queryFingerprints(cli.context.graphClient),
         {
             name: cli.parameters.name,
             version: cli.parameters.version,
-            fp: cli.parameters.fp,
+            sha: cli.parameters.sha,
         },
         (owner: string, repo: string, channel: string) => {
             const message: SlackMessage = {
@@ -90,23 +89,22 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastNudgeParameters>
 The reason provided is:
 
 ${italic(cli.parameters.reason)}`,
-                        fallback: "Library Update",
+                        fallback: "Fingerprint Update",
                         mrkdwn_in: ["text"],
                         color: "#ffcc00",
                     },
                     {
-                        text: `Shall we update library \`${cli.parameters.name}\` to ${bold(cli.parameters.version)}?`,
+                        text: `Shall we update project to use the \`${cli.parameters.name}\` target?`,
                         fallback: "none",
                         actions: [
                             actionableButton(
                                 {
                                     text: "Raise PR",
                                 },
-                                UpdateTargetFingerprint,
+                                ApplyTargetFingerprint,
                                 {
                                     msgId,
-                                    sha: cli.parameters.sha,
-                                    name: cli.parameters.name,
+                                    fingerprint: cli.parameters.name,
                                 },
                             ),
                         ],
@@ -121,14 +119,14 @@ ${italic(cli.parameters.reason)}`,
     );
 }
 
-export const BroadcastNudge: CommandHandlerRegistration<BroadcastNudgeParameters> = {
-    name: "BroadcastNudge",
-    description: "message all Channels linked to Repos that contain a library",
+export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFingerprintNudgeParameters> = {
+    name: "BroadcastFingerprintNudge",
+    description: "message all Channels linked to Repos that contain a particular fingerprint",
     parameters: {
         name: { required: true },
         version: { required: true },
-        fp: { required: false,
-              description: "npm-project-deps, maven-project-deps, or clojure-project-deps"},
+        sha: { required: true,
+               description: "sha of fingerprint to broadcast"},
         reason: {
             required: true,
             description: "always give a reason why we're releasing the nudge",

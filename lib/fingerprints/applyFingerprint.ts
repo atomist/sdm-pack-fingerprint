@@ -28,6 +28,7 @@ import {
     CodeTransformRegistration,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
+import * as fingerprints from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import { footer } from "../support/util";
 
@@ -55,8 +56,9 @@ function applyFingerprint(pusher: FingerprintPusher): CodeTransform<ApplyTargetF
         // await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
         await pusher(
             (p as GitProject),
-            queryPreferences(cli.context.graphClient),
-            cli.parameters.fingerprint);
+            await fingerprints.getFingerprintPreference(
+                queryPreferences(cli.context.graphClient),
+                cli.parameters.fingerprint));
         const message: SlackMessage = {
             attachments: [
                 {
@@ -76,13 +78,14 @@ function applyFingerprint(pusher: FingerprintPusher): CodeTransform<ApplyTargetF
     };
 }
 
-export type FingerprintPusher = (p: GitProject, preferences: ()=> Promise<any>, fpName: string) => Promise<any>;
+export type FingerprintPusher = (p: GitProject, fp: fingerprints.FP) => Promise<any>;
 
 export let ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
 
 export function applyTargetFingerprint(pusher: FingerprintPusher): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
     ApplyTargetFingerprint = {
         name: "ApplyTargetFingerprint",
+        intent: "applyFingerprint",
         description: "choose to raise a PR on the current project to apply a target fingerprint",
         paramsMaker: ApplyTargetFingerprintParameters,
         transformPresentation: ci => {

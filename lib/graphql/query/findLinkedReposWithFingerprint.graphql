@@ -12,6 +12,7 @@ query findLinkedReposWithFingerprint($name: String!) {
         fingerprints(name: $name) @required {
           data
           name
+          sha
         }
       }
     }

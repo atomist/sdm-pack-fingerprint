@@ -33,14 +33,13 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff):
         const message: SlackMessage = {
             attachments: [
                 {
-                    author_name: "Backpack Target",
                     text,
                     color: "#45B254",
-                    fallback: "Backpack Target",
+                    fallback: "Fingerprint Update",
                     mrkdwn_in: ["text"],
                     actions: [
                         actionableButton(
-                            { text: "Accept" },
+                            { text: "Update project" },
                             ApplyTargetFingerprint,
                             {
                                 msgId,
@@ -49,7 +48,7 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff):
                                 fingerprint: fingerprint.name,
                             }),
                         actionableButton(
-                            { text: "Set as Target" },
+                            { text: "Set New Target" },
                             UpdateTargetFingerprint,
                             {
                                 msgId,

@@ -58,29 +58,43 @@ export FingerprintGoal = new Fingerprint();
 
 ```
 
-3.  Add the pack to your new `sdm` definition.  
+3.  Add the pack to your new `sdm` definition:
 
 ```ts
     // add this pack to your SDM
     sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
-            async (basedir: string) => {
-                // COMPUTE fingerprint: called on every Push
+            async (p: GitProject) => {
+                // COMPUTE fingerprints: called on every Push
+                return fingerprints.fingerprint(p.baseDir);
             },
-            async (p: GitProject, prefs: ()=>Promise<any>, fpName: string) => {
-                // APPLY fingerprint to Project
+            async (p: GitProject, fp: FP) => {
+                // APPLY fingerprint to Project (currently only through user actions in chat)
+                return fingerprints.applyFingerprint(p.baseDir, fp);
             },
             {
-                selector: forFingerprints(
-                    "named-fingerprint"),
+                selector: forFingerprints("backpack-react-scripts"),
+                handler: async (ctx, diff) => {
+                    // HANDLE new fingerprint (even if it hasn't changed in this push)
+                    return checkFingerprintTargets(ctx, diff);
+                },
                 diffHandler: async (ctx, diff) => {
-                    // HANDLE change:  react to a diffed fingerprint
+                    // HANDLE new fingerprint (only when the fingerprint sha is updated)
+                    return renderDiffSnippet(ctx, diff);
                 },
             },
         ),
     )
 ```
+
+In the example above, we have a module which computes a set of fingerprints on every `Push` (one of them is named `backpack-react-scripts`).  The pack also notices if a newly
+computed fingerprint has either changed, or is different from a `goal` state.  It will then present the user with options to do things like:
+
+* set new targets 
+* update a project to be in sync with a target fingerprint
+* apply a fingerprint to a project for the first time
+* broadcast a message to all projects out of sync with the fingerprint
 
 ## Support
 
