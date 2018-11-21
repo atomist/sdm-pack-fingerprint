@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { Configuration, GitProject } from "@atomist/automation-client";
+import {
+    Configuration,
+    GitProject,
+} from "@atomist/automation-client";
 import {
     Fingerprint,
     pushTest,

@@ -27,7 +27,10 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import * as fingerprints from "../../fingerprints/index";
-import { applyTargetFingerprint, FingerprintPusher } from "../fingerprints/applyFingerprint";
+import {
+    applyTargetFingerprint,
+    FingerprintPusher,
+} from "../fingerprints/applyFingerprint";
 import { UpdateTargetFingerprint } from "../fingerprints/updateTarget";
 import { BroadcastNudge } from "../handlers/commands/broadcast";
 import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
