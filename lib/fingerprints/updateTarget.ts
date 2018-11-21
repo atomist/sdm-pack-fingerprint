@@ -25,6 +25,7 @@ import {
     mutatePreference,
     queryPreferences,
 } from "../adhoc/preferences";
+import { askAboutBroadcast } from "./broadcast";
 
 @Parameters()
 export class UpdateTargetFingerprintParameters {
@@ -46,12 +47,13 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
     paramsMaker: UpdateTargetFingerprintParameters,
     listener: async cli => {
         await cli.context.messageClient.respond(`updating the goal state for all ${cli.parameters.name} fingerprints`);
-        return goals.setGoalFingerprint(
+        await goals.setGoalFingerprint(
             queryPreferences(cli.context.graphClient),
             queryFingerprintBySha(cli.context.graphClient),
             mutatePreference(cli.context.graphClient),
             cli.parameters.name,
             cli.parameters.sha,
         );
+        return askAboutBroadcast(cli, cli.parameters.name, "version", cli.parameters.sha);
     },
 };

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { Configuration } from "@atomist/automation-client";
+import {
+    Configuration,
+    GitProject,
+} from "@atomist/automation-client";
 import {
     Fingerprint,
     pushTest,
@@ -33,7 +36,7 @@ import {
     renderDiffSnippet,
 } from "..";
 import * as fingerprints from "../fingerprints/index";
-import { checkBackpackTargets } from "../lib/backpack/impact";
+import { checkFingerprintTargets } from "../lib/fingerprints/impact";
 import { setNewTarget } from "../lib/handlers/commands/setLibraryGoal";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
@@ -55,8 +58,13 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
     sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
-            async (basedir: string) => {
-                return fingerprints.fingerprint(basedir);
+            // runs on every push!!
+            async (p: GitProject) => {
+                return fingerprints.fingerprint(p.baseDir);
+            },
+            // currently scheduled only when a user chooses to apply the fingerprint
+            async (p: GitProject, fp: fingerprints.FP) => {
+                return fingerprints.applyFingerprint(p.baseDir, fp);
             },
             {
                 selector: forFingerprints(
@@ -77,14 +85,11 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             },
             {
                 selector: forFingerprints("backpack-react-scripts"),
+                handler: async (ctx, diff) => {
+                    return checkFingerprintTargets(ctx, diff);
+                },
                 diffHandler: async (ctx, diff) => {
                     return renderDiffSnippet(ctx, diff);
-                },
-            },
-            {
-                selector: forFingerprints("backpack-react-scripts"),
-                handler: async (ctx, diff) => {
-                    return checkBackpackTargets(ctx, diff);
                 },
             },
         ),

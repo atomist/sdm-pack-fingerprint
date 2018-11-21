@@ -55,14 +55,17 @@
 (defn ^:export edit [f1 n v]
   (deps/edit f1 n v))
 
+(defn ^:export getFingerprintPreference [query-fn fp-name]
+  (promise/chan->promise (goals/get-fingerprint-preference query-fn fp-name)))
+
 (defn ^:export applyFingerprint
   "returns Promise<any>"
-  [f1 query-fn fp-name]
+  [basedir fp]
+  (log/info "apply fingerprint " fp " to basedir " f1)
   (promise/chan->promise
    (go
-    (let [fp (<! (goals/get-fingerprint-preference query-fn fp-name))]
-      (log/info "apply fingerprint " fp " to basedir " f1)
-      (deps/apply-fingerprint f1 fp)))))
+    (deps/apply-fingerprint basedir fp)
+    true)))
 
 (defn format-list [xs]
   (->> xs
@@ -169,6 +172,15 @@
   (log/info "clj-editors broadcast")
   (promise/chan->promise
    (goals/broadcast fingerprint-query (js->clj lib :keywordize-keys true) cb)))
+
+(defn ^:export broadcastFingerprint
+  "use fingerprints to scan for projects that could be impacted by this new lib version
+
+   returns Promise<any>"
+  [fingerprint-query fp cb]
+  (log/info "clj-editors broadcast")
+  (promise/chan->promise
+   (goals/broadcast-fingerprint fingerprint-query (js->clj fp :keywordize-keys true) cb)))
 
 (defn ^:export npmLatest
   ""

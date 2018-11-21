@@ -15,6 +15,7 @@
  */
 
 import {
+    GitProject,
     HandlerContext,
 } from "@atomist/automation-client";
 import {
@@ -27,8 +28,12 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import * as fingerprints from "../../fingerprints/index";
-import { ApplyTargetFingerprint } from "../backpack/applyFingerprint";
-import { UpdateTargetFingerprint } from "../backpack/updateTarget";
+import {
+    applyTargetFingerprint,
+    FingerprintPusher,
+} from "../fingerprints/applyFingerprint";
+import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
+import { UpdateTargetFingerprint } from "../fingerprints/updateTarget";
 import { BroadcastNudge } from "../handlers/commands/broadcast";
 import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
 import { IgnoreVersion } from "../handlers/commands/ignoreVersion";
@@ -53,11 +58,11 @@ import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
  */
 function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
     return async (i: PushImpactListenerInvocation) => {
-        return fingerprinter((i.project).baseDir);
+        return fingerprinter(i.project);
     };
 }
 
-export type FingerprintRunner = (basedir: string) => Promise<fingerprints.FP[]>;
+export type FingerprintRunner = (p: GitProject) => Promise<fingerprints.FP[]>;
 
 export interface FingerprintHandler {
     selector: (name: fingerprints.FP) => boolean;
@@ -68,6 +73,7 @@ export interface FingerprintHandler {
 export function fingerprintSupport(
     goals: Fingerprint | Fingerprint[] = [],
     fingerprinter: FingerprintRunner,
+    fingerprintPusher: FingerprintPusher,
     ...handlers: FingerprintHandler[]): ExtensionPack {
 
     (Array.isArray(goals) ? goals : [goals]).forEach(g => {
@@ -80,12 +86,12 @@ export function fingerprintSupport(
     return {
         ...metadata(),
         configure: (sdm: SoftwareDeliveryMachine) => {
-            configure( sdm, handlers);
+            configure( sdm, handlers, fingerprintPusher);
         },
     };
 }
 
-function configure(sdm: SoftwareDeliveryMachine, handlers: FingerprintHandler[]): void {
+function configure(sdm: SoftwareDeliveryMachine, handlers: FingerprintHandler[], fingerprintPusher: FingerprintPusher): void {
     sdm.addEvent(pushImpactHandler(handlers));
     sdm.addCommand(IgnoreVersion);
     sdm.addCodeTransformCommand(ConfirmUpdate);
@@ -98,5 +104,6 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: FingerprintHandler[])
     sdm.addCommand(DumpLibraryPreferences);
     sdm.addCommand(UseLatest);
     sdm.addCommand(UpdateTargetFingerprint);
-    sdm.addCodeTransformCommand(ApplyTargetFingerprint);
+    sdm.addCommand(BroadcastFingerprintNudge);
+    sdm.addCodeTransformCommand(applyTargetFingerprint(fingerprintPusher));
 }

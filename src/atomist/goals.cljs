@@ -250,6 +250,46 @@
        (println "check-library channel " (<! channel)))
      :done)))
 
+(defn broadcast-fingerprint
+  "use fingerprints to scan for projects that could be impacted by this new lib version
+   fire callbacks for all projects consuming a library when a new library target is set
+
+   params
+     complete-callback - zero-arg callback which fulfills a Promise
+     graph-promise - get repos with a particular fingerprint
+     target-library - here's the target library that projects might want to use
+     callback - this is the callback to use when we find a project to notify
+
+   returns channel with result
+     but the complete-callback might complete the outside promise chain and should be the last thing called"
+  [graph-promise {fp-name :name fp-sha :sha} callback]
+  (go
+   (let [graph-data (<! (from-promise (graph-promise fp-name)))
+         owner-name-channels
+         (->>
+          (for [repo (:Repo graph-data)]
+            (let [{:keys [name owner channels branches]} repo
+                  channel (-> channels first :name)
+                  fingerprint-sha (->> branches
+                                        first
+                                        :commit
+                                        :fingerprints
+                                        (filter #(= fp-name (:name %)))
+                                        first
+                                        :sha)]
+              (if (and fingerprint-sha (= fp-sha fingerprint-sha))
+                (log/info (gstring/format "found identical version of %s in %s" fp-name name))
+                {:owner owner :name name :channel channel})))
+          (filter identity))]
+     (log/info "need to send to callbacks " owner-name-channels)
+     (let [callback-return-values
+           (<! (->> (for [{:keys [owner name channel]} owner-name-channels]
+                      (promise/from-promise (callback owner name channel)))
+                    (async/merge)
+                    (async/reduce conj [])))]
+       (log/info "callback returns" callback-return-values)
+       callback-return-values))))
+
 (defn broadcast
   "use fingerprints to scan for projects that could be impacted by this new lib version
    fire callbacks for all projects consuming a library when a new library target is set

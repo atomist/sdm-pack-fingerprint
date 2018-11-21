@@ -47,7 +47,7 @@ export FingerprintGoal = new Fingerprint();
 
 2. Enable the `FingerprintGoal` for some push rules.  Normally, this is done as part of creating your machine:
 
-```
+```ts
     // there will usually be more than one Push rule here
     const sdm = createSoftwareDeliveryMachine({
             ...config
@@ -58,41 +58,43 @@ export FingerprintGoal = new Fingerprint();
 
 ```
 
-3.  Add the pack to your new `sdm` definition
+3.  Add the pack to your new `sdm` definition:
 
-```
-    // add this pack to your SDM
-    sdm.addExtensionPacks(
-        fingerprintSupport(FingerprintGoal),
-    )
-```
-
-Out of the box, this pack adds functionality to watch for library versions out of
-sync with your team's version goals.  However, other fingerprint diff handlers can be added to the
-call to `fingerprintSupport`:
-
-```
+```ts
     // add this pack to your SDM
     sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
+            async (p: GitProject) => {
+                // COMPUTE fingerprints: called on every Push
+                return fingerprints.fingerprint(p.baseDir);
+            },
+            async (p: GitProject, fp: FP) => {
+                // APPLY fingerprint to Project (currently only through user actions in chat)
+                return fingerprints.applyFingerprint(p.baseDir, fp);
+            },
             {
-                selector: forFingerprints(
-                    "clojure-project-coordinates",
-                    "npm-project-coordinates"),
+                selector: forFingerprints("backpack-react-scripts"),
+                handler: async (ctx, diff) => {
+                    // HANDLE new fingerprint (even if it hasn't changed in this push)
+                    return checkFingerprintTargets(ctx, diff);
+                },
                 diffHandler: async (ctx, diff) => {
-                    return setNewTarget(
-                        ctx,
-                        diff.to.name,
-                        diff.to.data.name,
-                        diff.to.data.version,
-                        diff.channel);
+                    // HANDLE new fingerprint (only when the fingerprint sha is updated)
+                    return renderDiffSnippet(ctx, diff);
                 },
             },
-        ),        
+        ),
     )
-
 ```
+
+In the example above, we have a module which computes a set of fingerprints on every `Push` (one of them is named `backpack-react-scripts`).  The pack also notices if a newly
+computed fingerprint has either changed, or is different from a `goal` state.  It will then present the user with options to do things like:
+
+* set new targets 
+* update a project to be in sync with a target fingerprint
+* apply a fingerprint to a project for the first time
+* broadcast a message to all projects out of sync with the fingerprint
 
 ## Support
 
