@@ -59,7 +59,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 return fingerprints.fingerprint(basedir);
             },
             async (p: GitProject, preferences: () => Promise<any>, fpName: string) => {
-                return await fingerprints.applyFingerprint(p.baseDir,preferences,fpName);
+                return fingerprints.applyFingerprint(p.baseDir, preferences, fpName);
             },
             {
                 selector: forFingerprints(

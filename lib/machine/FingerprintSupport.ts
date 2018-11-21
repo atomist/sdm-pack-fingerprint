@@ -45,7 +45,6 @@ import {
 import { UseLatest } from "../handlers/commands/useLatest";
 import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
 
-
 /**
  * run fingerprints on every Push
  * send them in batch

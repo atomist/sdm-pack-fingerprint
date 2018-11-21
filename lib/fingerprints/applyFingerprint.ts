@@ -76,7 +76,7 @@ function applyFingerprint(pusher: FingerprintPusher): CodeTransform<ApplyTargetF
     };
 }
 
-export type FingerprintPusher = (p: GitProject, preferences: ()=> Promise<any>, fpName: string) => Promise<any>;
+export type FingerprintPusher = (p: GitProject, preferences: () => Promise<any>, fpName: string) => Promise<any>;
 
 export let ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
 
