@@ -15,7 +15,7 @@
  */
 
 import {
-    HandlerContext, GitProject,
+    GitProject, HandlerContext,
 } from "@atomist/automation-client";
 import {
     ExtensionPack,
