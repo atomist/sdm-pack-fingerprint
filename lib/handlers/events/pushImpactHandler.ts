@@ -62,10 +62,10 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: st
         })
             .then(result => {
                 logger.info(`getFingerprintData:  got successful result ${result}`);
-                const fingerprints =
+                const fps =
                     _.get(result, "Commit[0].fingerprints") as GetFingerprintData.Fingerprints[];
-                if (fingerprints) {
-                    return fingerprints[0].data;
+                if (fps) {
+                    return fps[0].data;
                 }
                 return "{}";
             })
