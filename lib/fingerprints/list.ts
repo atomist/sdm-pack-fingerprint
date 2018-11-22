@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-import { logger, MappedParameter, MappedParameters, Parameter, Parameters, SlackFileMessage } from "@atomist/automation-client";
+import {
+    logger,
+    MappedParameter,
+    MappedParameters,
+    Parameter,
+    Parameters,
+    SlackFileMessage,
+} from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 import * as fingerprints from "../../fingerprints";
 import { queryFingerprintsByBranchRef } from "../adhoc/fingerprints";

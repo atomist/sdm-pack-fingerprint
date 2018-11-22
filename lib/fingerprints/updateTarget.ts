@@ -24,7 +24,10 @@ import {
 } from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 import * as goals from "../../fingerprints/index";
-import { queryFingerprintBySha, queryFingerprintOnShaByName } from "../adhoc/fingerprints";
+import {
+    queryFingerprintBySha,
+    queryFingerprintOnShaByName,
+} from "../adhoc/fingerprints";
 import {
     mutatePreference,
     queryPreferences,
