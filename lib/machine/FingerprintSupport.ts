@@ -34,7 +34,7 @@ import {
 } from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
 import { ListFingerprints } from "../fingerprints/list";
-import { DeleteTargetFingerprint, UpdateTargetFingerprint, SetTargetFingerprintFromLatestMaster } from "../fingerprints/updateTarget";
+import { DeleteTargetFingerprint, SetTargetFingerprintFromLatestMaster, UpdateTargetFingerprint } from "../fingerprints/updateTarget";
 import { BroadcastNudge } from "../handlers/commands/broadcast";
 import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
 import { IgnoreVersion } from "../handlers/commands/ignoreVersion";

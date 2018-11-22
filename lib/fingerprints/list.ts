@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { MappedParameter, MappedParameters, Parameter, Parameters, SlackFileMessage, logger } from "@atomist/automation-client";
+import { logger, MappedParameter, MappedParameters, Parameter, Parameters, SlackFileMessage } from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 import * as fingerprints from "../../fingerprints";
 import { queryFingerprintsByBranchRef } from "../adhoc/fingerprints";
@@ -40,7 +40,7 @@ export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParamet
     description: "list the fingerprints on a particular ref",
     paramsMaker: ListFingerprintParameters,
     listener: async cli => {
-        
+
         // this has got to be wrong.  ugh
         const branch: string = cli.parameters.branch || "master";
         logger.info(`use branch ${branch}`);

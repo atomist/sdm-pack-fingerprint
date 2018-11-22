@@ -15,12 +15,12 @@
  */
 
 import {
+    FailurePromise,
     logger,
     MappedParameter,
     MappedParameters,
     Parameter,
     Parameters,
-    FailurePromise,
 } from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 import * as goals from "../../fingerprints/index";
