@@ -30,6 +30,7 @@
                (accept v))
              (reject v)))
          (catch :default t
-           (log/error t " ended up here")
+           (log/error t " js Promise will reject")
            (log/error chan)
-           (reject :fail)))))))
+           (reject (clj->js {:fail "Promise rejected"
+                             :error t}))))))))

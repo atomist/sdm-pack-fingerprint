@@ -353,7 +353,9 @@
           (json/json->clj :keywordize-keys true)))
 
 (defn check-fingerprint-goals
-  "check a to fingerprint for whether it's in sync with "
+  "check current fingerprint for whether it's in sync with with the goal fingerprint
+     - if there is no goal fingerprint then we should not run the callback
+     - "
   [query-prefs send-message {:keys [owner repo] fingerprint :to}]
   (go
    (let [preferences (<! (from-promise (query-prefs)))
@@ -398,5 +400,18 @@
      (if fingerprint
        (do
          (<! (from-promise (pref-editor fp-name chat-team-id (json/clj->json fingerprint))))
+         true)
+       false))))
+
+(defn delete-fingerprint-preference
+  "set or replace a fingerprint preference "
+  [query-prefs pref-editor fp-name]
+  (go
+   (let [preferences (<! (from-promise (query-prefs)))
+         chat-team-id (-> preferences :ChatTeam first :id)]
+     (log/info "delete-fingerprint-preference on team " chat-team-id " and fingerprint " fingerprint)
+     (if fp-name
+       (do
+         (<! (from-promise (pref-editor fp-name chat-team-id "")))
          true)
        false))))

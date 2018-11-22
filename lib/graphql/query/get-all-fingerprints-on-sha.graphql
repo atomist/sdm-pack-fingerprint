@@ -1,0 +1,12 @@
+query GetAllFingerprintsOnSha($repo: String!, $owner: String!, $branch: String!) {
+  Repo(name: $repo, owner: $owner) {
+    branches(name: $branch) {
+      commit {
+        fingerprints {
+          name
+          sha
+        }
+      }
+    }
+  }
+}

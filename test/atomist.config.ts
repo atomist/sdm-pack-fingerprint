@@ -88,9 +88,6 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 handler: async (ctx, diff) => {
                     return checkFingerprintTargets(ctx, diff);
                 },
-                diffHandler: async (ctx, diff) => {
-                    return renderDiffSnippet(ctx, diff);
-                },
             },
         ),
     );

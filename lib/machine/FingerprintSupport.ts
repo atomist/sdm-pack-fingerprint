@@ -33,7 +33,8 @@ import {
     FingerprintPusher,
 } from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
-import { UpdateTargetFingerprint } from "../fingerprints/updateTarget";
+import { ListFingerprints } from "../fingerprints/list";
+import { DeleteTargetFingerprint, UpdateTargetFingerprint, SetTargetFingerprintFromLatestMaster } from "../fingerprints/updateTarget";
 import { BroadcastNudge } from "../handlers/commands/broadcast";
 import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
 import { IgnoreVersion } from "../handlers/commands/ignoreVersion";
@@ -104,6 +105,9 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: FingerprintHandler[],
     sdm.addCommand(DumpLibraryPreferences);
     sdm.addCommand(UseLatest);
     sdm.addCommand(UpdateTargetFingerprint);
+    sdm.addCommand(SetTargetFingerprintFromLatestMaster);
+    sdm.addCommand(DeleteTargetFingerprint);
     sdm.addCommand(BroadcastFingerprintNudge);
+    sdm.addCommand(ListFingerprints);
     sdm.addCodeTransformCommand(applyTargetFingerprint(fingerprintPusher));
 }

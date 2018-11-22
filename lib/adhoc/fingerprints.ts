@@ -21,7 +21,9 @@ import {
 import {
     ChatTeamById,
     FindLinkedReposWithFingerprint,
+    GetAllFingerprintsOnSha,
     GetFingerprintBySha,
+    GetFingerprintOnShaByName,
 } from "../typings/types";
 
 export const queryChatTeamById = async (graphClient: GraphClient, teamid: string): Promise<string> => {
@@ -60,6 +62,40 @@ export function queryFingerprintBySha(graphClient: GraphClient): (name: string, 
                 variables: {
                     name,
                     sha,
+                },
+            },
+        );
+    };
+}
+
+export function queryFingerprintsByBranchRef(graphClient: GraphClient): (repo: string, owner: string, branch: string) => Promise<any> {
+    return async (repo, owner, branch) => {
+        return graphClient.query<GetAllFingerprintsOnSha.Query, GetAllFingerprintsOnSha.Variables>(
+            {
+                name: "get-all-fingerprints-on-sha",
+                options: QueryNoCacheOptions,
+                variables: {
+                    repo,
+                    owner,
+                    branch,
+                },
+            },
+        );
+    };
+}
+
+export function queryFingerprintOnShaByName(graphClient: GraphClient):
+    (repo: string, owner: string, branch: string, fpName: string) => Promise<GetFingerprintOnShaByName.Query> {
+    return async (repo, owner, branch, fpName: string) => {
+        return graphClient.query<GetFingerprintOnShaByName.Query, GetFingerprintOnShaByName.Variables>(
+            {
+                name: "get-fingerprint-on-sha-by-name",
+                options: QueryNoCacheOptions,
+                variables: {
+                    repo,
+                    owner,
+                    branch,
+                    fpName,
                 },
             },
         );

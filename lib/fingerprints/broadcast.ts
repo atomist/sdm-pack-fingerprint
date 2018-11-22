@@ -129,6 +129,7 @@ export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFing
                description: "sha of fingerprint to broadcast"},
         reason: {
             required: true,
+            control: "textarea",
             description: "always give a reason why we're releasing the nudge",
         },
         author: {

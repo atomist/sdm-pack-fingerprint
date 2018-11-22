@@ -56,16 +56,29 @@
   (deps/edit f1 n v))
 
 (defn ^:export getFingerprintPreference [query-fn fp-name]
-  (promise/chan->promise (goals/get-fingerprint-preference query-fn fp-name)))
+  (promise/chan->promise (clj->js (goals/get-fingerprint-preference query-fn fp-name))))
 
 (defn ^:export applyFingerprint
   "returns Promise<any>"
   [basedir fp]
-  (log/info "apply fingerprint " fp " to basedir " f1)
+  (log/info "apply fingerprint " fp " to basedir " basedir)
   (promise/chan->promise
    (go
-    (deps/apply-fingerprint basedir fp)
+    (deps/apply-fingerprint basedir (js->clj fp :keywordize-keys true))
     true)))
+
+(defn ^:export list
+  ""
+  [x]
+  (log/info "list " (js->clj x :keywordize-keys true))
+  (-> x
+      (js->clj :keywordize-keys true)
+      :Repo
+      first
+      :branches
+      first
+      :commit
+      :fingerprints))
 
 (defn format-list [xs]
   (->> xs

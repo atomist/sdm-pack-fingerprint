@@ -15,17 +15,68 @@
  */
 
 import {
+    logger,
+    MappedParameter,
+    MappedParameters,
     Parameter,
     Parameters,
+    FailurePromise,
 } from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 import * as goals from "../../fingerprints/index";
-import { queryFingerprintBySha } from "../adhoc/fingerprints";
+import { queryFingerprintBySha, queryFingerprintOnShaByName } from "../adhoc/fingerprints";
 import {
     mutatePreference,
     queryPreferences,
 } from "../adhoc/preferences";
+import { GetFingerprintOnShaByName } from "../typings/types";
 import { askAboutBroadcast } from "./broadcast";
+
+@Parameters()
+export class SetTargetFingerprintFromLatestMasterParameters {
+    @MappedParameter(MappedParameters.GitHubOwner)
+    public owner: string;
+
+    @MappedParameter(MappedParameters.GitHubRepository)
+    public repo: string;
+
+    @MappedParameter(MappedParameters.GitHubRepositoryProvider)
+    public providerId: string;
+
+    @Parameter({ required: true })
+    public fingerprint: string;
+}
+
+export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<SetTargetFingerprintFromLatestMasterParameters> = {
+    name: "SetTargetFingerprintFromLatestMaster",
+    intent: "setFingerprintGoal",
+    description: "set a new target for a team to consume a particular version",
+    paramsMaker: SetTargetFingerprintFromLatestMasterParameters,
+    listener: async cli => {
+
+        const query: GetFingerprintOnShaByName.Query =
+            await (queryFingerprintOnShaByName(cli.context.graphClient))(
+                cli.parameters.repo,
+                cli.parameters.owner,
+                "master",
+                cli.parameters.fingerprint,
+            );
+        const sha: string = query.Repo[0].branches[0].commit.fingerprints[0].sha;
+        logger.info(`found sha ${sha}`);
+        if (sha) {
+            await goals.setGoalFingerprint(
+                queryPreferences(cli.context.graphClient),
+                queryFingerprintBySha(cli.context.graphClient),
+                mutatePreference(cli.context.graphClient),
+                cli.parameters.fingerprint,
+                sha,
+            );
+            return askAboutBroadcast(cli, cli.parameters.fingerprint, "version", sha);
+        } else {
+            return FailurePromise;
+        }
+    },
+};
 
 @Parameters()
 export class UpdateTargetFingerprintParameters {
@@ -42,7 +93,6 @@ export class UpdateTargetFingerprintParameters {
 
 export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFingerprintParameters> = {
     name: "RegisterTargetFingerprint",
-    intent: "set fingerprint goal",
     description: "set a new target for a team to consume a particular version",
     paramsMaker: UpdateTargetFingerprintParameters,
     listener: async cli => {
@@ -55,5 +105,26 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
             cli.parameters.sha,
         );
         return askAboutBroadcast(cli, cli.parameters.name, "version", cli.parameters.sha);
+    },
+};
+
+@Parameters()
+export class DeleteTargetFingerprintParameters {
+    @Parameter({ required: true })
+    public name: string;
+}
+
+export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFingerprintParameters> = {
+    name: "DeleteTargetFingerprint",
+    intent: "deleteFingerprintGoal",
+    description: "remove the team target for a particular fingerprint",
+    paramsMaker: DeleteTargetFingerprintParameters,
+    listener: async cli => {
+        await cli.context.messageClient.respond(`updating the goal state for all ${cli.parameters.name} fingerprints`);
+        await goals.deleteGoalFingerprint(
+            queryPreferences(cli.context.graphClient),
+            mutatePreference(cli.context.graphClient),
+            cli.parameters.name,
+        );
     },
 };

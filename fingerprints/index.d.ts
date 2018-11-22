@@ -11,6 +11,7 @@ export declare function fingerprint( f1:string ): Promise<FP[]>
 export declare function edit(f1:string,n:string,v:string): void
 export declare function getFingerprintPreference(query: () => Promise<any> ,fpName:string): Promise<FP>
 export declare function applyFingerprint(f1:string, fp: FP): Promise<any>
+export declare function list(fps: any): string
 
 /**
  * Utility functions to rewrite in typescript
@@ -70,6 +71,10 @@ export declare function setGoalFingerprint( queryPreferences: () => Promise<any>
                                             name: string,
                                             sha: string
                                             ): Promise<boolean>
+export declare function deleteGoalFingerprint( queryPreferences: () => Promise<any>,
+                                               mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
+                                               name: string): Promise<boolean>
+
 
 
 // choose a new library target and set it in the team wide preferences
