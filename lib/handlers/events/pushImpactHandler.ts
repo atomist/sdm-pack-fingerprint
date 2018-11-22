@@ -30,8 +30,7 @@ import {
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
-import * as clj from "../../../fingerprints/index";
-import * as impact from "../../../fingerprints/index";
+import * as fingerprints from "../../../fingerprints/index";
 import { queryPreferences } from "../../adhoc/preferences";
 import { FingerprintHandler } from "../../machine/FingerprintSupport";
 import { footer } from "../../support/util";
@@ -43,7 +42,7 @@ import { ConfirmUpdate } from "../commands/confirmUpdate";
 import { IgnoreVersion } from "../commands/ignoreVersion";
 import { SetTeamLibrary } from "../commands/setLibraryGoal";
 
-export function forFingerprints(...s: string[]): (fp: clj.FP) => boolean {
+export function forFingerprints(...s: string[]): (fp: fingerprints.FP) => boolean {
     return fp => {
         const m = s.map((n: string) => (fp.name === n))
             .reduce((acc, v) => acc || v);
@@ -77,19 +76,19 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: st
     };
 }
 
-export async function renderDiffSnippet(ctx: HandlerContext, diff: impact.Diff) {
+export async function renderDiffSnippet(ctx: HandlerContext, diff: fingerprints.Diff) {
     const message: SlackFileMessage = {
-        content: clj.renderDiff(diff),
+        content: fingerprints.renderDiff(diff),
         fileType: "text",
         title: `${diff.owner}/${diff.repo}`,
     };
     return ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }
 
-function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
+function libraryEditorChoiceMessage(ctx: HandlerContext, diff: fingerprints.Diff):
     (s: string, action: { library: { name: string, version: string }, current: string }) => Promise<any> {
     return async (text, action) => {
-        const msgId = clj.consistentHash([action.library.name, action.library.version, diff.channel, diff.owner, diff.repo, action.current]);
+        const msgId = fingerprints.consistentHash([action.library.name, action.library.version, diff.channel, diff.owner, diff.repo, action.current]);
         const message: SlackMessage = {
             attachments: [
                 {
@@ -137,8 +136,8 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: impact.Diff):
     };
 }
 
-async function checkLibraryGoals(ctx: HandlerContext, diff: clj.Diff): Promise<any> {
-    return clj.checkLibraryGoals(
+async function checkLibraryGoals(ctx: HandlerContext, diff: fingerprints.Diff): Promise<any> {
+    return fingerprints.checkLibraryGoals(
         queryPreferences(ctx.graphClient),
         libraryEditorChoiceMessage(ctx, diff),
         diff,
@@ -154,7 +153,7 @@ async function checkLibraryGoals(ctx: HandlerContext, diff: clj.Diff): Promise<a
  */
 function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEvent.Subscription> {
     return async (event, ctx) => {
-        await clj.processPushImpact(
+        await fingerprints.processPushImpact(
             event,
             getFingerprintDataCallback(ctx),
             [
@@ -162,14 +161,14 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
                     if (h.diffHandler) {
                         return {
                             selector: h.selector,
-                            diffAction: (diff: clj.Diff) => {
+                            diffAction: (diff: fingerprints.Diff) => {
                                 return h.diffHandler(ctx, diff);
                             },
                         };
                     } else {
                         return {
                             selector: h.selector,
-                            action: (diff: clj.Diff) => {
+                            action: (diff: fingerprints.Diff) => {
                                 return h.handler(ctx, diff);
                             },
                         };
@@ -180,7 +179,7 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
                         "clojure-project-deps",
                         "maven-project-deps",
                         "npm-project-deps"),
-                    action: async (diff: clj.Diff) => {
+                    action: async (diff: fingerprints.Diff) => {
                         return checkLibraryGoals(ctx, diff);
                     },
                 },
