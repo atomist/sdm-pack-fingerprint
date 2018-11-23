@@ -9,6 +9,7 @@
             [atomist.cljs-log :as log]
             [clojure.string :as str]
             [cljs-node-io.core :as io :refer [slurp spit file-seq]]
+            [cljs-node-io.fs :as fs]
             [hasch.core :as hasch]
             [atomist.json :as json]
             [goog.string :as gstring]
@@ -22,11 +23,10 @@
                      z/sexpr)]
 
     {:ns-name (-> clj-path
-                  (.getFileName)
-                  (.toString)
+                  (fs/normalize-path)
                   (str/split #"\.")
                   first)
-     :filename (.toString clj-path)
+     :filename clj-path
      :fn-name fn-name
      :bodies (z/string dufn)}))
 
@@ -60,26 +60,20 @@
        (filter start-of-list?)
        (map (partial public-sig clj-path))))
 
-(defn map-file->zipper
-  "Map of file names to zippers"
-  [files]
-  (->> files
-       (map #(try
-               [(.toPath %) (z/of-string (io/slurp %))]
-               (catch :default t
-                 (log/warn %))))))
-
 (defn all-clj-files
   [dir]
-  (->> (file-seq dir)
-       (filter #(.endsWith (.getName %) ".clj"))))
+  (->> (io/file-seq dir)
+       (filter #(.endsWith (fs/basename %) ".clj"))))
 
-(defn all-defns [^File dir]
+(defn all-defns [dir]
   (->> (all-clj-files dir)
        sort
-       map-file->zipper
+       (map #(try
+               [(fs/normalize-path %) (z/of-string (io/slurp %))]
+               (catch :default t (log/warn %))))
        (map (fn [[clj-path zipper]]
-              [(.relativize (.toPath dir) clj-path) zipper]))
+              [(.relative fs/path (fs/normalize-path dir) clj-path) zipper]))
+
        (mapcat find-public-sigs)))
 
 (defn map-vec-zipper [m]
@@ -122,30 +116,37 @@
                       (drop-nth 3 ast)
                       ast))))
 
+(defn- fingerprints [f]
+  (->>
+   (for [dufn (all-defns f) :when (:fn-name dufn)]
+     (try
+       {:name (gstring/format "public-defn-bodies-%s" (:fn-name dufn))
+        :sha (sha (:bodies dufn))
+        :version "0.0.4"
+        :abbreviation "defn-bodies"
+        :data (json/json-str dufn)
+        :value (json/json-str dufn)}
+       (catch :default t
+         (log/error t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
+   (into [])
+   (filter identity)))
+
 (defn fingerprint [f]
   "Public defns with their bodies, meta fully extracted"
   (log/info "run public defns on " f)
   (js/Promise.
    (fn [accept reject]
      (->>
-      (for [dufn (all-defns f) :when (:fn-name dufn)]
-        (try
-          {:name (gstring/format "public-defn-bodies-%s" (:fn-name dufn))
-           :sha (sha (:bodies dufn))
-           :version "0.0.4"
-           :abbreviation "defn-bodies"
-           :data (json/json-str dufn)
-           :value (json/json-str dufn)}
-          (catch :default t
-            (log/error t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
-      (into [])
-      (filter identity)
+      (fingerprints f)
       (clj->js)
       (accept)))))
 
 (comment
  (def clj1 "/Users/slim/repo/clj1")
+ (count (io/file-seq clj1))
  (all-clj-files clj1)
+ (all-defns clj1)
+ (cljs.pprint/pprint (fingerprints "/Users/slim/repo/automation-client-clj"))
 
  (.catch
   (.then

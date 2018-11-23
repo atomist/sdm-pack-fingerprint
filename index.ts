@@ -32,6 +32,7 @@ export {
     FP,
     depsFingerprints,
     logbackFingerprints,
+    cljFunctionFingerprints,
     renderData,
     applyFingerprint,
     renderDiff,

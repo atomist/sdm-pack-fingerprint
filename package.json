@@ -63,7 +63,7 @@
   "scripts": {
     "autotest": "supervisor --watch index.ts,lib,test --extensions ts --no-restart-on exit --quiet --exec npm -- test",
     "build": "npm-run-all gql:gen compile:cljs compile:ts test lint doc",
-    "clean": "npm-run-all clean:compile clean:doc clean:run",
+    "clean": "npm-run-all clean:compile clean:cljs clean:doc clean:run",
     "compile": "npm-run-all gql:gen compile:cljs compile:ts",
     "compile:cljs": "lein cljsbuild once prod",
     "test:cljs": "lein doo node unit-tests once",
@@ -72,6 +72,9 @@
     "clean:doc": "rimraf doc",
     "clean:npm": "rimraf node_modules",
     "clean:run": "rimraf *-v8.log profile.txt log",
+    "clean:cljs:build.js": "rimraf fingerprints/main.js",
+    "clean:cljs:lein": "lein clean",
+    "clean:cljs": "npm-run-all clean:cljs:lein clean:cljs:build.js",
     "compile:ts": "tsc --project .",
     "fmt": "tsfmt --replace",
     "fmt:gql": "prettier --write \"**/*.graphql\"",
