@@ -143,4 +143,14 @@
       (clj->js)
       (accept)))))
 
+(comment
+ (def clj1 "/Users/slim/repo/clj1")
+ (all-clj-files clj1)
+
+ (.catch
+  (.then
+   (fingerprint "/Users/slim/repo/clj1")
+   (fn [x] (cljs.pprint/pprint x)))
+  (fn [x] (println "ERROR" x))))
+
 

@@ -46,7 +46,8 @@
   (let [f (logback-file-in-root dir)]
     (if (.exists f)
       (s/select-first [:elements s/ALL (element-name "configuration")
-                       :elements s/ALL (elk-appender)] (xml->clj f)))))
+                       :elements s/ALL (elk-appender)] (xml->clj f))
+      (throw (js/Error. "no logback file")))))
 (spec/fdef extract-fingerprint :args (spec/cat :dir string?))
 
 (defn- add-appender [xml f appender]
@@ -109,4 +110,11 @@
 
 (comment
  (cljs.pprint/pprint (fingerprint "test-resources/logback"))
+ (.then (fingerprint "test-resources/logback") (fn [x]
+                                                 (cljs.pprint/pprint (js->clj x))))
+ (.catch
+  (.then (fingerprint "test")
+         (fn [x]
+           (cljs.pprint/pprint (js->clj x))))
+  (fn [x] (println "ERROR " x)))
  (apply-fingerprint "tmp/logback" (fingerprint "test-resources/logback")))
