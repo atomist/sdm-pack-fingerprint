@@ -17,6 +17,7 @@
 import {
     Configuration,
     GitProject,
+    logger,
 } from "@atomist/automation-client";
 import {
     Fingerprint,
@@ -60,7 +61,13 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             FingerprintGoal,
             // runs on every push!!
             async (p: GitProject) => {
-                return fingerprints.fingerprint(p.baseDir);
+                const fps = [].concat(
+                    await fingerprints.depsFingerprints(p.baseDir),
+                ).concat(
+                    await fingerprints.logbackFingerprints(p.baseDir),
+                );
+                logger.info(fingerprints.renderData(fps));
+                return fps;
             },
             // currently scheduled only when a user chooses to apply the fingerprint
             async (p: GitProject, fp: fingerprints.FP) => {

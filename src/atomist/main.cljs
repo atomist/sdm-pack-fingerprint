@@ -15,7 +15,9 @@
             [goog.string.format]
             [atomist.deps :as deps]
             [atomist.promise :as promise]
-            [hasch.core :as hasch]))
+            [hasch.core :as hasch]
+            [atomist.logback :as logback]
+            [atomist.public-defns :as public-defns]))
 
 (defn ^:export processPushImpact
   "process a PushImpact event by potentially fetching additional fingerprint data, creating diffs,
@@ -49,8 +51,14 @@
 (defn ^:export sha256 [s]
   (clj->js (fingerprint/sha-256 (js->clj s))))
 
-(defn ^:export fingerprint [s]
+(defn ^:export depsFingerprints [s]
   (deps/get-fingerprint s))
+
+(defn ^:export logbackFingerprints [s]
+  (logback/fingerprint s))
+
+(defn ^:export cljFunctionFingerprints [s]
+  (public-defns/fingerprint s))
 
 (defn ^:export edit [f1 n v]
   (deps/edit f1 n v))
@@ -64,7 +72,10 @@
   (log/info "apply fingerprint " fp " to basedir " basedir)
   (promise/chan->promise
    (go
-    (deps/apply-fingerprint basedir (js->clj fp :keywordize-keys true))
+    (let [clj-fp (js->clj fp :keywordize-keys true)]
+      ;; currently sync functions but they should probably return channels
+      (deps/apply-fingerprint basedir clj-fp)
+      (logback/apply-fingerprint basedir clj-fp))
     true)))
 
 (defn ^:export list

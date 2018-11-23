@@ -16,8 +16,15 @@
 
 export {
     fingerprintSupport,
+    FingerprintRunner,
 } from "./lib/machine/FingerprintSupport";
 export {
     forFingerprints,
     renderDiffSnippet,
 } from "./lib/handlers/events/pushImpactHandler";
+export {
+    FingerprintPusher,
+} from "./lib/fingerprints/applyFingerprint";
+export {
+    checkFingerprintTargets,
+} from "./lib/fingerprints/impact";
