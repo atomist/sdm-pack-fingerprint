@@ -59,6 +59,8 @@ import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
  * run fingerprints on every Push
  * send them in batch
  *
+ * FingerprinterResult should be an array of Fingerprint maps
+ *
  * @param i
  */
 function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
