@@ -7,7 +7,9 @@ export declare interface FP {name: string, sha: string, data: any, version: stri
 /**
  * Clojure fingerprint computations and editors
  */
-export declare function fingerprint( f1:string ): Promise<FP[]>
+export declare function depsFingerprints( f1:string ): Promise<FP[]>
+export declare function logbackFingerprints( f1:string ): Promise<FP[]>
+export declare function cljFunctionFingerprints( f1:string ): Promise<FP[]>
 export declare function edit(f1:string,n:string,v:string): void
 export declare function getFingerprintPreference(query: () => Promise<any> ,fpName:string): Promise<FP>
 export declare function applyFingerprint(f1:string, fp: FP): Promise<any>

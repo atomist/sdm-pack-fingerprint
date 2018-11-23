@@ -1,0 +1,41 @@
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+    <appender name="ELK" class="io.logz.logback.LogzioLogbackAppender">
+        <token>$LOGZIO_TOKEN</token>
+        <logzioUrl>https://listener.logz.io:8071</logzioUrl>
+        <logzioType>java</logzioType>
+        <additionalFields>
+            service=$APP_NAME;atomist_domain=$DOMAIN;atomist_cluster_az=$AVAILABILITY_ZONE;atomist_pod_name=$HOSTNAME
+        </additionalFields>
+        <debug>true</debug>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{MM/dd HH:mm:ss.SSS, UTC} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <logger name="org.apache" level="WARN" additivity="false">
+    </logger>
+    <logger name="kafka" level="INFO" additivity="false">
+    </logger>
+    <logger name="com.amazonaws" level="WARN" additivity="false">
+    </logger>
+
+    <logger name="ch.qos.logback" level="WARN" additivity="false"></logger>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="ELK" />
+    </root>
+</configuration>
