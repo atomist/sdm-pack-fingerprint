@@ -3,17 +3,30 @@
 ### Install Pack
 
 ```ts
-    // add this pack to your SDM
+// add new imports!
+import {
+    fingerprintSupport,
+    forFingerprints,
+    renderDiffSnippet,
+    depsFingerprints,
+    logbackFingerprints,
+    renderData,
+    applyFingerprint,
+    FP,
+} from "@atomist/sdm-pack-fingerprints";
+
+
+    // add this to your machine definition
     sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
             async (p: GitProject) => {
                 // COMPUTE fingerprints: called on every Push
-                return fingerprints.fingerprint(p.baseDir);
+                return depsFingerprints(p.baseDir);
             },
             async (p: GitProject, fp: FP) => {
                 // APPLY fingerprint to Project (currently only through user actions in chat)
-                return fingerprints.applyFingerprint(p.baseDir, fp);
+                return applyFingerprint(p.baseDir, fp);
             },
             {
                 selector: forFingerprints("backpack-react-scripts"),

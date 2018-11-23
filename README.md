@@ -60,6 +60,24 @@ export FingerprintGoal = new Fingerprint();
 
 3.  Add the pack to your new `sdm` definition:
 
+There'll be some new imports:
+
+```ts
+import {
+    fingerprintSupport,
+    forFingerprints,
+    renderDiffSnippet,
+    depsFingerprints,
+    logbackFingerprints,
+    renderData,
+    applyFingerprint,
+    FP,
+} from "@atomist/sdm-pack-fingerprints";
+
+```
+
+and then you'll have to add the extension pack to your machine definition:
+
 ```ts
     // add this pack to your SDM
     sdm.addExtensionPacks(
@@ -67,11 +85,11 @@ export FingerprintGoal = new Fingerprint();
             FingerprintGoal,
             async (p: GitProject) => {
                 // COMPUTE fingerprints: called on every Push
-                return fingerprints.fingerprint(p.baseDir);
+                return depsFingerprints(p.baseDir);
             },
             async (p: GitProject, fp: FP) => {
                 // APPLY fingerprint to Project (currently only through user actions in chat)
-                return fingerprints.applyFingerprint(p.baseDir, fp);
+                return applyFingerprint(p.baseDir, fp);
             },
             {
                 selector: forFingerprints("backpack-react-scripts"),

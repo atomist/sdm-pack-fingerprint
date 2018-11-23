@@ -28,3 +28,11 @@ export {
 export {
     checkFingerprintTargets,
 } from "./lib/fingerprints/impact";
+export {
+    FP,
+    depsFingerprints,
+    logbackFingerprints,
+    renderData,
+    applyFingerprint,
+    renderDiff,
+} from "./fingerprints";

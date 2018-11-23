@@ -32,11 +32,15 @@ import {
     createSoftwareDeliveryMachine,
 } from "@atomist/sdm-core";
 import {
+    applyFingerprint,
+    depsFingerprints,
     fingerprintSupport,
     forFingerprints,
+    FP,
+    logbackFingerprints,
+    renderData,
     renderDiffSnippet,
 } from "..";
-import * as fingerprints from "../fingerprints/index";
 import { checkFingerprintTargets } from "../lib/fingerprints/impact";
 import { setNewTarget } from "../lib/handlers/commands/setLibraryGoal";
 
@@ -62,16 +66,16 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             // runs on every push!!
             async (p: GitProject) => {
                 const fps = [].concat(
-                    await fingerprints.depsFingerprints(p.baseDir),
+                    await depsFingerprints(p.baseDir),
                 ).concat(
-                    await fingerprints.logbackFingerprints(p.baseDir),
+                    await logbackFingerprints(p.baseDir),
                 );
-                logger.info(fingerprints.renderData(fps));
+                logger.info(renderData(fps));
                 return fps;
             },
             // currently scheduled only when a user chooses to apply the fingerprint
-            async (p: GitProject, fp: fingerprints.FP) => {
-                return fingerprints.applyFingerprint(p.baseDir, fp);
+            async (p: GitProject, fp: FP) => {
+                return applyFingerprint(p.baseDir, fp);
             },
             {
                 selector: forFingerprints(
