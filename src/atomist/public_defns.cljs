@@ -70,10 +70,13 @@
        sort
        (map #(try
                [(fs/normalize-path %) (z/of-string (io/slurp %))]
-               (catch :default t (log/warn %))))
+               (catch :default t (log/warn "clj-path " %))))
+       (filter identity)
        (map (fn [[clj-path zipper]]
-              [(.relative fs/path (fs/normalize-path dir) clj-path) zipper]))
-
+              (try
+                [(.relative fs/path (fs/normalize-path dir) clj-path) zipper]
+                (catch :default t (log/warn "clj-path " clj-path)))))
+       (filter identity)
        (mapcat find-public-sigs)))
 
 (defn map-vec-zipper [m]
@@ -117,19 +120,23 @@
                       ast))))
 
 (defn- fingerprints [f]
-  (->>
-   (for [dufn (all-defns f) :when (:fn-name dufn)]
-     (try
-       {:name (gstring/format "public-defn-bodies-%s" (:fn-name dufn))
-        :sha (sha (:bodies dufn))
-        :version "0.0.4"
-        :abbreviation "defn-bodies"
-        :data (json/json-str dufn)
-        :value (json/json-str dufn)}
-       (catch :default t
-         (log/error t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
-   (into [])
-   (filter identity)))
+  (try
+    (->>
+     (for [dufn (all-defns f) :when (:fn-name dufn)]
+       (try
+         {:name (gstring/format "public-defn-bodies-%s" (:fn-name dufn))
+          :sha (sha (:bodies dufn))
+          :version "0.0.4"
+          :abbreviation "defn-bodies"
+          :data (json/json-str dufn)
+          :value (json/json-str dufn)}
+         (catch :default t
+           (log/error t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
+     (into [])
+     (filter identity))
+    (catch :default t
+      (log/warn "fingerprints exception " (.-message t))
+      [])))
 
 (defn fingerprint [f]
   "Public defns with their bodies, meta fully extracted"
@@ -146,12 +153,13 @@
  (count (io/file-seq clj1))
  (all-clj-files clj1)
  (all-defns clj1)
- (cljs.pprint/pprint (fingerprints "/Users/slim/repo/automation-client-clj"))
+ (with-redefs [log/warn println]
+              (cljs.pprint/pprint (count (fingerprints "/Users/slim/atomist_root/atomisthq/bot-service"))))
 
  (.catch
   (.then
-   (fingerprint "/Users/slim/repo/clj1")
-   (fn [x] (cljs.pprint/pprint x)))
+   (fingerprint "/Users/slim/atomist_root/atomisthq/bot-service")
+   (fn [x] (cljs.pprint/pprint (take 5 (js->clj x)))))
   (fn [x] (println "ERROR" x))))
 
 
