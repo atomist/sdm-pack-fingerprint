@@ -92,7 +92,7 @@
              :value json-data}])))
        (catch js/Error ex
          (log/error "unable to generate elk-logback fingerprint" (.-name ex) (.-message ex))
-         (reject []))))))
+         (accept []))))))
 (spec/fdef insert-elk-appender :args (spec/cat :dir string?))
 
 (defn apply-fingerprint
