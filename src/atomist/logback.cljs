@@ -36,8 +36,11 @@
                :elements []}]})
 
 (defn- add-elk-appender [appender x]
-  (println "transform " x)
-  (s/transform [:elements s/ALL (element-name "configuration")] #(update-in % [:elements] conj appender) x))
+  (if (s/select-first [:elements s/ALL (element-name "configuration")
+                       :elements s/ALL (elk-appender)] x)
+    (s/transform [:elements s/ALL (element-name "configuration")
+                  :elements s/ALL (elk-appender)] (constantly appender) x)
+    (s/transform [:elements s/ALL (element-name "configuration")] #(update-in % [:elements] conj appender) x)))
 
 (defn- logback-file-in-root [basedir]
   (io/file (str basedir "/resources/logback.xml")))
@@ -109,12 +112,20 @@
 (spec/fdef apply-fingerprint :args (spec/cat :dir string? :fingerprint ::spec/fp))
 
 (comment
+ ;; test-resources/logback has a good stable fingerprint in it
  (cljs.pprint/pprint (fingerprint "test-resources/logback"))
  (.then (fingerprint "test-resources/logback") (fn [x]
                                                  (cljs.pprint/pprint (js->clj x))))
+
+ ;; test has not fingerprint so should just return []
  (.catch
   (.then (fingerprint "test")
          (fn [x]
            (cljs.pprint/pprint (js->clj x))))
   (fn [x] (println "ERROR " x)))
- (apply-fingerprint "tmp/logback" (fingerprint "test-resources/logback")))
+
+ (.then
+  (fingerprint "test-resources/logback")
+  (fn [x]
+    (apply-fingerprint "tmp/logback" (let [x (first (js->clj x :keywordize-keys true))]
+                                       (assoc x :data (json/json->clj (:data x) :keywordize-keys true)))))))
