@@ -58,7 +58,7 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal):
                                 owner: diff.owner,
                                 repo: diff.repo,
                                 fingerprint: fingerprint.name,
-                            }), 
+                            }),
                         actionableButton(
                             { text: "Set New Target" },
                             UpdateTargetFingerprint,
