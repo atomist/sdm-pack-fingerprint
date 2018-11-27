@@ -13,3 +13,7 @@
 
 (defn warnf [s & args]
   (warn (apply gstring/format s args)))
+
+(defn errorf [ex s & args]
+  (error (.-message ex))
+  (error (apply gstring/format s args)))
