@@ -27,6 +27,11 @@ subscription PushImpactEvent {
           org {
             owner
             ownerType
+            provider {
+              id,
+              providerId,
+              providerType
+            }
           }
           channels {
             channelId

@@ -37,6 +37,9 @@
 (defn- after-commit [event]
   (-> event :data :PushImpact first :push :after))
 
+(defn- provider-id [event]
+  (-> event :data :PushImpact first :push :after :repo :org :provider :providerId))
+
 (defn- impact-id [event]
   (-> event :data :PushImpact first :id))
 
@@ -95,6 +98,8 @@
                               (assoc :data data
                                      :owner owner
                                      :repo repo
+                                     :sha (:sha (after-commit event))
+                                     :providerId (provider-id event)
                                      :channel channel-name)
                               (assoc-in [:from :data] from-data)
                               (assoc-in [:to :data] to-data)

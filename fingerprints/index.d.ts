@@ -29,7 +29,7 @@ export declare function consistentHash(data: any): string
  * (to rewrite in typescript someday)
  */
 export declare interface DiffData {from: any[], to: any[]}
-export declare interface Diff {from: FP, to: FP, data: DiffData, owner: string, repo: string, channel: string}
+export declare interface Diff {from: FP, to: FP, data: DiffData, owner: string, repo: string, sha: string, providerId: string, channel: string}
 export declare interface Handler {selector: (a:FP) => boolean,
                                   action?: (b:Diff) => void,
                                   diffAction?: (b:Diff) => void}
@@ -97,6 +97,7 @@ export declare function checkLibraryGoals(queryPreferences: () => Promise<any>,
 // send a message if any project fingerprints are out of sync with the target state
 export declare function checkFingerprintGoals(queryPreferences: () => Promise<any>,
                                               sendMessage: (s: string, fingerprint: FP) => Promise<any>,
+                                              inSync: (fingerprint: FP) => Promise<any>,
                                               diff: Diff
                                               ): Promise<boolean>
 

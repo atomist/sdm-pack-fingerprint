@@ -5,6 +5,7 @@
             [rewrite-clj.zip.move :as m]
             [rewrite-clj.parser :as p]
             [rewrite-clj.node :as n]
+            [rewrite-clj.node.protocols :as protocols]
             [cljs.nodejs :as nodejs]
             [atomist.cljs-log :as log]
             [clojure.string :as str]
@@ -13,7 +14,8 @@
             [hasch.core :as hasch]
             [atomist.json :as json]
             [goog.string :as gstring]
-            [goog.string.format]))
+            [goog.string.format]
+            [clojure.string :as s]))
 
 (defn generate-sig
   [clj-path dufn coll]
@@ -44,7 +46,9 @@
            (not (-> x z/node n/printable-only?))
            (symbol? (base/sexpr x)))
         (= (name (base/sexpr x)) (name sym)))
-      (catch :default t (log/warn "find-sym:  can't check sexpr of " (z/node x)) false))))
+      (catch :default t
+        (if (not (= "Namespaced keywords not supported !" (.-message t)))
+          (log/errorf t "find-sym:  can't check sexpr of " (z/node x))) false))))
 
 (defn start-of-list? [zloc]
   (= :list (-> zloc z/up z/node n/tag)))
@@ -70,7 +74,9 @@
        sort
        (map #(try
                [(fs/normalize-path %) (z/of-string (io/slurp %))]
-               (catch :default t (log/warn "clj-path " %))))
+               (catch :default t
+                 (log/warn (.-message t))
+                 (log/warn "normalizing clj-path " %))))
        (filter identity)
        (map (fn [[clj-path zipper]]
               (try
@@ -104,20 +110,8 @@
   "Consistent hash of a function str
    return string"
   [somefn]
-  (let [ast (loop [loc (map-vec-zipper (cljs.reader/read-string (str/replace somefn #"::(\S+/)" ":$1")))
-                   cnt 0]
-              (if (clojure.zip/end? loc)
-                (clojure.zip/root loc)
-                (cond
-                  (re-matches #"p\d+__\d+\#" (str (clojure.zip/node loc)))
-                  (recur (clojure.zip/next (clojure.zip/replace loc (symbol (str cnt)))) (inc cnt))
-                  (instance? (type #".*") (clojure.zip/node loc))
-                  (recur (clojure.zip/next (clojure.zip/replace loc (str "#" (clojure.zip/node loc)))) (int cnt))
-                  :else
-                  (recur (clojure.zip/next loc) cnt))))]
-    (consistentHash (if (string? (nth ast 2))
-                      (drop-nth 3 ast)
-                      ast))))
+  (let [ast (z/root (z/of-string somefn))]
+    (consistentHash (protocols/string ast))))
 
 (defn- fingerprints [f]
   (try
@@ -131,9 +125,9 @@
           :data (json/json-str dufn)
           :value (json/json-str dufn)}
          (catch :default t
-           (log/error t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
-     (into [])
-     (filter identity))
+           (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
+     (filter identity)
+     (into []))
     (catch :default t
       (log/warn "fingerprints exception " (.-message t))
       [])))
@@ -152,14 +146,22 @@
  (def clj1 "/Users/slim/repo/clj1")
  (count (io/file-seq clj1))
  (all-clj-files clj1)
- (all-defns clj1)
- (with-redefs [log/warn println]
-              (cljs.pprint/pprint (count (fingerprints "/Users/slim/atomist_root/atomisthq/bot-service"))))
+ (cljs.pprint/pprint (fingerprints clj1))
+
+ (-> (z/of-string "(defn hey [] (#(println %) \"x\"))")
+     (z/root)
+     (protocols/sexpr))
+
+ (cljs.pprint/pprint (fingerprints "/Users/slim/atomist_root/atomisthq/bot-service"))
+
+
+ (z/of-string "(defn [] (#(println %) \"x\"))")
 
  (.catch
   (.then
-   (fingerprint "/Users/slim/atomist_root/atomisthq/bot-service")
-   (fn [x] (cljs.pprint/pprint (take 5 (js->clj x)))))
+   (fingerprint "/Users/slim/atomist_root/atomisthq/bot-service"
+    #_"/Users/slim/repo/clj1")
+   (fn [x] (log/info (count (js->clj x)))))
   (fn [x] (println "ERROR" x))))
 
 

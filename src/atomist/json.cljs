@@ -13,7 +13,7 @@
 
 (defn clj->json
   [x & opts]
-  (js/JSON.stringify (clj->js x) null 2))
+  (js/JSON.stringify (clj->js x) nil 2))
 
 (defn read-str [s & args]
   (json-decode s))

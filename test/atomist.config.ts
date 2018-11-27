@@ -21,11 +21,15 @@ import {
 } from "@atomist/automation-client";
 import {
     Fingerprint,
+    Goals,
+    goals,
     pushTest,
     PushTest,
     SoftwareDeliveryMachine,
     SoftwareDeliveryMachineConfiguration,
     whenPushSatisfies,
+    GoalWithFulfillment,
+    allSatisfied,
 } from "@atomist/sdm";
 import {
     configureSdm,
@@ -49,16 +53,35 @@ const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
 );
 
 export const FingerprintGoal = new Fingerprint();
+export const backpackComplianceGoal = new GoalWithFulfillment(
+    {
+        uniqueName: "backpack-react-script-compliance",
+        displayName: "check backpack react script compliance",
+        workingDescription: "Checking backpack react scripts",
+        completedDescription: "Backpack react scripts are in sync",
+        failedDescription: "Backpack react scripts are out of sync"
+    }
+);
+const FingerprintingGoals: Goals = goals("check fingerprints")
+    .plan(FingerprintGoal, backpackComplianceGoal);
+
+backpackComplianceGoal.with(
+    {
+        name: "backpackCompliance",
+        pushTest: allSatisfied(IsNpm),
+    });
 
 export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
 
-    const sdm = createSoftwareDeliveryMachine({
-        name: `${configuration.name}-test`,
-        configuration: config,
-    },
+    const sdm = createSoftwareDeliveryMachine(
+        {
+            name: `${configuration.name}-test`,
+            configuration: config,
+        },
         whenPushSatisfies(IsNpm)
             .itMeans("fingerprint an npm project")
-            .setGoals(FingerprintGoal));
+            .setGoals(FingerprintingGoals)
+    );
 
     sdm.addExtensionPacks(
         fingerprintSupport(
@@ -97,7 +120,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             {
                 selector: forFingerprints("backpack-react-scripts"),
                 handler: async (ctx, diff) => {
-                    return checkFingerprintTargets(ctx, diff);
+                    return checkFingerprintTargets(ctx, diff, backpackComplianceGoal);
                 },
             },
         ),

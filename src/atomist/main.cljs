@@ -183,10 +183,10 @@
   "check a project for whether it's dependencies are aligned with the current goals
 
    returns Promise<boolean>"
-  [pref-query send-message diff]
+  [pref-query send-message confirm-goal diff]
   (log/info "checkFingerprintGoals")
   (promise/chan->promise
-   (goals/check-fingerprint-goals pref-query send-message (js->clj diff :keywordize-keys true))))
+   (goals/check-fingerprint-goals pref-query send-message confirm-goal (js->clj diff :keywordize-keys true))))
 
 (defn ^:export broadcast
   "use fingerprints to scan for projects that could be impacted by this new lib version

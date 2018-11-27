@@ -356,7 +356,7 @@
   "check current fingerprint for whether it's in sync with with the goal fingerprint
      - if there is no goal fingerprint then we should not run the callback
      - "
-  [query-prefs send-message {:keys [owner repo] fingerprint :to}]
+  [query-prefs send-message confirm-goal {:keys [owner repo] fingerprint :to}]
   (go
    (let [preferences (<! (from-promise (query-prefs)))
          fp-goal (get-fp-from-preferences preferences (:name fingerprint))]
@@ -374,7 +374,8 @@
                               (-> fingerprint :data str)
                               owner repo owner repo))
              (clj->js fingerprint))))
-       (log/info (:name fingerprint) " is okay"))
+       (<! (from-promise
+            (confirm-goal (clj->js fingerprint)))))
      :done)))
 
 (defn get-fingerprint-preference
