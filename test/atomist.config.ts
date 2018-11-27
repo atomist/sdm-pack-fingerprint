@@ -20,16 +20,16 @@ import {
     logger,
 } from "@atomist/automation-client";
 import {
+    allSatisfied,
     Fingerprint,
-    Goals,
     goals,
+    Goals,
+    GoalWithFulfillment,
     pushTest,
     PushTest,
     SoftwareDeliveryMachine,
     SoftwareDeliveryMachineConfiguration,
     whenPushSatisfies,
-    GoalWithFulfillment,
-    allSatisfied,
 } from "@atomist/sdm";
 import {
     configureSdm,
