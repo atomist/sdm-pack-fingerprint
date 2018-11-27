@@ -59,8 +59,8 @@ export const backpackComplianceGoal = new GoalWithFulfillment(
         displayName: "check backpack react script compliance",
         workingDescription: "Checking backpack react scripts",
         completedDescription: "Backpack react scripts are in sync",
-        failedDescription: "Backpack react scripts are out of sync"
-    }
+        failedDescription: "Backpack react scripts are out of sync",
+    },
 );
 const FingerprintingGoals: Goals = goals("check fingerprints")
     .plan(FingerprintGoal, backpackComplianceGoal);
@@ -80,7 +80,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
         },
         whenPushSatisfies(IsNpm)
             .itMeans("fingerprint an npm project")
-            .setGoals(FingerprintingGoals)
+            .setGoals(FingerprintingGoals),
     );
 
     sdm.addExtensionPacks(
