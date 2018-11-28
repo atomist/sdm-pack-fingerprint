@@ -6,6 +6,7 @@
             [cljs-node-io.file :as file]
             [goog.crypt.Sha256 :as Sha256]
             [goog.crypt :as crypt]
+            [goog.object :as gobj]
             [cljs.pprint :refer [pprint]]
             [atomist.cljs-log :as log]
             [atomist.json :as json]
@@ -13,7 +14,8 @@
             [com.rpl.specter :as s :refer-macros [select transform]]
             [cljs-node-io.proc :as proc]
             [clojure.spec.alpha :as spec]
-            [atomist.specs :as schema]))
+            [atomist.specs :as schema]
+            [oops.core :as oops]))
 
 (defn get-json [f]
   (->> (slurp f)
@@ -92,6 +94,15 @@
            :args (spec/cat :file ::schema/file)
            :ret ::schema/fingerprints)
 
+(defn apply-backpack [s data]
+  (let [jsPackage (js/JSON.parse s)
+        jsPackage1 (oops/oset! jsPackage "!backpack-react-scripts.!externals" (clj->js (into {} data)))]
+    (js/JSON.stringify jsPackage1 nil 2)))
+
+(comment
+ (println (apply-backpack (slurp "test-resources/npm/package.json") [["a" "b"] ["c" "d"]]))
+ (println (apply-backpack (slurp "test-resources/npm/package1.json") [["a" "a"]])))
+
 (defn apply-fingerprint
   ""
   [f {:keys [name data] :as fingerprint}]
@@ -101,9 +112,11 @@
       (cond
         (= name "backpack-react-scripts")
         (do
-          (spit f (-> (get-json package-json)
-                      (assoc-in ["backpack-react-scripts" "externals"] (into {} data))
-                      (json/clj->json)))
+          (spit f (-> (slurp package-json)
+                      (apply-backpack data)))
+          #_(spit f (-> (get-json package-json)
+                        (assoc-in ["backpack-react-scripts" "externals"] (into {} data))
+                        (json/clj->json)))
           true)
         :else
         (log/warn "fingerprint application not supported for" name)))))

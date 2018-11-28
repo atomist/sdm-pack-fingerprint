@@ -103,7 +103,7 @@
                                      :channel channel-name)
                               (assoc-in [:from :data] from-data)
                               (assoc-in [:to :data] to-data)
-                              (select-keys [:data :owner :repo :channel :from :to]))))
+                              (select-keys [:data :owner :repo :channel :from :to :providerId :sha]))))
                        filtered)
                   (async/merge)
                   (async/reduce conj []))]

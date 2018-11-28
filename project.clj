@@ -9,7 +9,8 @@
                  [cljfmt "0.5.7"]
                  [com.atomist/cljs-http "0.0.1"]
                  [com.rpl/specter "1.1.1"]
-                 [io.replikativ/hasch "0.3.4"]]
+                 [io.replikativ/hasch "0.3.4"]
+                 [binaryage/oops "0.6.3"]]
 
   :plugins [[lein-cljsbuild "1.1.5"]
             [lein-doo "0.1.10"]

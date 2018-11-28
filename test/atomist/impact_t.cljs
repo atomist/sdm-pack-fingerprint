@@ -78,11 +78,13 @@
                                                       :owner "org"
                                                       :repo "repo"
                                                       :channel "commit-sha1"
+                                                      :sha "commit-sha1"
+                                                      :providerId nil
                                                       :from {:name "public-defn-bodies-whatever", :sha "sha2", :data {}}
                                                       :to {:name "public-defn-bodies-whatever", :sha "sha1", :data {}}}
                                                      (-> x (js->clj :keywordize-keys true))))
                                                 (success-promise :success))}]
-                                    []))))
+                                    []))) "failed for empty graphql response")
           (is (= [["success"]] (<! (impact/process-push-impact
                                     whatever
                                     (graphql-response-by-sha
@@ -95,6 +97,8 @@
                                                       :owner "org"
                                                       :repo "repo"
                                                       :channel "commit-sha1"
+                                                      :sha "commit-sha1"
+                                                      :providerId nil
                                                       :from {:name "public-defn-bodies-whatever", :sha "sha2", :data {:b "b"}}
                                                       :to {:name "public-defn-bodies-whatever", :sha "sha1", :data {:a "a"}}}
                                                      (-> x (js->clj :keywordize-keys true))))
@@ -110,6 +114,8 @@
                                                                           :owner "org"
                                                                           :repo "repo"
                                                                           :channel "commit-sha1"
+                                                                          :sha "commit-sha1"
+                                                                          :providerId nil
                                                                           :from {:name "public-defn-bodies-whatever", :sha "sha2", :data {}}
                                                                           :to {:name "public-defn-bodies-whatever", :sha "sha1", :data {}}}
                                                                          (-> x (js->clj :keywordize-keys true))))
@@ -129,6 +135,8 @@
                                                          :owner "org"
                                                          :repo "repo"
                                                          :channel "commit-sha1"
+                                                         :sha "commit-sha1"
+                                                         :providerId nil
                                                          :from {:name "fp1", :sha "sha2", :data {}}
                                                          :to {:name "fp1", :sha "sha1", :data {}}}
                                                         (-> x (js->clj :keywordize-keys true))))
@@ -144,6 +152,8 @@
                                                                                       :owner "org"
                                                                                       :repo "repo"
                                                                                       :channel "commit-sha1"
+                                                                                      :sha "commit-sha1"
+                                                                                      :providerId nil
                                                                                       :from {:name "fp1", :sha "sha2", :data {}}
                                                                                       :to {:name "fp1", :sha "sha1", :data {}}}
                                                                                      (-> x (js->clj :keywordize-keys true))))
@@ -163,6 +173,8 @@
                                                                       :owner "org"
                                                                       :repo "repo"
                                                                       :channel "commit-sha1"
+                                                                      :sha "commit-sha1"
+                                                                      :providerId nil
                                                                       :from {:name "fp1", :sha "sha2", :data {}}
                                                                       :to {:name "fp1", :sha "sha1", :data {}}}
                                                                      (-> x (js->clj :keywordize-keys true))))

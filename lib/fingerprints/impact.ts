@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { HandlerContext, GitHubRepoRef, SuccessPromise, logger } from "@atomist/automation-client";
+import { HandlerContext, GitHubRepoRef, SuccessPromise, logger, FailurePromise } from "@atomist/automation-client";
 import { actionableButton, Goal, UpdateSdmGoalParams, updateGoal, findSdmGoalOnCommit, SdmGoalState } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as fingerprints from "../../fingerprints/index";
@@ -46,7 +46,7 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal):
                                 owner: diff.owner,
                                 repo: diff.repo,
                                 fingerprint: fingerprint.name,
-                            }), 
+                            }),
                         actionableButton(
                             { text: "Set New Target" },
                             UpdateTargetFingerprint,
@@ -82,9 +82,16 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal):
 }
 
 async function editGoal(ctx: HandlerContext, diff: fingerprints.Diff, goal: Goal, params: UpdateSdmGoalParams): Promise<any> {
-    const id = new GitHubRepoRef(diff.owner, diff.repo, diff.sha);
-    const complianceGoal = await findSdmGoalOnCommit(ctx, id, diff.providerId, goal);
-    return updateGoal(ctx, complianceGoal, params);
+    logger.info(`edit goal ${goal.name} to be in state ${params.state} for ${diff.owner}, ${diff.repo}, ${diff.sha}, ${diff.providerId}`)
+    try {
+        const id = new GitHubRepoRef(diff.owner, diff.repo, diff.sha);
+        const complianceGoal = await findSdmGoalOnCommit(ctx, id, diff.providerId, goal);
+        logger.info(`found compliance goal in phase ${complianceGoal.phase}`)
+        return updateGoal(ctx, complianceGoal, params);
+    } catch (error) {
+        logger.error(`Error: ${error}`);
+        return FailurePromise;
+    }
 }
 
 function fingerprintInSyncCallback(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal):

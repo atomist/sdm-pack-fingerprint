@@ -29,7 +29,6 @@ import {
     SoftwareDeliveryMachineConfiguration,
     whenPushSatisfies,
     GoalWithFulfillment,
-    allSatisfied,
 } from "@atomist/sdm";
 import {
     configureSdm,
@@ -52,24 +51,20 @@ const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
 );
 
-export const FingerprintGoal = new Fingerprint();
-export const backpackComplianceGoal = new GoalWithFulfillment(
+const backpackComplianceGoal = new GoalWithFulfillment(
     {
         uniqueName: "backpack-react-script-compliance",
-        displayName: "check backpack react script compliance",
-        workingDescription: "Checking backpack react scripts",
-        completedDescription: "Backpack react scripts are in sync",
-        failedDescription: "Backpack react scripts are out of sync"
+        displayName: "backpack-compliance",
+    },
+).with(
+    {
+        name: "backpack-react-waiting",
     }
 );
+
+export const FingerprintGoal = new Fingerprint();
 const FingerprintingGoals: Goals = goals("check fingerprints")
     .plan(FingerprintGoal, backpackComplianceGoal);
-
-backpackComplianceGoal.with(
-    {
-        name: "backpackCompliance",
-        pushTest: allSatisfied(IsNpm),
-    });
 
 export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
 

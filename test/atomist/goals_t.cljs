@@ -229,6 +229,11 @@
                  (js/Promise.
                   (fn [resolve reject]
                     (resolve :done))))
+               (fn [fingerprint]
+                 (is (= {:name fp-name :sha "sha2" :data []} (js->clj fingerprint)))
+                 (js/Promise.
+                  (fn [resolve reject]
+                    (resolve :done))))
                {:owner owner
                 :repo repo
                 :to fp-to})))))))
@@ -254,6 +259,11 @@
                                                      :value (json/clj->json fp-current-goal)}]}]})))))
                (fn [text fingerprint]
                  ;; should not be called
+                 (js/Promise.
+                  (fn [resolve reject]
+                    (resolve :done))))
+               (fn [fingerprint]
+                 (is (= {:name fp-name :sha "sha2" :data []} (js->clj fingerprint :keywordize-keys true)))
                  (js/Promise.
                   (fn [resolve reject]
                     (resolve :done))))

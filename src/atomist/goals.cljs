@@ -368,10 +368,9 @@
        (<! (from-promise
             (send-message
              (str
-              (gstring/format "Target fingerprint *%s* is *%s*" (:name fp-goal) (-> fp-goal :data str))
+              (gstring/format "Target fingerprint for *%s* has changed." (:name fp-goal))
               "\n"
-              (gstring/format "Currently *%s* in <https://github.com/%s/%s|%s/%s>"
-                              (-> fingerprint :data str)
+              (gstring/format "<https://github.com/%s/%s|%s/%s>"
                               owner repo owner repo))
              (clj->js fingerprint))))
        (<! (from-promise
