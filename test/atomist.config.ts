@@ -23,12 +23,12 @@ import {
     Fingerprint,
     Goals,
     goals,
+    GoalWithFulfillment,
     pushTest,
     PushTest,
     SoftwareDeliveryMachine,
     SoftwareDeliveryMachineConfiguration,
     whenPushSatisfies,
-    GoalWithFulfillment,
 } from "@atomist/sdm";
 import {
     configureSdm,
@@ -59,7 +59,7 @@ const backpackComplianceGoal = new GoalWithFulfillment(
 ).with(
     {
         name: "backpack-react-waiting",
-    }
+    },
 );
 
 export const FingerprintGoal = new Fingerprint();
@@ -75,7 +75,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
         },
         whenPushSatisfies(IsNpm)
             .itMeans("fingerprint an npm project")
-            .setGoals(FingerprintingGoals)
+            .setGoals(FingerprintingGoals),
     );
 
     sdm.addExtensionPacks(

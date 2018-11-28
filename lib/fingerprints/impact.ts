@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { HandlerContext, GitHubRepoRef, SuccessPromise, logger, FailurePromise } from "@atomist/automation-client";
-import { actionableButton, Goal, UpdateSdmGoalParams, updateGoal, findSdmGoalOnCommit, SdmGoalState } from "@atomist/sdm";
+import { FailurePromise, GitHubRepoRef, HandlerContext, logger, SuccessPromise } from "@atomist/automation-client";
+import { actionableButton, findSdmGoalOnCommit, Goal, SdmGoalState, updateGoal, UpdateSdmGoalParams } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as fingerprints from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
@@ -82,11 +82,11 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal):
 }
 
 async function editGoal(ctx: HandlerContext, diff: fingerprints.Diff, goal: Goal, params: UpdateSdmGoalParams): Promise<any> {
-    logger.info(`edit goal ${goal.name} to be in state ${params.state} for ${diff.owner}, ${diff.repo}, ${diff.sha}, ${diff.providerId}`)
+    logger.info(`edit goal ${goal.name} to be in state ${params.state} for ${diff.owner}, ${diff.repo}, ${diff.sha}, ${diff.providerId}`);
     try {
         const id = new GitHubRepoRef(diff.owner, diff.repo, diff.sha);
         const complianceGoal = await findSdmGoalOnCommit(ctx, id, diff.providerId, goal);
-        logger.info(`found compliance goal in phase ${complianceGoal.phase}`)
+        logger.info(`found compliance goal in phase ${complianceGoal.phase}`);
         return updateGoal(ctx, complianceGoal, params);
     } catch (error) {
         logger.error(`Error: ${error}`);
