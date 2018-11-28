@@ -14,8 +14,21 @@
  * limitations under the License.
  */
 
-import { FailurePromise, GitHubRepoRef, HandlerContext, logger, SuccessPromise } from "@atomist/automation-client";
-import { actionableButton, findSdmGoalOnCommit, Goal, SdmGoalState, updateGoal, UpdateSdmGoalParams } from "@atomist/sdm";
+import {
+    FailurePromise,
+    GitHubRepoRef,
+    HandlerContext,
+    logger,
+    SuccessPromise,
+} from "@atomist/automation-client";
+import {
+    actionableButton,
+    findSdmGoalOnCommit,
+    Goal,
+    SdmGoalState,
+    updateGoal,
+    UpdateSdmGoalParams,
+} from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as fingerprints from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";

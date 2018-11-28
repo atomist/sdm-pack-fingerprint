@@ -21,8 +21,8 @@ import {
 } from "@atomist/automation-client";
 import {
     Fingerprint,
-    Goals,
     goals,
+    Goals,
     GoalWithFulfillment,
     pushTest,
     PushTest,
