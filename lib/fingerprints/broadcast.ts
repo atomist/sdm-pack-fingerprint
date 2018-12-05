@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { SuccessPromise } from "@atomist/automation-client";
 import {
     actionableButton,
     CommandHandlerRegistration,
@@ -29,7 +30,6 @@ import * as goals from "../../fingerprints/index";
 import { queryFingerprints } from "../adhoc/fingerprints";
 import { footer } from "../support/util";
 import { ApplyTargetFingerprint } from "./applyFingerprint";
-import { SuccessPromise } from "@atomist/automation-client";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version: string, sha: string) {
     const author = cli.context.source.slack.user.id;
@@ -85,9 +85,9 @@ function broadcastMandate(cli: CommandListenerInvocation<BroadcastFingerprintNud
             version: cli.parameters.version,
             sha: cli.parameters.sha,
         },
-        (owner: string, repo: string, channel: string) => {            
+        (owner: string, repo: string, channel: string) => {
             return SuccessPromise;
-        }
+        },
     );
 }
 
