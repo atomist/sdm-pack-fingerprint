@@ -15,24 +15,31 @@
  */
 
 import {
+    editModes,
     GitProject,
     HandlerContext,
 } from "@atomist/automation-client";
 import {
+    actionableButton,
+    CommandListenerInvocation,
     ExtensionPack,
     Fingerprint,
     FingerprinterResult,
+    Goal,
     metadata,
     PushImpactListener,
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
+import { checkFingerprintTargets } from "../..";
 import * as fingerprints from "../../fingerprints/index";
 import {
     applyTargetFingerprint,
-    FingerprintPusher,
+    ApplyTargetFingerprintParameters,
+    FingerprintTransform,
 } from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
+import { MessageMaker } from "../fingerprints/impact";
 import { ListFingerprints } from "../fingerprints/list";
 import {
     DeleteTargetFingerprint,
@@ -53,7 +60,8 @@ import {
     ShowTargets,
 } from "../handlers/commands/showTargets";
 import { UseLatest } from "../handlers/commands/useLatest";
-import { pushImpactHandler } from "../handlers/events/pushImpactHandler";
+import { checkLibraryGoals, forFingerprints, pushImpactHandler } from "../handlers/events/pushImpactHandler";
+import { footer } from "../support/util";
 
 /**
  * run fingerprints on every Push
@@ -77,29 +85,137 @@ export interface FingerprintHandler {
     handler?: (context: HandlerContext, diff: fingerprints.Diff) => Promise<any>;
 }
 
-export function fingerprintSupport(
-    goals: Fingerprint | Fingerprint[] = [],
-    fingerprinter: FingerprintRunner,
-    fingerprintPusher: FingerprintPusher,
-    ...handlers: FingerprintHandler[]): ExtensionPack {
+export type RegisterFingerprintHandler = (sdm: SoftwareDeliveryMachine) => FingerprintHandler;
 
-    (Array.isArray(goals) ? goals : [goals]).forEach(g => {
-        g.with({
-            name: "fingerprinter",
-            action: runFingerprints(fingerprinter),
-        });
+export type editModeMaker = (cli: CommandListenerInvocation<ApplyTargetFingerprintParameters>) => editModes.EditMode;
+
+export interface FingerprintHandlerConfig {
+    transform: FingerprintTransform;
+    complianceGoal?: Goal;
+    transformPresentation: editModeMaker;
+    messageMaker: MessageMaker;
+}
+
+// default implementation
+export const messageMaker: MessageMaker = params => {
+    return {
+        attachments: [
+            {
+                text: params.text,
+                color: "#45B254",
+                fallback: "Fingerprint Update",
+                mrkdwn_in: ["text"],
+                actions: [
+                    actionableButton(
+                        { text: "Update project" },
+                        params.editProject,
+                        {
+                            msgId: params.msgId,
+                            owner: params.diff.owner,
+                            repo: params.diff.repo,
+                            fingerprint: params.fingerprint.name,
+                        }),
+                    actionableButton(
+                        { text: "Set New Target" },
+                        params.mutateTarget,
+                        {
+                            msgId: params.msgId,
+                            name: params.fingerprint.name,
+                            sha: params.fingerprint.sha,
+                        },
+                    ),
+                ],
+                footer: footer(),
+            },
+        ],
+    };
+};
+
+export function fingerprintImpactHandler( config: FingerprintHandlerConfig, ...names: string[]): RegisterFingerprintHandler {
+    return  (sdm: SoftwareDeliveryMachine) => {
+        // set goal Fingerprints
+        //   - first can be added as an option when difference is noticed (uses our api to update the fingerprint)
+        //   - second is a default intent
+        //   - TODO:  third is just for resetting
+        //   - both use askAboutBroadcast to generate an actionable message pointing at BroadcastFingerprintNudge
+        sdm.addCommand(UpdateTargetFingerprint);
+        sdm.addCommand(SetTargetFingerprintFromLatestMaster);
+        sdm.addCommand(DeleteTargetFingerprint);
+
+        // standard actionable message embedding ApplyTargetFingerprint
+        sdm.addCommand(BroadcastFingerprintNudge);
+
+        // this is the fingerprint editor
+        sdm.addCodeTransformCommand(applyTargetFingerprint(config.transform, config.transformPresentation));
+
+        sdm.addCommand(ListFingerprints);
+
+        return {
+            selector: forFingerprints(...names),
+            handler: async (ctx, diff) => {
+                return checkFingerprintTargets(ctx, diff, config.complianceGoal, config.messageMaker);
+            },
+        };
+    };
+}
+
+export function checkLibraryImpactHandler(): RegisterFingerprintHandler {
+    return (sdm: SoftwareDeliveryMachine) => {
+        return {
+            selector: forFingerprints(
+                "clojure-project-deps",
+                "maven-project-deps",
+                "npm-project-deps"),
+            handler: async (ctx, diff) => {
+                return checkLibraryGoals(ctx, diff);
+            },
+        };
+    };
+}
+
+export function simpleImpactHandler(
+    handler: (context: HandlerContext, diff: fingerprints.Diff) => Promise<any>,
+    ...names: string[]): RegisterFingerprintHandler {
+    return (sdm: SoftwareDeliveryMachine) => {
+        return {
+            selector: forFingerprints(...names),
+            diffHandler: handler,
+        };
+    };
+}
+
+/**
+ *
+ *
+ * @param goal use this Goal to run Fingeprints
+ * @param fingerprinter callback to create a Fingerprints for the after Commmit of each Push
+ * @param fingerprintPusher
+ * @param handlers
+ */
+export function fingerprintSupport(
+    goal: Fingerprint,
+    fingerprinter: FingerprintRunner,
+    ...handlers: RegisterFingerprintHandler[]): ExtensionPack {
+
+    goal.with({
+        name: "fingerprinter",
+        action: runFingerprints(fingerprinter),
     });
 
     return {
         ...metadata(),
         configure: (sdm: SoftwareDeliveryMachine) => {
-            configure( sdm, handlers, fingerprintPusher);
+            configure( sdm, handlers);
         },
     };
 }
 
-function configure(sdm: SoftwareDeliveryMachine, handlers: FingerprintHandler[], fingerprintPusher: FingerprintPusher): void {
-    sdm.addEvent(pushImpactHandler(handlers));
+function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintHandler[]): void {
+
+    // Fired on every Push after Fingerprints are uploaded
+    sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm))));
+
+    // Deprecated
     sdm.addCommand(IgnoreVersion);
     sdm.addCodeTransformCommand(ConfirmUpdate);
     sdm.addCommand(SetTeamLibrary);
@@ -110,10 +226,4 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: FingerprintHandler[],
     sdm.addCommand(ShowTargets);
     sdm.addCommand(DumpLibraryPreferences);
     sdm.addCommand(UseLatest);
-    sdm.addCommand(UpdateTargetFingerprint);
-    sdm.addCommand(SetTargetFingerprintFromLatestMaster);
-    sdm.addCommand(DeleteTargetFingerprint);
-    sdm.addCommand(BroadcastFingerprintNudge);
-    sdm.addCommand(ListFingerprints);
-    sdm.addCodeTransformCommand(applyTargetFingerprint(fingerprintPusher));
 }

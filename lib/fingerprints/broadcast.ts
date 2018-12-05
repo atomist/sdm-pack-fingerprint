@@ -29,6 +29,7 @@ import * as goals from "../../fingerprints/index";
 import { queryFingerprints } from "../adhoc/fingerprints";
 import { footer } from "../support/util";
 import { ApplyTargetFingerprint } from "./applyFingerprint";
+import { SuccessPromise } from "@atomist/automation-client";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version: string, sha: string) {
     const author = cli.context.source.slack.user.id;
@@ -38,17 +39,24 @@ export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, 
                 [{
                     author_name: "Broadcast Fingerprint Target",
                     author_icon: `https://images.atomist.com/rug/warning-yellow.png`,
-                    text: `Shall we nudge everyone with a PR for ${codeLine(`${name}:${sha}`)}?`,
+                    text: `Shall we nudge everyone with a PR for the new ${codeLine(`${name}`)} target?`,
                     fallback: `Boardcast PR for ${name}:${sha}`,
                     color: "#ffcc00",
                     mrkdwn_in: ["text"],
                     actions: [
                         actionableButton(
                             {
-                                text: "Broadcast",
+                                text: "Broadcast Nudge",
                             },
                             BroadcastFingerprintNudge,
                             { name, version, author, sha},
+                        ),
+                        actionableButton(
+                            {
+                                text: "Create PRs",
+                            },
+                            broadcastMandate,
+                            {name, version, author, sha},
                         ),
                     ],
                     footer: footer(),
@@ -67,6 +75,20 @@ export interface BroadcastFingerprintNudgeParameters {
     sha: string;
     reason: string;
     author: string;
+}
+
+function broadcastMandate(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>): Promise<any> {
+    return goals.broadcastFingerprint(
+        queryFingerprints(cli.context.graphClient),
+        {
+            name: cli.parameters.name,
+            version: cli.parameters.version,
+            sha: cli.parameters.sha,
+        },
+        (owner: string, repo: string, channel: string) => {            
+            return SuccessPromise;
+        }
+    );
 }
 
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>): Promise<any> {
@@ -118,6 +140,27 @@ ${italic(cli.parameters.reason)}`,
         },
     );
 }
+
+export const BroadcastFingerprintMandate: CommandHandlerRegistration<BroadcastFingerprintNudgeParameters> = {
+    name: "BroadcastFingerprintNudge",
+    description: "message all Channels linked to Repos that contain a particular fingerprint",
+    parameters: {
+        name: { required: true },
+        version: { required: true },
+        sha: { required: true,
+               description: "sha of fingerprint to broadcast"},
+        reason: {
+            required: false,
+            control: "textarea",
+            description: "always give a reason why we're releasing the nudge",
+        },
+        author: {
+            required: false,
+            description: "author of the Nudge",
+        },
+    },
+    listener: broadcastMandate,
+};
 
 export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFingerprintNudgeParameters> = {
     name: "BroadcastFingerprintNudge",

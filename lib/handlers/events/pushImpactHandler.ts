@@ -136,7 +136,7 @@ function libraryEditorChoiceMessage(ctx: HandlerContext, diff: fingerprints.Diff
     };
 }
 
-async function checkLibraryGoals(ctx: HandlerContext, diff: fingerprints.Diff): Promise<any> {
+export async function checkLibraryGoals(ctx: HandlerContext, diff: fingerprints.Diff): Promise<any> {
     return fingerprints.checkLibraryGoals(
         queryPreferences(ctx.graphClient),
         libraryEditorChoiceMessage(ctx, diff),
@@ -174,15 +174,6 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
                         };
                     }
                 }),
-                {
-                    selector: forFingerprints(
-                        "clojure-project-deps",
-                        "maven-project-deps",
-                        "npm-project-deps"),
-                    action: async (diff: fingerprints.Diff) => {
-                        return checkLibraryGoals(ctx, diff);
-                    },
-                },
             ],
         );
         return SuccessPromise;

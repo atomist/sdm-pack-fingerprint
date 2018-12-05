@@ -1,0 +1,17 @@
+{
+    "files.exclude": {
+        ".idea": true,
+        "**/*.js": true,
+        "**/*.js.map": true,
+        "**/*.d.ts": true,
+        "dev": true,
+        "doc": true,
+        "legal": true,
+        "log/**": true,
+        "node_modules": true,
+        "out": true,
+        "target": true,
+        "tmp": true,
+        "src": true
+    }
+}

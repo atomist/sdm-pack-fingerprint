@@ -17,18 +17,24 @@
 export {
     fingerprintSupport,
     FingerprintRunner,
+    checkLibraryImpactHandler,
+    simpleImpactHandler,
+    fingerprintImpactHandler,
+    FingerprintHandlerConfig,
+    messageMaker,
 } from "./lib/machine/FingerprintSupport";
 export {
     forFingerprints,
     renderDiffSnippet,
 } from "./lib/handlers/events/pushImpactHandler";
 export {
-    FingerprintPusher,
+    FingerprintTransform,
 } from "./lib/fingerprints/applyFingerprint";
 export {
     checkFingerprintTargets,
 } from "./lib/fingerprints/impact";
 export {
+    Diff,
     FP,
     depsFingerprints,
     logbackFingerprints,
@@ -37,3 +43,6 @@ export {
     applyFingerprint,
     renderDiff,
 } from "./fingerprints";
+export {
+    setNewTarget,
+} from "./lib/handlers/commands/setLibraryGoal";

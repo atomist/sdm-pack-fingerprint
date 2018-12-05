@@ -22,7 +22,8 @@ import {
     SuccessPromise,
 } from "@atomist/automation-client";
 import {
-    actionableButton,
+    CodeTransformRegistration,
+    CommandHandlerRegistration,
     findSdmGoalOnCommit,
     Goal,
     SdmGoalState,
@@ -32,48 +33,31 @@ import {
 import { SlackMessage } from "@atomist/slack-messages";
 import * as fingerprints from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
-import { footer } from "../support/util";
-import { ApplyTargetFingerprint } from "./applyFingerprint";
-import { UpdateTargetFingerprint } from "./updateTarget";
+import { ApplyTargetFingerprint, ApplyTargetFingerprintParameters } from "./applyFingerprint";
+import { UpdateTargetFingerprint, UpdateTargetFingerprintParameters } from "./updateTarget";
+
+export interface MessageMakerParams {
+    text: string;
+    fingerprint: fingerprints.FP;
+    diff: fingerprints.Diff;
+    msgId: string;
+    editProject: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
+    mutateTarget: CommandHandlerRegistration<UpdateTargetFingerprintParameters>;
+}
+
+export type MessageMaker = (params: MessageMakerParams) => SlackMessage;
 
 // when we discover a backpack dependency that is not the target state
 // then we ask the user whether they want to update to the new target version
 // or maybe they want this backpack version to become the new target version
-function callback(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal):
+function callback(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal, messageMaker?: MessageMaker):
     (s: string, fingerprint: fingerprints.FP) => Promise<any> {
     return async (text, fingerprint) => {
         const msgId = fingerprints.consistentHash([fingerprint.sha, diff.channel, diff.owner, diff.repo]);
-        const message: SlackMessage = {
-            attachments: [
-                {
-                    text,
-                    color: "#45B254",
-                    fallback: "Fingerprint Update",
-                    mrkdwn_in: ["text"],
-                    actions: [
-                        actionableButton(
-                            { text: "Update project" },
-                            ApplyTargetFingerprint,
-                            {
-                                msgId,
-                                owner: diff.owner,
-                                repo: diff.repo,
-                                fingerprint: fingerprint.name,
-                            }),
-                        actionableButton(
-                            { text: "Set New Target" },
-                            UpdateTargetFingerprint,
-                            {
-                                msgId,
-                                name: fingerprint.name,
-                                sha: fingerprint.sha,
-                            },
-                        ),
-                    ],
-                    footer: footer(),
-                },
-            ],
-        };
+        const message: SlackMessage = messageMaker({
+            text, fingerprint, diff, msgId,
+            editProject: ApplyTargetFingerprint,
+            mutateTarget: UpdateTargetFingerprint});
         if (goal) {
             try {
                 logger.info(`compliance goal ${goal.name} has failed`);
@@ -123,10 +107,10 @@ function fingerprintInSyncCallback(ctx: HandlerContext, diff: fingerprints.Diff,
     };
 }
 
-export async function checkFingerprintTargets(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal): Promise<any> {
+export async function checkFingerprintTargets(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal, messageMaker?: MessageMaker): Promise<any> {
     return fingerprints.checkFingerprintGoals(
         queryPreferences(ctx.graphClient),
-        callback(ctx, diff, goal),
+        callback(ctx, diff, goal, messageMaker),
         fingerprintInSyncCallback(ctx, diff, goal),
         diff,
     );
