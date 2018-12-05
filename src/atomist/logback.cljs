@@ -35,6 +35,18 @@
                :attributes {:scan "true" :scanPeriod "30 seconds"}
                :elements []}]})
 
+(defn- remove-filter-level [appender]
+  (s/transform [:elements s/ALL (element-name "filter")
+                :elements s/ALL (element-name "level")]
+               (constantly {:type "element" :name "level" :elements []})
+               appender))
+
+(defn- set-filter-level [appender level]
+  (s/transform [:elements s/ALL (element-name "filter")
+                :elements s/ALL (element-name "level")]
+               (constantly {:type "element" :name "level" :elements [{:type "text" :text level}]})
+               appender))
+
 (defn- add-elk-appender [appender x]
   (if (s/select-first [:elements s/ALL (element-name "configuration")
                        :elements s/ALL (elk-appender)] x)
@@ -71,11 +83,11 @@
       (not (.exists f))
       (do
         (io/make-parents f)
-        (add-appender empty-configuration-element f appender))
+        (add-appender empty-configuration-element f (set-filter-level appender "INFO")))
       (and (.exists f) (no-root-configuration-element? f))
       (throw (js/Error. "no root configuration element in logback.xml"))
       :else
-      (add-appender (xml->clj f) f appender))))
+      (add-appender (xml->clj f) f (set-filter-level appender "INFO")))))
 (spec/fdef insert-elk-appender :args (spec/cat :dir string? :appender any?))
 
 (defn fingerprint
@@ -83,8 +95,9 @@
   (js/Promise.
    (fn [accept reject]
      (try
-       (let [data (extract-fingerprint-data basedir)
-             json-data (json/clj->json data)]
+       (let [json-data (-> (extract-fingerprint-data basedir)
+                           (remove-filter-level)
+                           (json/clj->json))]
          (accept
           (clj->js
            [{:name "elk-logback"
@@ -112,18 +125,65 @@
 (spec/fdef apply-fingerprint :args (spec/cat :dir string? :fingerprint ::spec/fp))
 
 (comment
+
  ;; test-resources/logback has a good stable fingerprint in it
  (cljs.pprint/pprint (fingerprint "test-resources/logback"))
  (.then (fingerprint "test-resources/logback") (fn [x]
                                                  (cljs.pprint/pprint (js->clj x))))
 
- ;; test has not fingerprint so should just return []
+ ;; test has no fingerprint so should just return []
  (.catch
   (.then (fingerprint "test")
          (fn [x]
+           (println "ACCEPT")
            (cljs.pprint/pprint (js->clj x))))
   (fn [x] (println "ERROR " x)))
 
+ ;; should return real thing
+ (.catch
+  (.then (fingerprint "test-resources/logback")
+         (fn [x]
+           (println "ACCEPT")
+           (println (-> (js->clj x :keywordize-keys true)
+                        first
+                        :data))
+           (cljs.pprint/pprint (js->clj x))))
+  (fn [x] (println "ERROR " x)))
+
+ ;; should return real thing
+ (.catch
+  (.then (fingerprint "test-resources/logback1")
+         (fn [x]
+           (println "ACCEPT")
+           (println (-> (js->clj x :keywordize-keys true)
+                        first
+                        :data))
+           (cljs.pprint/pprint (js->clj x))))
+  (fn [x] (println "ERROR " x)))
+
+ (.catch
+  (.then (fingerprint "test-resources/logback2")
+         (fn [x]
+           (println "ACCEPT")
+           (println (-> (js->clj x :keywordize-keys true)
+                        first
+                        :data))
+           (cljs.pprint/pprint (js->clj x))))
+  (fn [x] (println "ERROR " x)))
+
+ (.catch
+  (.then (fingerprint "test-resources/logback3")
+         (fn [x]
+           (println "ACCEPT")
+           (println (-> (js->clj x :keywordize-keys true)
+                        first
+                        :data))
+           (cljs.pprint/pprint (js->clj x))))
+  (fn [x] (println "ERROR " x)))
+
+ (pprint (xml->clj (logback-file-in-root "test-resources/logback")))
+
+ ;; APPLY fingerprint
  (.then
   (fingerprint "test-resources/logback")
   (fn [x]

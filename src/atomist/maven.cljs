@@ -99,6 +99,33 @@
        first
        (->name-version)))
 
+(defn- jfrog-artifactory-plugin-groupId [x]
+  (fn [x] (and
+           (= "element" (:type x))
+           (= "groupId" (:name x))
+           (= "org.jfrog.buildinfo" (-> x :attributes :name)))))
+
+(defn- jfrog-artifactory-plugin-artifactId [x]
+  (fn [x] (and
+           (= "element" (:type x))
+           (= "artifactId" (:name x))
+           (= "artifactory-maven-plugin" (-> x :attributes :name)))))
+
+(defn jfrog-artifactory [pom-clj]
+  (if-let [plugin (s/select-first [:elements s/ALL (element-name "project")
+                                   :elements s/ALL (element-name "build")
+                                   :elements s/ALL (element-name "plugins")
+                                   :elements s/ALL (element-name "plugin")
+                                   (s/subselect )] pom-clj)]
+    [{:name "artifactory-maven-plugin"
+      :data plugin
+      :abbreviation "artifactory-maven-plugin"
+      :version "0.0.1"}]
+    []))
+
+(comment
+ (jfrog-artifactory (xml->clj "test-resources/jfrog-pom/pom.xml")))
+
 ;; pom1.xml -- this is the parent pom that all apps use - it extends from spring-boot
 ;; pom2.xml -- this is the parent pom of the previous pom
 ;; difference between 3.8.2 and [3.8.2] as a range (the latter can cause an error of there is a conflict)
@@ -129,7 +156,8 @@
                      :data {:name (str (:groupId coords) "/" (:artifactId coords))
                             :version (:version coords)}
                      :abbreviation "coords"
-                     :version "0.0.1"})))
+                     :version "0.0.1"})
+              (concat (jfrog-artfiactory pom))))
         []))
     (catch :default e
       (log/info (str e))
