@@ -60,7 +60,11 @@ import {
     ShowTargets,
 } from "../handlers/commands/showTargets";
 import { UseLatest } from "../handlers/commands/useLatest";
-import { checkLibraryGoals, forFingerprints, pushImpactHandler } from "../handlers/events/pushImpactHandler";
+import {
+    checkLibraryGoals,
+    forFingerprints,
+    pushImpactHandler,
+} from "../handlers/events/pushImpactHandler";
 import { footer } from "../support/util";
 
 /**

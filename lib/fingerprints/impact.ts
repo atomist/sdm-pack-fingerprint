@@ -33,8 +33,14 @@ import {
 import { SlackMessage } from "@atomist/slack-messages";
 import * as fingerprints from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
-import { ApplyTargetFingerprint, ApplyTargetFingerprintParameters } from "./applyFingerprint";
-import { UpdateTargetFingerprint, UpdateTargetFingerprintParameters } from "./updateTarget";
+import {
+    ApplyTargetFingerprint,
+    ApplyTargetFingerprintParameters,
+} from "./applyFingerprint";
+import {
+    UpdateTargetFingerprint,
+    UpdateTargetFingerprintParameters,
+} from "./updateTarget";
 
 export interface MessageMakerParams {
     text: string;
