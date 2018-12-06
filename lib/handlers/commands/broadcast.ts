@@ -125,15 +125,15 @@ export const BroadcastNudge: CommandHandlerRegistration<BroadcastNudgeParameters
     name: "BroadcastNudge",
     description: "message all Channels linked to Repos that contain a library",
     parameters: {
-        name: { 
-            required: true 
+        name: {
+            required: true,
         },
-        version: { 
-            required: true 
+        version: {
+            required: true,
         },
-        fp: { 
+        fp: {
             required: false,
-            description: "npm-project-deps, maven-project-deps, or clojure-project-deps"
+            description: "npm-project-deps, maven-project-deps, or clojure-project-deps",
         },
         reason: {
             required: true,

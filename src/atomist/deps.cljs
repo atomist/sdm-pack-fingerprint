@@ -78,4 +78,5 @@
 (defn apply-fingerprint
   ""
   [basedir {:keys [name] :as fingerprint}]
-  (get-file basedir "package.json" (fn [f] (npm/apply-fingerprint f fingerprint))))
+  (get-file basedir "package.json" (fn [f] (npm/apply-fingerprint f fingerprint)))
+  (get-file basedir "pom.xml" (fn [f] (maven/apply-fingerprint f fingerprint))))
