@@ -39,7 +39,7 @@ import {
     FingerprintTransform,
 } from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
-import { MessageMaker } from "../fingerprints/impact";
+import { MessageIdMaker, MessageMaker } from "../fingerprints/impact";
 import { ListFingerprints } from "../fingerprints/list";
 import {
     DeleteTargetFingerprint,
@@ -96,8 +96,10 @@ export type editModeMaker = (cli: CommandListenerInvocation<ApplyTargetFingerpri
 export interface FingerprintHandlerConfig {
     transform: FingerprintTransform;
     complianceGoal?: Goal;
+    complianceGoalFailMessage?: string;
     transformPresentation: editModeMaker;
     messageMaker: MessageMaker;
+    messageIdMaker?: MessageIdMaker;
 }
 
 // default implementation
@@ -157,7 +159,7 @@ export function fingerprintImpactHandler( config: FingerprintHandlerConfig, ...n
         return {
             selector: forFingerprints(...names),
             handler: async (ctx, diff) => {
-                return checkFingerprintTargets(ctx, diff, config.complianceGoal, config.messageMaker);
+                return checkFingerprintTargets(ctx, diff, config);
             },
         };
     };

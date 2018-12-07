@@ -32,7 +32,9 @@ import {
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as fingerprints from "../../fingerprints/index";
+import { Diff, FP } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
+import { FingerprintHandlerConfig } from "../machine/FingerprintSupport";
 import {
     ApplyTargetFingerprint,
     ApplyTargetFingerprintParameters,
@@ -53,25 +55,40 @@ export interface MessageMakerParams {
 
 export type MessageMaker = (params: MessageMakerParams) => SlackMessage;
 
+export type MessageIdMaker = (fingerprint: FP, diff: Diff) => string;
+
+const updateableMessage: MessageIdMaker = (fingerprint, diff) => {
+    return fingerprints.consistentHash([fingerprint.sha, diff.channel, diff.owner, diff.repo]);
+};
+
 // when we discover a backpack dependency that is not the target state
 // then we ask the user whether they want to update to the new target version
 // or maybe they want this backpack version to become the new target version
-function callback(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal, messageMaker?: MessageMaker):
+function callback(ctx: HandlerContext, diff: fingerprints.Diff, config: FingerprintHandlerConfig):
     (s: string, fingerprint: fingerprints.FP) => Promise<any> {
     return async (text, fingerprint) => {
-        const msgId = fingerprints.consistentHash([fingerprint.sha, diff.channel, diff.owner, diff.repo]);
-        const message: SlackMessage = messageMaker({
+
+        let msgId;
+
+        if (config.messageIdMaker) {
+            msgId = config.messageIdMaker(fingerprint, diff);
+        } else {
+            msgId = updateableMessage(fingerprint, diff);
+        }
+
+        const message: SlackMessage = config.messageMaker({
             text, fingerprint, diff, msgId,
             editProject: ApplyTargetFingerprint,
             mutateTarget: UpdateTargetFingerprint});
-        if (goal) {
+
+        if (config.complianceGoal) {
             try {
-                logger.info(`compliance goal ${goal.name} has failed`);
+                logger.info(`compliance goal ${config.complianceGoal.name} has failed`);
                 await editGoal(
-                    ctx, diff, goal,
+                    ctx, diff, config.complianceGoal,
                     {
                         state: SdmGoalState.failure,
-                        description: `compliance check for ${diff.to.name} has failed`,
+                        description: config.complianceGoalFailMessage || `compliance check for ${diff.to.name} has failed`,
                     },
                 );
             } catch (error) {
@@ -80,6 +97,7 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal, mes
         } else {
             logger.info("running without a compliance goal");
         }
+        
         return ctx.messageClient.addressChannels(message, diff.channel, { id: msgId });
     };
 }
@@ -113,11 +131,11 @@ function fingerprintInSyncCallback(ctx: HandlerContext, diff: fingerprints.Diff,
     };
 }
 
-export async function checkFingerprintTargets(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal, messageMaker?: MessageMaker): Promise<any> {
+export async function checkFingerprintTargets(ctx: HandlerContext, diff: fingerprints.Diff, config: FingerprintHandlerConfig): Promise<any> {
     return fingerprints.checkFingerprintGoals(
         queryPreferences(ctx.graphClient),
-        callback(ctx, diff, goal, messageMaker),
-        fingerprintInSyncCallback(ctx, diff, goal),
+        callback(ctx, diff, config),
+        fingerprintInSyncCallback(ctx, diff, config.complianceGoal),
         diff,
     );
 }
