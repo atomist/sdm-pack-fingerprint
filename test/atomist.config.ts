@@ -51,8 +51,14 @@ import {
     setNewTarget,
     simpleImpactHandler,
 } from "..";
-import { applyBackpackFingerprint, backpackFingerprint } from "../lib/fingerprints/backpack";
-import { applyDockerBaseFingerprint, dockerBaseFingerprint } from "../lib/fingerprints/dockerFrom";
+import {
+    applyBackpackFingerprint,
+    backpackFingerprint,
+} from "../lib/fingerprints/backpack";
+import {
+    applyDockerBaseFingerprint,
+    dockerBaseFingerprint,
+} from "../lib/fingerprints/dockerFrom";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
