@@ -51,6 +51,7 @@ import {
     setNewTarget,
     simpleImpactHandler,
 } from "..";
+import { applyBackpackFingerprint, backpackFingerprint } from "../lib/fingerprints/backpack";
 import { applyDockerBaseFingerprint, dockerBaseFingerprint } from "../lib/fingerprints/dockerFrom";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
@@ -106,6 +107,10 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 if (dockerBaseFP) {
                     fps.push(dockerBaseFP);
                 }
+                const backpackFP = await backpackFingerprint(p);
+                if (backpackFP) {
+                    fps.push(backpackFP);
+                }
                 logger.info(renderData(fps));
                 return fps;
             },
@@ -114,6 +119,11 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             fingerprintImpactHandler(
                 {
                     transform: async (p: GitProject, fp: FP) => {
+
+                        if ("backpack-react-scripts" === fp.name) {
+                            return applyBackpackFingerprint(p, fp);
+                        }
+
                         if ("docker-base-image" === fp.name) {
                             return applyDockerBaseFingerprint(p, fp);
                         } else {
