@@ -51,7 +51,10 @@ import {
     setNewTarget,
     simpleImpactHandler,
 } from "..";
-import { ApplyFingerprint, ExtractFingerprint } from "../lib/machine/FingerprintSupport";
+import {
+    ApplyFingerprint,
+    ExtractFingerprint,
+} from "../lib/machine/FingerprintSupport";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
