@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import { logger, NoParameters, SuccessPromise } from "@atomist/automation-client";
+import {
+    logger,
+    NoParameters,
+    SuccessPromise,
+} from "@atomist/automation-client";
 import { subscription } from "@atomist/automation-client/lib/graph/graphQL";
 import { EventHandlerRegistration } from "@atomist/sdm";
 import { renderData } from "../../..";
