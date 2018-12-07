@@ -97,7 +97,7 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff, config: Fingerpr
         } else {
             logger.info("running without a compliance goal");
         }
-        
+
         return ctx.messageClient.addressChannels(message, diff.channel, { id: msgId });
     };
 }
