@@ -15,9 +15,15 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import { DockerfileParser, From } from "dockerfile-ast";
+import {
+    DockerfileParser,
+    From,
+} from "dockerfile-ast";
 import { FP, renderData, sha256 } from "../..";
-import { ApplyFingerprint, ExtractFingerprint } from "../machine/FingerprintSupport";
+import {
+    ApplyFingerprint,
+    ExtractFingerprint,
+} from "../machine/FingerprintSupport";
 
 export const dockerBaseFingerprint: ExtractFingerprint = async p => {
 
