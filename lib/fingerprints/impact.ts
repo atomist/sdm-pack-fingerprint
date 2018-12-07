@@ -32,7 +32,10 @@ import {
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as fingerprints from "../../fingerprints/index";
-import { Diff, FP } from "../../fingerprints/index";
+import {
+    Diff,
+    FP,
+} from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import { FingerprintHandlerConfig } from "../machine/FingerprintSupport";
 import {
@@ -97,7 +100,7 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff, config: Fingerpr
         } else {
             logger.info("running without a compliance goal");
         }
-        
+
         return ctx.messageClient.addressChannels(message, diff.channel, { id: msgId });
     };
 }
