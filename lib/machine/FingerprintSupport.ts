@@ -60,6 +60,7 @@ import {
     ShowTargets,
 } from "../handlers/commands/showTargets";
 import { UseLatest } from "../handlers/commands/useLatest";
+import { PullRequestImpactHandlerRegistration } from "../handlers/events/prImpactHandler";
 import {
     checkLibraryGoals,
     forFingerprints,
@@ -220,6 +221,9 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintHa
 
     // Fired on every Push after Fingerprints are uploaded
     sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm))));
+
+    // Fired on each PR after Fingerprints are uploaded
+    sdm.addEvent(PullRequestImpactHandlerRegistration);
 
     // Deprecated
     sdm.addCommand(IgnoreVersion);

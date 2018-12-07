@@ -1,0 +1,44 @@
+subscription PullRequestImpactEvent {
+  PullRequestImpact {
+    id
+    url
+    data
+    pullRequest {
+      head {
+        sha
+        fingerprints {
+          sha
+          name
+        }
+        author {
+          login
+          emails {
+            address
+          }          
+        }
+        repo {
+          name
+          org {
+            owner
+            ownerType
+            provider {
+            	id
+              providerId
+              providerType
+            }            
+          }
+          channels {
+            channelId
+            name
+          }
+        }
+      }
+      base {
+        fingerprints {
+          sha 
+          name
+        }
+      }
+    }
+  }
+}
