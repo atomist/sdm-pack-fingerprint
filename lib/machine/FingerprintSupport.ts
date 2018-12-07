@@ -86,6 +86,8 @@ function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<F
 }
 
 export type FingerprintRunner = (p: GitProject) => Promise<fingerprints.FP[]>;
+export type ExtractFingerprint = (p: GitProject) => Promise<fingerprints.FP>;
+export type ApplyFingerprint = (p: GitProject, fp: fingerprints.FP) => Promise<boolean>;
 
 export interface FingerprintHandler {
     selector: (name: fingerprints.FP) => boolean;
