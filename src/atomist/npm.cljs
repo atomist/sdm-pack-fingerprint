@@ -80,10 +80,6 @@
                      :data {:name (get json "name")
                             :version (get json "version")}
                      :abbreviation "coords"
-                     :version "0.0.1"})
-              (conj {:name "backpack-react-scripts"
-                     :data (backpack-data json)
-                     :abbreviation "backpack"
                      :version "0.0.1"})))
         []))
     (catch :default e
@@ -106,20 +102,7 @@
 (defn apply-fingerprint
   ""
   [f {:keys [name data] :as fingerprint}]
-  (log/info "package.json " f)
-  (if-let [package-json (io/file f)]
-    (if (.exists package-json)
-      (cond
-        (= name "backpack-react-scripts")
-        (do
-          (spit f (-> (slurp package-json)
-                      (apply-backpack data)))
-          #_(spit f (-> (get-json package-json)
-                        (assoc-in ["backpack-react-scripts" "externals"] (into {} data))
-                        (json/clj->json)))
-          true)
-        :else
-        (log/warn "fingerprint application not supported for" name)))))
+  (log/info "package.json " f))
 (spec/fdef apply-fingerprint
            :args (spec/cat :file ::schema/file
                            :fp ::schema/fp))
