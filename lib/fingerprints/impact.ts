@@ -32,7 +32,10 @@ import {
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as fingerprints from "../../fingerprints/index";
-import { Diff, FP } from "../../fingerprints/index";
+import {
+    Diff,
+    FP,
+} from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import { FingerprintHandlerConfig } from "../machine/FingerprintSupport";
 import {

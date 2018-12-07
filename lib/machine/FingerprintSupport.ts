@@ -39,7 +39,10 @@ import {
     FingerprintTransform,
 } from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
-import { MessageIdMaker, MessageMaker } from "../fingerprints/impact";
+import {
+    MessageIdMaker,
+    MessageMaker,
+} from "../fingerprints/impact";
 import { ListFingerprints } from "../fingerprints/list";
 import {
     DeleteTargetFingerprint,
