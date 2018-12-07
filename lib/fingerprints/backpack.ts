@@ -1,27 +1,16 @@
 import { logger } from "@atomist/automation-client";
 import { ApplyFingerprint, ExtractFingerprint, FP, renderData, sha256 } from "../..";
 
-interface ReactVersions {
-    react: string;
-    "react-dom": string;
-}
-
-interface External {
-    externals: ReactVersions;
-}
-
-interface BackpackedPackage {
-    "backpack-react-scripts": External;
-}
-
 export const backpackFingerprint: ExtractFingerprint = async p => {
 
     const file = await p.getFile("package.json");
 
     if (file) {
 
-        const packagejson = JSON.parse(await file.getContent()) as BackpackedPackage;
-        const data: string = JSON.stringify(packagejson["backpack-react-scripts"].externals);
+        const packagejson = JSON.parse(await file.getContent());
+
+        // tslint:disable-next-line:no-string-literal
+        const data: string = JSON.stringify(packagejson["backpack-react-scripts"]["externals"]);
 
         const fp: FP = {
             name: "backpack-react-scripts",
@@ -42,13 +31,20 @@ export const backpackFingerprint: ExtractFingerprint = async p => {
 };
 
 export const applyBackpackFingerprint: ApplyFingerprint = async (p, fp) => {
+
     logger.info(`apply ${renderData(fp)} to ${p.baseDir}`);
-    const file = await p.getFile("package.json");
-    if (file) {
-        const packagejson = JSON.parse(await file.getContent()) as BackpackedPackage;
-        packagejson["backpack-react-scripts"].externals = JSON.parse(fp.data);
+
+    if (await p.hasFile("package.json")) {
+        const file = await p.getFile("package.json");
+        const packagejson = JSON.parse(await file.getContent());
+
+        // tslint:disable-next-line:no-string-literal
+        packagejson["backpack-react-scripts"]["externals"] = JSON.parse(fp.data);
         await file.setContent(JSON.stringify(packagejson));
+        logger.info(`new package json ${renderData(packagejson)}`);
         return true;
+    } else {
+        logger.info("package.json does not exist");
+        return false;
     }
-    return false;
 };
