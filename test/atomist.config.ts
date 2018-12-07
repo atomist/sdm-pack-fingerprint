@@ -51,7 +51,7 @@ import {
     setNewTarget,
     simpleImpactHandler,
 } from "..";
-import { ApplyFingerprint, ExtractFingerprint } from "../lib/machine/FingerprintSupport";
+import { applyDockerBaseFingerprint, dockerBaseFingerprint } from "../lib/fingerprints/dockerFrom";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -81,21 +81,6 @@ async function npmDepUpdated(ctx: HandlerContext, diff: Diff): Promise<any> {
         diff.channel);
 }
 
-const dockerBaseFingerprint: ExtractFingerprint = async p => {
-    return {
-        name: "docker-base-image",
-        abbreviation: "dbi",
-        version: "0.0.1",
-        data: "",
-        sha: "",
-    };
-};
-
-const applyDockerBaseFingerprint: ApplyFingerprint = async (p, fp) => {
-    logger.info(`apply ${renderData(fp)} to ${p.baseDir}`);
-    return true;
-};
-
 export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
 
     const sdm = createSoftwareDeliveryMachine(
@@ -117,9 +102,10 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 ).concat(
                     await logbackFingerprints(p.baseDir),
                 );
-                fps.push(
-                    await dockerBaseFingerprint(p),
-                );
+                const dockerBaseFP = await dockerBaseFingerprint(p);
+                if (dockerBaseFP) {
+                    fps.push(dockerBaseFP);
+                }
                 logger.info(renderData(fps));
                 return fps;
             },

@@ -44,6 +44,7 @@ export {
     renderData,
     applyFingerprint,
     renderDiff,
+    sha256,
 } from "./fingerprints";
 export {
     setNewTarget,

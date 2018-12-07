@@ -26,6 +26,7 @@
   "dependencies": {
     "@atomist/slack-messages": "1.0.1-master.20180830190736",
     "@cljs-oss/module-deps": "^1.1.1",
+    "dockerfile-ast": "0.0.12",
     "lodash": "^4.17.10",
     "semver": "^5.5.0",
     "xml-js": "^1.6.7"
