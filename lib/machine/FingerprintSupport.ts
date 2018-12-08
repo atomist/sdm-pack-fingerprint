@@ -32,7 +32,11 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import { checkFingerprintTargets, depsFingerprints, logbackFingerprints } from "../..";
+import {
+    checkFingerprintTargets,
+    depsFingerprints,
+    logbackFingerprints,
+} from "../..";
 import * as fingerprints from "../../fingerprints/index";
 import {
     applyTargetFingerprint,
