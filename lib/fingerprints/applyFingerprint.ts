@@ -17,6 +17,7 @@
 import {
     GitProject,
     guid,
+    logger,
     MappedParameter,
     MappedParameters,
     Parameter,
@@ -28,8 +29,9 @@ import {
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as fingerprints from "../../fingerprints/index";
+import { FP } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
-import { editModeMaker } from "../machine/FingerprintSupport";
+import { editModeMaker, FingerprintRegistration } from "../machine/FingerprintSupport";
 import { footer } from "../support/util";
 
 @Parameters()
@@ -51,11 +53,27 @@ export class ApplyTargetFingerprintParameters {
     public fingerprint: string;
 }
 
-function applyFingerprint(pusher: FingerprintTransform): CodeTransform<ApplyTargetFingerprintParameters> {
+async function pusher(p: GitProject, registrations: FingerprintRegistration[], fp: FP) {
+
+    logger.info(`transform running -- ${fp} --`);
+
+    for (const registration of registrations) {
+        if (registration.apply && registration.selector(fp)) {
+            await registration.apply(p, fp);
+        }
+    }
+
+    await fingerprints.applyFingerprint(p.baseDir, fp);
+
+    return p;
+}
+
+function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
         // await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
         await pusher(
             (p as GitProject),
+            registrations,
             await fingerprints.getFingerprintPreference(
                 queryPreferences(cli.context.graphClient),
                 cli.parameters.fingerprint));
@@ -83,7 +101,7 @@ export type FingerprintTransform = (p: GitProject, fp: fingerprints.FP) => Promi
 export let ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
 
 export function applyTargetFingerprint(
-    pusher: FingerprintTransform,
+    registrations: FingerprintRegistration[],
     presentation: editModeMaker ): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
     ApplyTargetFingerprint = {
         name: "ApplyTargetFingerprint",
@@ -91,7 +109,7 @@ export function applyTargetFingerprint(
         description: "choose to raise a PR on the current project to apply a target fingerprint",
         paramsMaker: ApplyTargetFingerprintParameters,
         transformPresentation: presentation,
-        transform: applyFingerprint(pusher),
+        transform: applyFingerprint(registrations),
     };
     return ApplyTargetFingerprint;
 }

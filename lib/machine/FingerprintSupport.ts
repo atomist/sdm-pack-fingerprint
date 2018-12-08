@@ -18,6 +18,7 @@ import {
     editModes,
     GitProject,
     HandlerContext,
+    logger,
 } from "@atomist/automation-client";
 import {
     actionableButton,
@@ -31,12 +32,11 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import { checkFingerprintTargets } from "../..";
+import { checkFingerprintTargets, depsFingerprints, logbackFingerprints } from "../..";
 import * as fingerprints from "../../fingerprints/index";
 import {
     applyTargetFingerprint,
     ApplyTargetFingerprintParameters,
-    FingerprintTransform,
 } from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
 import {
@@ -95,17 +95,30 @@ export interface FingerprintHandler {
     handler?: (context: HandlerContext, diff: fingerprints.Diff) => Promise<any>;
 }
 
-export type RegisterFingerprintHandler = (sdm: SoftwareDeliveryMachine) => FingerprintHandler;
+export type RegisterFingerprintHandler = (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => FingerprintHandler;
 
 export type editModeMaker = (cli: CommandListenerInvocation<ApplyTargetFingerprintParameters>) => editModes.EditMode;
 
 export interface FingerprintHandlerConfig {
-    transform: FingerprintTransform;
     complianceGoal?: Goal;
     complianceGoalFailMessage?: string;
     transformPresentation: editModeMaker;
     messageMaker: MessageMaker;
     messageIdMaker?: MessageIdMaker;
+}
+
+export interface FingerprintRegistration {
+    selector: (name: fingerprints.FP) => boolean;
+    extract: ExtractFingerprint;
+    apply?: ApplyFingerprint;
+}
+
+export function register(name: string, extract: ExtractFingerprint, apply?: ApplyFingerprint): FingerprintRegistration {
+    return {
+        selector: (fp: fingerprints.FP) => (fp.name === name),
+        extract,
+        apply,
+    };
 }
 
 // default implementation
@@ -143,8 +156,8 @@ export const messageMaker: MessageMaker = params => {
     };
 };
 
-export function fingerprintImpactHandler( config: FingerprintHandlerConfig, ...names: string[]): RegisterFingerprintHandler {
-    return  (sdm: SoftwareDeliveryMachine) => {
+export function fingerprintImpactHandler( config: FingerprintHandlerConfig ): RegisterFingerprintHandler {
+    return  (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => {
         // set goal Fingerprints
         //   - first can be added as an option when difference is noticed (uses our api to update the fingerprint)
         //   - second is a default intent
@@ -158,12 +171,12 @@ export function fingerprintImpactHandler( config: FingerprintHandlerConfig, ...n
         sdm.addCommand(BroadcastFingerprintNudge);
 
         // this is the fingerprint editor
-        sdm.addCodeTransformCommand(applyTargetFingerprint(config.transform, config.transformPresentation));
+        sdm.addCodeTransformCommand(applyTargetFingerprint(registrations, config.transformPresentation));
 
         sdm.addCommand(ListFingerprints);
 
         return {
-            selector: forFingerprints(...names),
+            selector: fp => true,
             handler: async (ctx, diff) => {
                 return checkFingerprintTargets(ctx, diff, config);
             },
@@ -196,6 +209,32 @@ export function simpleImpactHandler(
     };
 }
 
+// TODO error handling goes here
+function fingerprintRunner(fingerprinters: FingerprintRegistration[]): FingerprintRunner {
+    return async (p: GitProject) => {
+
+        const fps = [].concat(
+            await depsFingerprints(p.baseDir),
+        ).concat(
+            await logbackFingerprints(p.baseDir),
+        );
+
+        for (const fingerprinter of fingerprinters) {
+            try {
+                const fp = await fingerprinter.extract(p);
+                if (fp) {
+                    fps.push(fp);
+                }
+            } catch (e) {
+                logger.error(e);
+            }
+        }
+
+        logger.info(fingerprints.renderData(fps));
+        return fps;
+    };
+}
+
 /**
  *
  *
@@ -206,26 +245,26 @@ export function simpleImpactHandler(
  */
 export function fingerprintSupport(
     goal: Fingerprint,
-    fingerprinter: FingerprintRunner,
+    fingerprinters: FingerprintRegistration[],
     ...handlers: RegisterFingerprintHandler[]): ExtensionPack {
 
     goal.with({
         name: "fingerprinter",
-        action: runFingerprints(fingerprinter),
+        action: runFingerprints(fingerprintRunner(fingerprinters)),
     });
 
     return {
         ...metadata(),
         configure: (sdm: SoftwareDeliveryMachine) => {
-            configure( sdm, handlers);
+            configure( sdm, handlers, fingerprinters);
         },
     };
 }
 
-function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintHandler[]): void {
+function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintHandler[], fpRegistraitons: FingerprintRegistration[]): void {
 
     // Fired on every Push after Fingerprints are uploaded
-    sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm))));
+    sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm, fpRegistraitons))));
 
     // Fired on each PR after Fingerprints are uploaded
     sdm.addEvent(PullRequestImpactHandlerRegistration);

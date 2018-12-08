@@ -55,10 +55,10 @@ export const applyBackpackFingerprint: ApplyFingerprint = async (p, fp) => {
 
             const file = await p.getFile("package.json");
             const packagejson = JSON.parse(await file.getContent());
-            
+
             // tslint:disable-next-line:no-string-literal
             packagejson["backpack-react-scripts"]["externals"] = fp.data;
-            
+
             await file.setContent(JSON.stringify(packagejson, null, 2));
             return true;
         } else {
