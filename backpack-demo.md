@@ -57,18 +57,11 @@ The `fingerprintSupport` function creates the pack.  It has three parameters:
     sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
-            async (p: GitProject) => {
-                // COMPUTE fingerprints: called on every Push
-                // this default impl includes the backpack-react-scripts fingerprint
-                return depsFingerprints(p.baseDir);
-            },
+            [
+                register("backpack-react-scripts", backpackFingerprint, applyBackpackFingerprint),
+            ],
             fingerprintImpactHandler(
                 {
-                    transform: async (p: GitProject, fp: FP) => {
-                        // TRANSFORM project containing different version of Fingerprint
-                        // this default impl will transform projects containing backpack-react-scripts fingerprints
-                        return applyFingerprint(p.baseDir, fp);
-                    },
                     transformPresentation: ci => {
                         return new editModes.PullRequest(
                             `apply-target-fingerprint-${Date.now()}`,
@@ -78,8 +71,7 @@ The `fingerprintSupport` function creates the pack.  It has three parameters:
                     complianceGoal: backpackComplianceGoal,
                     messageMaker,
                     messageIdMaker:  (fp,diff) => {return null}, // return null if new messages should be posted every time
-                },
-                "backpack-react-scripts"
+                }
             ),
         ),
     )
@@ -102,9 +94,6 @@ We treat this whole section as one fingerprint.
 
 ## fingerprintImpactHandler
 
-* the `transform` property is a callback function that will be called any time we need to apply an 
-  update to a project to bring it back to sync with a target fingerprint state.  This can be extended
-  to support new kinds of fingerprints beyond just the ones in this demo.
 * the `transformPresentation` is a callback function that can modify how PRs are created when a fingerprint is added.
 * the `complianceGoal` is an optional Goal that will be fulfilled only if all fingerprints in this project are in sync
   with their target states. The goal will fail if there are any differences.
@@ -177,18 +166,11 @@ and then plugging them in to the existing `FingerprintSupport`.  So an example u
     sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
-            async (p: GitProject) => {
-                return [dockerBaseFingerprint(p)];
-            },
+            [
+                register("backpack-react-scripts", backpackFingerprint, applyBackpackFingerprint),
+            ],
             fingerprintImpactHandler(
                 {
-                    transform: async (p: GitProject, fp: FP) => {
-                        if ("docker-base-image" === fp.name) { 
-                            return applyDockerBaseFingerprint(p, fp);
-                        } else {
-                            return true
-                        }
-                    },
                     transformPresentation: ci => {
                         return new editModes.PullRequest(
                             `apply-target-fingerprint-${Date.now()}`,
@@ -267,18 +249,11 @@ async function npmDepUpdated(ctx: HandlerContext, diff: Diff): Promise<any> {
 sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
-            async (p: GitProject) => {
-                // COMPUTE fingerprints: called on every Push
-                // this default impl includes the backpack-react-scripts fingerprint
-                return depsFingerprints(p.baseDir);
-            },
+            [
+                register("backpack-react-scripts", backpackFingerprint, applyBackpackFingerprint),
+            ],
             fingerprintImpactHandler(
                 {
-                    transform: async (p: GitProject, fp: FP) => {
-                        // TRANSFORM project containing different version of Fingerprint
-                        // this default impl will transform projects containing backpack-react-scripts fingerprints
-                        return applyFingerprint(p.baseDir, fp);
-                    },
                     transformPresentation: ci => {
                         return new editModes.PullRequest(
                             `apply-target-fingerprint-${Date.now()}`,
@@ -287,8 +262,7 @@ sdm.addExtensionPacks(
                     },
                     complianceGoal: backpackComplianceGoal,
                     messageMaker,
-                },
-                "backpack-react-scripts"
+                }
             ),
             simpleImpactHandler( npmDepUpdated, "npm-project-coordinates"),
             checkLibraryImpactHandler(),
