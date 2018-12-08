@@ -64,7 +64,7 @@
   (deps/edit f1 n v))
 
 (defn ^:export getFingerprintPreference [query-fn fp-name]
-  (promise/chan->promise (clj->js (goals/get-fingerprint-preference query-fn fp-name))))
+  (promise/chan->promise (goals/get-fingerprint-preference query-fn fp-name)))
 
 (defn ^:export applyFingerprint
   "returns Promise<any>"

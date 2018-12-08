@@ -385,7 +385,7 @@
    (let [preferences (<! (from-promise (query-prefs)))
          goal-fingerprint (get-fp-from-preferences preferences fp-name)]
      (log/info "get-fingerprint goal-fingerprint" goal-fingerprint)
-     goal-fingerprint)))
+     (clj->js goal-fingerprint))))
 
 (defn set-fingerprint-preference
   "set or replace a fingerprint preference "

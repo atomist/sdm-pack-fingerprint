@@ -101,8 +101,7 @@
 
 (defn apply-fingerprint
   ""
-  [f {:keys [name data] :as fingerprint}]
-  (log/info "package.json " f))
+  [f {:keys [name data] :as fingerprint}])
 (spec/fdef apply-fingerprint
            :args (spec/cat :file ::schema/file
                            :fp ::schema/fp))

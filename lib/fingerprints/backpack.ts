@@ -50,17 +50,22 @@ export const applyBackpackFingerprint: ApplyFingerprint = async (p, fp) => {
 
     logger.info(`apply ${renderData(fp)} to ${p.baseDir}`);
 
-    if (await p.hasFile("package.json")) {
-        const file = await p.getFile("package.json");
-        const packagejson = JSON.parse(await file.getContent());
+    try {
+        if (await p.hasFile("package.json")) {
 
-        // tslint:disable-next-line:no-string-literal
-        packagejson["backpack-react-scripts"]["externals"] = JSON.parse(fp.data);
-        await file.setContent(JSON.stringify(packagejson));
-        logger.info(`new package json ${renderData(packagejson)}`);
-        return true;
-    } else {
-        logger.info("package.json does not exist");
+            const file = await p.getFile("package.json");
+            const packagejson = JSON.parse(await file.getContent());
+            
+            // tslint:disable-next-line:no-string-literal
+            packagejson["backpack-react-scripts"]["externals"] = fp.data;
+            
+            await file.setContent(JSON.stringify(packagejson, null, 2));
+            return true;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        logger.error(`caught error ${error}`);
         return false;
     }
 };

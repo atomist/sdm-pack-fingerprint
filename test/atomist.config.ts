@@ -126,15 +126,19 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 {
                     transform: async (p: GitProject, fp: FP) => {
 
+                        logger.info(`transform running -- ${fp} --`);
+
                         if ("backpack-react-scripts" === fp.name) {
-                            return applyBackpackFingerprint(p, fp);
+                            logger.info("run the backpack apply function");
+                            await applyBackpackFingerprint(p, fp);
                         }
 
                         if ("docker-base-image" === fp.name) {
-                            return applyDockerBaseFingerprint(p, fp);
+                            await applyDockerBaseFingerprint(p, fp);
                         } else {
-                            return applyFingerprint(p.baseDir, fp);
+                            await applyFingerprint(p.baseDir, fp);
                         }
+                        return p;
                     },
                     complianceGoal: backpackComplianceGoal,
                     transformPresentation: ci => {

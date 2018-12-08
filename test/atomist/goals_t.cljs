@@ -193,14 +193,15 @@
         (go
          (done
           (is (= fp
-                 (<! (get-fingerprint-preference
-                      (fn []
-                        (js/Promise.
-                         (fn [resolve reject]
-                           (resolve (clj->js {:ChatTeam [{:preferences
-                                                          [{:name fp-name
-                                                            :value (json/clj->json fp)}]}]})))))
-                      fp-name))))))))))
+                 (js->clj
+                  (<! (get-fingerprint-preference
+                       (fn []
+                         (js/Promise.
+                          (fn [resolve reject]
+                            (resolve (clj->js {:ChatTeam [{:preferences
+                                                           [{:name fp-name
+                                                             :value (json/clj->json fp)}]}]})))))
+                       fp-name)))))))))))
 
 (deftest check-fingerprint-goals-tests
   (testing "different shas trigger a message"
