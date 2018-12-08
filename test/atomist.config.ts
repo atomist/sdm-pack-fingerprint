@@ -17,9 +17,7 @@
 import {
     Configuration,
     editModes,
-    GitProject,
     HandlerContext,
-    logger,
 } from "@atomist/automation-client";
 import {
     Fingerprint,
@@ -37,16 +35,11 @@ import {
     createSoftwareDeliveryMachine,
 } from "@atomist/sdm-core";
 import {
-    applyFingerprint,
     checkLibraryImpactHandler,
-    depsFingerprints,
     Diff,
     fingerprintImpactHandler,
     fingerprintSupport,
-    FP,
-    logbackFingerprints,
     messageMaker,
-    renderData,
     renderDiffSnippet,
     setNewTarget,
     simpleImpactHandler,
@@ -56,9 +49,9 @@ import {
     backpackFingerprint,
 } from "../lib/fingerprints/backpack";
 import {
-    applyDockerBaseFingerprint,
     dockerBaseFingerprint,
 } from "../lib/fingerprints/dockerFrom";
+import { register } from "../lib/machine/FingerprintSupport";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -103,43 +96,14 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
     sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
-            async (p: GitProject) => {
-                const fps = [].concat(
-                    await depsFingerprints(p.baseDir),
-                ).concat(
-                    await logbackFingerprints(p.baseDir),
-                );
-                const dockerBaseFP = await dockerBaseFingerprint(p);
-                if (dockerBaseFP) {
-                    fps.push(dockerBaseFP);
-                }
-                const backpackFP = await backpackFingerprint(p);
-                if (backpackFP) {
-                    fps.push(backpackFP);
-                }
-                logger.info(renderData(fps));
-                return fps;
-            },
+            [
+                register("docker-base-image", dockerBaseFingerprint, applyBackpackFingerprint),
+                register("backpack-react-scripts", backpackFingerprint, applyBackpackFingerprint),
+            ],
             simpleImpactHandler( renderDiffSnippet, "npm-project-deps"),
             simpleImpactHandler( npmDepUpdated, "npm-project-coordinates"),
             fingerprintImpactHandler(
                 {
-                    transform: async (p: GitProject, fp: FP) => {
-
-                        logger.info(`transform running -- ${fp} --`);
-
-                        if ("backpack-react-scripts" === fp.name) {
-                            logger.info("run the backpack apply function");
-                            await applyBackpackFingerprint(p, fp);
-                        }
-
-                        if ("docker-base-image" === fp.name) {
-                            await applyDockerBaseFingerprint(p, fp);
-                        } else {
-                            await applyFingerprint(p.baseDir, fp);
-                        }
-                        return p;
-                    },
                     complianceGoal: backpackComplianceGoal,
                     transformPresentation: ci => {
                         return new editModes.PullRequest(
@@ -150,7 +114,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     messageMaker,
                     messageIdMaker: (fp, diff) => null,
                 },
-                "backpack-react-scripts"),
+            ),
             checkLibraryImpactHandler(),
         ),
     );
