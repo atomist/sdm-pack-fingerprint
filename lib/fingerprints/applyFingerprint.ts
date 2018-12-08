@@ -31,7 +31,10 @@ import { SlackMessage } from "@atomist/slack-messages";
 import * as fingerprints from "../../fingerprints/index";
 import { FP } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
-import { editModeMaker, FingerprintRegistration } from "../machine/FingerprintSupport";
+import {
+    editModeMaker,
+    FingerprintRegistration,
+} from "../machine/FingerprintSupport";
 import { footer } from "../support/util";
 
 @Parameters()
