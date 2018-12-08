@@ -16,7 +16,6 @@
 
 export {
     fingerprintSupport,
-    FingerprintRunner,
     checkLibraryImpactHandler,
     simpleImpactHandler,
     fingerprintImpactHandler,
@@ -24,6 +23,7 @@ export {
     messageMaker,
     ApplyFingerprint,
     ExtractFingerprint,
+    register,
 } from "./lib/machine/FingerprintSupport";
 export {
     forFingerprints,
