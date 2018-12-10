@@ -25,7 +25,7 @@ export const dockerBaseFingerprint: ExtractFingerprint = async p => {
 
     const file = await p.getFile("Dockerfile");
 
-    if (file) {
+    if (file && await file.getContent() !== "") {
 
         const dockerfile = DockerfileParser.parse(await file.getContent());
         const instructions = dockerfile.getInstructions();
@@ -58,5 +58,12 @@ export const dockerBaseFingerprint: ExtractFingerprint = async p => {
 
 export const applyDockerBaseFingerprint: ApplyFingerprint = async (p, fp) => {
     logger.info(`apply ${renderData(fp)} to ${p.baseDir}`);
+
+    const file = await p.getFile("Dockerfile");
+    let dockerFile = await file.getContent();
+    dockerFile = dockerFile
+        .replace(/(\s+)?FROM.*/i, `\nFROM ${fp.data}`);
+    await file.setContent(dockerFile);
+
     return true;
 };
