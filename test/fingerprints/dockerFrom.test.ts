@@ -16,7 +16,10 @@
 
 import { InMemoryProject } from "@atomist/automation-client";
 import assert = require("power-assert");
-import { applyDockerBaseFingerprint, dockerBaseFingerprint } from "../../lib/fingerprints/dockerFrom";
+import {
+    applyDockerBaseFingerprint,
+    dockerBaseFingerprint,
+} from "../../lib/fingerprints/dockerFrom";
 
 // Note this dockerfile wouldn't actually work - its just for test purposes
 const dummyDockerFile = `
