@@ -45,7 +45,8 @@ import {
 } from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
 import {
-    MessageMaker, votes,
+    MessageMaker,
+    votes,
 } from "../fingerprints/impact";
 import { ListFingerprints } from "../fingerprints/list";
 import {

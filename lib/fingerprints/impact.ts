@@ -15,20 +15,20 @@
  */
 
 import {
+    FailurePromise,
+    GitHubRepoRef,
     HandlerContext,
     HandlerResult,
-    SuccessPromise,
     logger,
-    GitHubRepoRef,
-    FailurePromise,
+    SuccessPromise,
 } from "@atomist/automation-client";
 import {
     CodeTransformRegistration,
     CommandHandlerRegistration,
-    Goal,
-    UpdateSdmGoalParams,
-    updateGoal,
     findSdmGoalOnCommit,
+    Goal,
+    updateGoal,
+    UpdateSdmGoalParams,
 } from "@atomist/sdm";
 import * as fingerprints from "../../fingerprints/index";
 import {
