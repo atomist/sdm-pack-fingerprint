@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { DockerFileParser } from "../../lib/docker/DockerFileParser";
 import {
     InMemoryProject,
     InMemoryProjectFile,
 } from "@atomist/automation-client";
 import { doWithAllMatches } from "@atomist/automation-client/lib/tree/ast/astUtils";
 import * as assert from "assert";
+import { DockerFileParser } from "../../lib/docker/DockerFileParser";
 
 describe("Docker file parser", () => {
 

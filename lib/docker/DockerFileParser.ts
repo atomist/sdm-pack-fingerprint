@@ -15,60 +15,55 @@
  */
 
 import {
-    File,
     FileParser,
+    ProjectFile,
 } from "@atomist/automation-client";
-import { TreeNode } from "@atomist/tree-path";
+import {TreeNode} from "@atomist/tree-path";
 
 import {
     DockerfileParser,
     From,
     Instruction,
 } from "dockerfile-ast";
-import { TextDocument } from "../../node_modules/vscode-languageserver-types/lib/umd/main";
+import {Position, TextDocument} from "vscode-languageserver-types/lib/umd/main";
 
-export class DockerFileParserImpl implements FileParser {
+class DockerFileParserClass implements FileParser {
 
     public readonly rootName: "docker";
 
-    public async toAst(f: File): Promise<TreeNode> {
+    public async toAst(f: ProjectFile): Promise<TreeNode> {
         const dockerfile = DockerfileParser.parse(await f.getContent());
         // console.log(stringify(dockerfile));
         const doc = (dockerfile as any).document;
         return {
             $name: f.name,
-            $children: dockerfile.getInstructions().map(i => toTreeNode(i, doc)),
+            $children: dockerfile.getInstructions().map(i => instructionToTreeNode(i, doc)),
         };
     }
 
 }
 
-export const DockerFileParser = new DockerFileParserImpl();
+/**
+ * FileParser instance to use for Docker files.
+ * Example path expressions, given "node:argon" as the image
+ *  //FROM/image/name - returns a node with the value "node" etc
+ *  //FROM/image/tag - returns a node with the value "argon" etc
+ * @type {DockerFileParserClass}
+ */
+export const DockerFileParser: FileParser = new DockerFileParserClass();
 
-function toTreeNode(l: Instruction, doc: TextDocument, parent?: TreeNode): TreeNode {
+function instructionToTreeNode(l: Instruction, doc: TextDocument, parent?: TreeNode): TreeNode {
     const n: TreeNode = {
         $name: l.getKeyword(),
         $value: l.getTextContent(),
         $parent: parent,
         $offset: convertToOffset(l.getRange().start, doc),
     };
+
+    // Deconstruct subelements. There is no generic tree structure in the
+    // AST library, so we need to do this manually for subelements we care about.
     if (isFrom(l)) {
-        n.$children = [{
-            $parent: n,
-            $name: "image",
-            $value: l.getImage(),
-            $offset: convertToOffset(l.getImageRange().start, doc),
-            $children: [{
-                $name: "name",
-                $value: l.getImageName(),
-                $offset: convertToOffset(l.getImageNameRange().start, doc),
-            },
-                {
-                    $name: "tag",
-                    $value: l.getImageTag(),
-                    $offset: convertToOffset(l.getImageTagRange().start, doc),
-                }],
-        }];
+        addChildrenFromFromStructure(n, l, doc);
     }
     return n;
 }
@@ -78,6 +73,28 @@ function isFrom(l: Instruction): l is From {
     return !!maybe.getImageName;
 }
 
-function convertToOffset(pos: any, doc: TextDocument): number {
+// Deconstruct FROM to add children.
+// We need to do this for all structures we want to see inside
+function addChildrenFromFromStructure(n: TreeNode, l: From, doc: TextDocument) {
+    n.$children = [{
+        $parent: n,
+        $name: "image",
+        $value: l.getImage(),
+        $offset: convertToOffset(l.getImageRange().start, doc),
+        $children: [{
+            $name: "name",
+            $value: l.getImageName(),
+            $offset: convertToOffset(l.getImageNameRange().start, doc),
+        },
+            {
+                $name: "tag",
+                $value: l.getImageTag(),
+                $offset: convertToOffset(l.getImageTagRange().start, doc),
+            }],
+    }];
+}
+
+// Convert a position to an offset, given the document
+function convertToOffset(pos: Position, doc: TextDocument): number {
     return doc.offsetAt(pos);
 }
