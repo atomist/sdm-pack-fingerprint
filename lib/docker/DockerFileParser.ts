@@ -18,14 +18,17 @@ import {
     FileParser,
     ProjectFile,
 } from "@atomist/automation-client";
-import {TreeNode} from "@atomist/tree-path";
+import { TreeNode } from "@atomist/tree-path";
 
 import {
     DockerfileParser,
     From,
     Instruction,
 } from "dockerfile-ast";
-import {Position, TextDocument} from "vscode-languageserver-types/lib/umd/main";
+import {
+    Position,
+    TextDocument,
+} from "vscode-languageserver-types/lib/umd/main";
 
 class DockerFileParserClass implements FileParser {
 
