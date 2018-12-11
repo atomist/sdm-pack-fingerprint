@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-import {DockerFileParser} from "../../lib/docker/DockerFileParser";
-import {InMemoryProject, InMemoryProjectFile} from "@atomist/automation-client";
+import { DockerFileParser } from "../../lib/docker/DockerFileParser";
+import {
+    InMemoryProject,
+    InMemoryProjectFile,
+} from "@atomist/automation-client";
 import stringify = require("json-stringify-safe");
-import {doWithAllMatches} from "@atomist/automation-client/lib/tree/ast/astUtils";
+import { doWithAllMatches } from "@atomist/automation-client/lib/tree/ast/astUtils";
 import * as assert from "assert";
 
 describe("Docker file parser", () => {

@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-import {File, FileParser} from "@atomist/automation-client";
-import {TreeNode} from "@atomist/tree-path";
+import {
+    File,
+    FileParser,
+} from "@atomist/automation-client";
+import { TreeNode } from "@atomist/tree-path";
 
-import {DockerfileParser, From, Instruction} from "dockerfile-ast";
+import {
+    DockerfileParser,
+    From,
+    Instruction,
+} from "dockerfile-ast";
 import stringify = require("json-stringify-safe");
-import {TextDocument} from "../../node_modules/vscode-languageserver-types/lib/umd/main";
+import { TextDocument } from "../../node_modules/vscode-languageserver-types/lib/umd/main";
 
 export class DockerFileParser implements FileParser {
 
