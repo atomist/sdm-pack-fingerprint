@@ -3,6 +3,14 @@
  * Types:  project Fingerprint types
  */
 export declare interface FP {name: string, sha: string, data: any, version: string, abbreviation: string}
+export declare interface Vote {ballot?: any, abstain: boolean, decision?: string, name?: string}
+export declare interface VoteResults {
+    failed: boolean,
+    diff: Diff,
+    failedFps: string[],
+    successFps: string[]
+}
+export declare function voteResults(votes: Vote[]): VoteResults;
 
 /**
  * Clojure fingerprint computations and editors
@@ -21,6 +29,7 @@ export declare function list(fps: any): string
 export declare function renderDiff( diff: Diff): string
 export declare function renderOptions( options: {text: string, value: string}[]): string
 export declare function renderData(x: any): string
+export declare function commaSeparatedList(x: any): string
 export declare function sha256( data: string): string
 export declare function consistentHash(data: any): string
 
@@ -31,14 +40,15 @@ export declare function consistentHash(data: any): string
 export declare interface DiffData {from: any[], to: any[]}
 export declare interface Diff {from: FP, to: FP, data: DiffData, owner: string, repo: string, sha: string, providerId: string, channel: string}
 export declare interface Handler {selector: (a:FP) => boolean,
-                                  action?: (b:Diff) => void,
-                                  diffAction?: (b:Diff) => void}
+                                  action?: (b:Diff) => Promise<Vote>,
+                                  diffAction?: (b:Diff) => Promise<Vote>,
+                                  ballot?: (votes: Vote[]) => boolean}
 // event is the PushImpact subscription data
 // getFingerprintData returns application/json - return "{}" if data is empty
 // handlers select and action the push impacts for different fingerprints
 export declare function processPushImpact(event: any,
                                           getFingerprintData: (sha: string, name: string) => Promise<string>,
-                                          handlers: Handler[]): Promise<boolean>
+                                          handlers: Handler[]): Promise<any>
 
 /**
  * Library Dependency Goals Support functions
@@ -95,17 +105,18 @@ export declare function checkLibraryGoals(queryPreferences: () => Promise<any>,
                                           ): Promise<boolean>
 
 // send a message if any project fingerprints are out of sync with the target state
-export declare function checkFingerprintGoals(queryPreferences: () => Promise<any>,
-                                              sendMessage: (s: string, fingerprint: FP) => Promise<any>,
-                                              inSync: (fingerprint: FP) => Promise<any>,
-                                              diff: Diff
-                                              ): Promise<boolean>
+export declare function checkFingerprintTargets(queryPreferences: () => Promise<any>,
+                                                sendMessage: (s: string, fingerprint: FP) => Promise<Vote>,
+                                                inSync: (fingerprint: FP) => Promise<Vote>,
+                                                diff: Diff
+                                                ): Promise<Vote>
 
 // fire callbacks for all project consuming a library when a new library target is set
 // we use this to broadcast a new library goal to all projects that might be impacted
 export declare function broadcastFingerprint( queryFingerprints: (name: string) => Promise<any>,
                                               fingerprint: {name: string, version: string, sha: string},
-                                              callback: (owner: string, repo: string, channel: string) => Promise<any>                                             ): Promise<any>
+                                              callback: (owner: string, repo: string, channel: string) => Promise<any>                                             
+                                              ): Promise<any>
 
 // fire callbacks for all project consuming a library when a new library target is set
 // we use this to broadcast a new library goal to all projects that might be impacted
@@ -114,4 +125,5 @@ export declare function broadcast( queryFingerprints: (name: string) => Promise<
                                    callback: (owner: string, repo: string, channel: string) => Promise<any>
                                    ): Promise<any>
 
+// find the version of a library tagged with latest (on npmjs.org)
 export declare function npmLatest( package: string ): Promise<string>

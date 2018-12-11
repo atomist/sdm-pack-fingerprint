@@ -42,7 +42,7 @@
                        :abbreviation "coords"
                        :version "0.0.1"
                        :sha "4aae388815805a3f589a060a9f02d30e8840cbeb620769bad381ec36b06c8b32"}
-                      {:name "backpack-react-scripts"
+                      #_{:name "backpack-react-scripts"
                        :data (json/json-str [["react" "v1"] ["react-dom" "v2"]])
                        :abbreviation "backpack"
                        :version "0.0.1"

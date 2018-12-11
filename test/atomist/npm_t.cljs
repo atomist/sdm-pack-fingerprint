@@ -23,7 +23,7 @@
                :data {:name "name" :version "version"}
                :abbreviation "coords"
                :version "0.0.1"}
-              {:name "backpack-react-scripts",
+              #_{:name "backpack-react-scripts",
                :data '(["react" "v1"] ["react-dom" "v2"]),
                :abbreviation "backpack",
                :version "0.0.1"}]
@@ -37,7 +37,7 @@
                :data {:name "name1" :version "version1"}
                :abbreviation "coords"
                :version "0.0.1"}
-              {:name "backpack-react-scripts",
+              #_{:name "backpack-react-scripts",
                :data (),
                :abbreviation "backpack",
                :version "0.0.1"}]

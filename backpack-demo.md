@@ -70,7 +70,6 @@ The `fingerprintSupport` function creates the pack.  It has three parameters:
                     },
                     complianceGoal: backpackComplianceGoal,
                     messageMaker,
-                    messageIdMaker:  (fp,diff) => {return null}, // return null if new messages should be posted every time
                 }
             ),
         ),
@@ -179,7 +178,6 @@ and then plugging them in to the existing `FingerprintSupport`.  So an example u
                     },
                     complianceGoal: backpackComplianceGoal,
                     messageMaker,
-                    messageIdMaker:  (fp,diff) => {return null}, // return null if new messages should be posted every time
                 },
                 "backpack-react-scripts"
             ),

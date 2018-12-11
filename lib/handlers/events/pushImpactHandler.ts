@@ -153,7 +153,7 @@ export async function checkLibraryGoals(ctx: HandlerContext, diff: fingerprints.
  */
 function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEvent.Subscription> {
     return async (event, ctx) => {
-        await fingerprints.processPushImpact(
+        const votes = await fingerprints.processPushImpact(
             event,
             getFingerprintDataCallback(ctx),
             [
@@ -176,6 +176,15 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
                 }),
             ],
         );
+
+        const filteredVotes = [].concat(...votes);
+
+        handlers.map(h => {
+            if (h.ballot) {
+                h.ballot(ctx,filteredVotes);
+            }
+        });
+
         return SuccessPromise;
     };
 }

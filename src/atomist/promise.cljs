@@ -14,7 +14,7 @@
                           (close! c))))
      (fn [error]
        (log/error "problem with promise" error)
-       (go (>! c (js->clj {:failure error} :keywordize-keys true))
+       (go (>! c {:failure error})
            (close! c))))
     c))
 
@@ -34,3 +34,18 @@
            (log/error chan)
            (reject (clj->js {:fail "Promise rejected"
                              :error t}))))))))
+
+(defn chan->obj-promise [chan]
+  (js/Promise.
+   (fn [accept reject]
+     (go
+      (try
+        (let [v (<! chan)]
+          (if v
+            (accept (clj->js v))
+            (reject (clj->js {:fail "empty chan value"}))))
+        (catch :default t
+          (log/error t " js Promise will reject")
+          (log/error chan)
+          (reject (clj->js {:fail "Promise rejected"
+                            :error t}))))))))

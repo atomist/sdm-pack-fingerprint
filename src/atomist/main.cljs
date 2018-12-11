@@ -19,6 +19,20 @@
             [atomist.logback :as logback]
             [atomist.public-defns :as public-defns]))
 
+(defn ^:export voteResults
+  [votes]
+  (let [vs (-> votes
+               (js->clj :keywordize-keys true)
+               (->> (filter #(and (map? %) (:decision %)))))]
+    (clj->js {:failed (boolean (some #(= "Against" (:decision %)) vs))
+              :failedFps (->> vs
+                              (filter #(= "Against" (:decision %)))
+                              (map :name))
+              :successFps (->> vs
+                               (filter #(= "For" (:decision %)))
+                               (map :name))
+              :diff (-> vs first :ballot)})))
+
 (defn ^:export processPushImpact
   "process a PushImpact event by potentially fetching additional fingerprint data, creating diffs,
    and calling handler functions for certain kinds of fingerprints.
@@ -41,7 +55,7 @@
                              (map #(-> %
                                        (assoc :action (:diffAction %))
                                        (dissoc :diffAction))))]
-      (promise/chan->promise
+      (promise/chan->obj-promise
        (impact/process-push-impact
         (js->clj event :keywordize-keys true)
         get-fingerprint
@@ -122,6 +136,10 @@
     (with-out-str
      (pprint event))))
 
+(defn ^:export commaSeparatedList [x]
+  (let [event (js->clj x :keywordize-keys true)]
+    (apply str (interpose "," event))))
+
 (defn ^:export consistentHash [edn]
   (.toString (hasch/uuid5 (hasch/edn-hash (js->clj edn)))))
 
@@ -179,7 +197,7 @@
   (promise/chan->promise
    (goals/check-library-goals pref-query send-message (js->clj diff :keywordize-keys true))))
 
-(defn ^:export checkFingerprintGoals
+(defn ^:export checkFingerprintTargets
   "check a project for whether it's dependencies are aligned with the current goals
 
    returns Promise<boolean>"
@@ -207,7 +225,7 @@
    (goals/broadcast-fingerprint fingerprint-query (js->clj fp :keywordize-keys true) cb)))
 
 (defn ^:export npmLatest
-  ""
+  "use npm view to determine version of library tagged with latest"
   [package]
   (log/info "clj-editors npm latest")
   (js/Promise.

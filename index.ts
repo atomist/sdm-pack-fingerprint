@@ -34,7 +34,6 @@ export {
 } from "./lib/fingerprints/applyFingerprint";
 export {
     checkFingerprintTargets,
-    MessageIdMaker,
     MessageMaker,
 } from "./lib/fingerprints/impact";
 export {

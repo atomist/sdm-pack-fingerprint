@@ -15,6 +15,7 @@
  */
 
 import {
+    addressSlackChannelsFromContext,
     editModes,
     GitProject,
     HandlerContext,
@@ -44,8 +45,7 @@ import {
 } from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
 import {
-    MessageIdMaker,
-    MessageMaker,
+    MessageMaker, votes,
 } from "../fingerprints/impact";
 import { ListFingerprints } from "../fingerprints/list";
 import {
@@ -74,6 +74,7 @@ import {
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
 import { footer } from "../support/util";
+import { Vote } from "../../fingerprints/index";
 
 /**
  * run fingerprints on every Push
@@ -95,8 +96,9 @@ export type ApplyFingerprint = (p: GitProject, fp: fingerprints.FP) => Promise<b
 
 export interface FingerprintHandler {
     selector: (name: fingerprints.FP) => boolean;
-    diffHandler?: (context: HandlerContext, diff: fingerprints.Diff) => Promise<any>;
-    handler?: (context: HandlerContext, diff: fingerprints.Diff) => Promise<any>;
+    diffHandler?: (context: HandlerContext, diff: fingerprints.Diff) => Promise<Vote>;
+    handler?: (context: HandlerContext, diff: fingerprints.Diff) => Promise<Vote>;
+    ballot?: (context: HandlerContext, votes: Vote[]) => Promise<any>;
 }
 
 export type RegisterFingerprintHandler = (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => FingerprintHandler;
@@ -108,7 +110,6 @@ export interface FingerprintHandlerConfig {
     complianceGoalFailMessage?: string;
     transformPresentation: editModeMaker;
     messageMaker: MessageMaker;
-    messageIdMaker?: MessageIdMaker;
 }
 
 export interface FingerprintRegistration {
@@ -126,38 +127,44 @@ export function register(name: string, extract: ExtractFingerprint, apply?: Appl
 }
 
 // default implementation
-export const messageMaker: MessageMaker = params => {
-    return {
-        attachments: [
-            {
-                text: params.text,
-                color: "#45B254",
-                fallback: "Fingerprint Update",
-                mrkdwn_in: ["text"],
-                actions: [
-                    actionableButton(
-                        { text: "Update project" },
-                        params.editProject,
-                        {
-                            msgId: params.msgId,
-                            owner: params.diff.owner,
-                            repo: params.diff.repo,
-                            fingerprint: params.fingerprint.name,
-                        }),
-                    actionableButton(
-                        { text: "Set New Target" },
-                        params.mutateTarget,
-                        {
-                            msgId: params.msgId,
-                            name: params.fingerprint.name,
-                            sha: params.fingerprint.sha,
-                        },
-                    ),
-                ],
-                footer: footer(),
-            },
-        ],
-    };
+export const messageMaker: MessageMaker = async params => {
+
+    return params.ctx.messageClient.send(
+        {
+            attachments: [
+                {
+                    text: params.text,
+                    color: "#45B254",
+                    fallback: "Fingerprint Update",
+                    mrkdwn_in: ["text"],
+                    actions: [
+                        actionableButton(
+                            { text: "Update project" },
+                            params.editProject,
+                            {
+                                msgId: params.msgId,
+                                owner: params.diff.owner,
+                                repo: params.diff.repo,
+                                fingerprint: params.fingerprint.name,
+                            }),
+                        actionableButton(
+                            { text: "Set New Target" },
+                            params.mutateTarget,
+                            {
+                                msgId: params.msgId,
+                                name: params.fingerprint.name,
+                                sha: params.fingerprint.sha,
+                            },
+                        ),
+                    ],
+                    footer: footer(),
+                },
+            ],
+        },
+        await addressSlackChannelsFromContext(params.ctx, params.diff.channel),
+        // {id: params.msgId} if you want to update messages if the target goal has not changed
+        {id: undefined},
+    );
 };
 
 export function fingerprintImpactHandler( config: FingerprintHandlerConfig ): RegisterFingerprintHandler {
@@ -182,8 +189,10 @@ export function fingerprintImpactHandler( config: FingerprintHandlerConfig ): Re
         return {
             selector: fp => true,
             handler: async (ctx, diff) => {
-                return checkFingerprintTargets(ctx, diff, config);
+                const v: Vote = await checkFingerprintTargets(ctx, diff, config);
+                return v;
             },
+            ballot: votes(config),
         };
     };
 }

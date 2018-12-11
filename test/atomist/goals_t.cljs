@@ -183,6 +183,7 @@
                sha))))))))
 
 (deftest get-fingerprint-tests
+  (cljs.test/update-current-env! [:formatter] (constantly pprint))
   (testing "that we can extract a fingerprint from a named preference"
     (let [fp-name "fingerprint-name"
           data [["a" "v1"] ["b" "v2"]]
@@ -201,7 +202,8 @@
                             (resolve (clj->js {:ChatTeam [{:preferences
                                                            [{:name fp-name
                                                              :value (json/clj->json fp)}]}]})))))
-                       fp-name)))))))))))
+                       fp-name))
+                  :keywordize-keys true)))))))))
 
 (deftest check-fingerprint-goals-tests
   (testing "different shas trigger a message"
