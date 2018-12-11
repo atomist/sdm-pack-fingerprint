@@ -39,6 +39,7 @@ import {
     logbackFingerprints,
 } from "../..";
 import * as fingerprints from "../../fingerprints/index";
+import { Vote } from "../../fingerprints/index";
 import {
     applyTargetFingerprint,
     ApplyTargetFingerprintParameters,
@@ -75,7 +76,6 @@ import {
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
 import { footer } from "../support/util";
-import { Vote } from "../../fingerprints/index";
 
 /**
  * run fingerprints on every Push

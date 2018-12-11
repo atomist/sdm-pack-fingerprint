@@ -30,6 +30,7 @@ import {
     updateGoal,
     UpdateSdmGoalParams,
 } from "@atomist/sdm";
+import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 import * as fingerprints from "../../fingerprints/index";
 import {
     Diff,
@@ -46,7 +47,6 @@ import {
     UpdateTargetFingerprint,
     UpdateTargetFingerprintParameters,
 } from "./updateTarget";
-import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 
 export interface MessageMakerParams {
     ctx: HandlerContext;
@@ -81,18 +81,18 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff, config: Fingerpr
             diff,
             editProject: ApplyTargetFingerprint,
             mutateTarget: UpdateTargetFingerprint});
-        
+
         if (config.complianceGoal) {
             return {
                 name: fingerprint.name,
                 decision: "Against",
                 abstain: false,
-                ballot: diff
-            }
+                ballot: diff,
+            };
         } else {
             return {
-                abstain: true
-            }
+                abstain: true,
+            };
         }
     };
 }
@@ -117,49 +117,49 @@ async function editGoal(ctx: HandlerContext, diff: fingerprints.Diff, goal: Goal
 function fingerprintInSyncCallback(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal):
     (fingerprint: fingerprints.FP) => Promise<fingerprints.Vote> {
     return async fingerprint => {
-        if (goal){
+        if (goal) {
             return {
                 abstain: false,
                 name: fingerprint.name,
                 decision: "For",
-                ballot: diff
+                ballot: diff,
             };
         } else {
             return {
                 abstain: true,
-            }
+            };
         }
     };
 }
 
 export function votes(config: FingerprintHandlerConfig): (ctx: HandlerContext, votes: Vote[]) => Promise<any> {
-    return (ctx,votes) => {
+    return async (ctx, vs) => {
         if (config.complianceGoal) {
-            
+
             let goalState;
-            let result: fingerprints.VoteResults = fingerprints.voteResults(votes);
-            
+            const result: fingerprints.VoteResults = fingerprints.voteResults(vs);
+
             if (result.failed) {
                 goalState = {
                     state: SdmGoalState.failure,
-                    description: `compliance check for ${fingerprints.commaSeparatedList(result.failedFps)} has failed`
-                }
+                    description: `compliance check for ${fingerprints.commaSeparatedList(result.failedFps)} has failed`,
+                };
             } else {
                 goalState = {
                     state: SdmGoalState.success,
-                    description: `compliance check for ${fingerprints.commaSeparatedList(result.successFps)} has passed`
-                }
+                    description: `compliance check for ${fingerprints.commaSeparatedList(result.successFps)} has passed`,
+                };
             }
 
-            editGoal(
+            await editGoal(
                 ctx,
                 result.diff,
                 config.complianceGoal,
-                goalState
+                goalState,
             );
         }
         return SuccessPromise;
-    }   
+    };
 }
 
 export async function checkFingerprintTargets(ctx: HandlerContext, diff: fingerprints.Diff, config: FingerprintHandlerConfig): Promise<any> {

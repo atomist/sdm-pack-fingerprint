@@ -179,9 +179,9 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
 
         const filteredVotes = [].concat(...votes);
 
-        handlers.map(h => {
+        handlers.map(async h => {
             if (h.ballot) {
-                h.ballot(ctx,filteredVotes);
+                await h.ballot(ctx, filteredVotes);
             }
         });
 
