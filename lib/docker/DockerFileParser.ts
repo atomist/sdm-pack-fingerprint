@@ -25,10 +25,9 @@ import {
     From,
     Instruction,
 } from "dockerfile-ast";
-import stringify = require("json-stringify-safe");
 import { TextDocument } from "../../node_modules/vscode-languageserver-types/lib/umd/main";
 
-export class DockerFileParser implements FileParser {
+export class DockerFileParserImpl implements FileParser {
 
     public readonly rootName: "docker";
 
@@ -43,6 +42,8 @@ export class DockerFileParser implements FileParser {
     }
 
 }
+
+export const DockerFileParser = new DockerFileParserImpl();
 
 function toTreeNode(l: Instruction, doc: TextDocument, parent?: TreeNode): TreeNode {
     const n: TreeNode = {
