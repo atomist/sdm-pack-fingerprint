@@ -21,6 +21,11 @@ import {
 } from "dockerfile-ast";
 import { ApplyFingerprint, ExtractFingerprint, FP, renderData, sha256 } from "../..";
 
+interface DockerFPImageData {
+    image: string;
+    version: number;
+}
+
 export const dockerBaseFingerprint: ExtractFingerprint = async p => {
 
     const file = await p.getFile("Dockerfile");
@@ -29,18 +34,22 @@ export const dockerBaseFingerprint: ExtractFingerprint = async p => {
 
         const dockerfile = DockerfileParser.parse(await file.getContent());
         const instructions = dockerfile.getInstructions();
-        let data: string = "";
+        let baseImage: string = "";
+        let imageVersion: string = "";
 
         for (const instruction of instructions) {
             if ("FROM" === instruction.getKeyword()) {
-                data = (instruction as From).getImage();
+                const rawData = (instruction as From).getImage();
+                baseImage = rawData.split(":")[0];
+                imageVersion = rawData.split(":")[1];
             }
             logger.info(`instruction:  ${instruction.getKeyword}  ${instruction.getInstruction()}`);
         }
 
+        const data = JSON.stringify({image: baseImage, version: imageVersion});
         const fp: FP = {
-            name: "docker-base-image",
-            abbreviation: "dbi",
+            name: `docker-base-image-${baseImage}`,
+            abbreviation: `dbi-${baseImage}`,
             version: "0.0.1",
             data,
             sha: sha256(data),
@@ -61,8 +70,9 @@ export const applyDockerBaseFingerprint: ApplyFingerprint = async (p, fp) => {
 
     const file = await p.getFile("Dockerfile");
     let dockerFile = await file.getContent();
+    const data: DockerFPImageData = JSON.parse(fp.data);
     dockerFile = dockerFile
-        .replace(/(\s+)?FROM.*/i, `\nFROM ${fp.data}`);
+        .replace(/(\s+)?FROM.*/i, `\nFROM ${data.image}:${data.version}`);
     await file.setContent(dockerFile);
 
     return true;

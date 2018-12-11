@@ -26,12 +26,12 @@ COPY target/dummy.jar dummy.jar
 `;
 
 const expectedResult = {
-    name: "docker-base-image",
-    abbreviation: "dbi",
+    name: "docker-base-image-openjdk",
+    abbreviation: "dbi-openjdk",
     version: "0.0.1",
-    data: "openjdk:8-alpine",
-    sha: "1e7d448d7a55c31a75f2ac2a721f0d3e94ca1f92a3d1e0c509357e3fd77972e6",
-    value: "openjdk:8-alpine",
+    data: JSON.stringify({ image: "openjdk", version: "8-alpine"}),
+    sha: "040ce6b4cd756db6cd2eb52b81af58b746c00a883bfe784b317fd4ea3fff415e",
+    value: JSON.stringify({ image: "openjdk", version: "8-alpine"}),
 };
 
 describe("dockerBaseFingerprint", () => {
