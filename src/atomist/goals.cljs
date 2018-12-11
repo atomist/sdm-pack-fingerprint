@@ -374,8 +374,7 @@
                               owner repo owner repo))
              (clj->js fingerprint))))
        (<! (from-promise
-            (confirm-goal (clj->js fingerprint)))))
-     :done)))
+            (confirm-goal (clj->js fingerprint))))))))
 
 (defn get-fingerprint-preference
   "a fingerprint can itself be a preference and we must fetch it

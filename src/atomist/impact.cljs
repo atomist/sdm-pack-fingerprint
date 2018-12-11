@@ -74,11 +74,11 @@
     c1))
 
 (defn- diff-handler
-  "calls all of the handlers for one of the fingerprints
+  "calls all of the handlers for this one fingerprint
+   each handlers has a selector to possibly skip this fingerprint, and an action, which is the handler
 
    returns channel
-     channel yields single value containing
-       the number of handler functions that fired successfully
+     channel yields value containing an array of :done, {:failure x}, or Vote maps
      failures to call handlers are logged"
   [handlers {:keys [get-fingerprint fp-name] :as event}]
   (go
@@ -118,6 +118,8 @@
      handlers are called only if the two fingerprints have different shas
      no-diff-handlers are called regardless
 
+   this function offers the fingerprint to all handlers one after the other
+
    returns diff-handler channel"
   [{:keys [fp-name] :as event}]
   (let [from (->> event before-commit :fingerprints (some #(if (= fp-name (:name %)) %)))
@@ -129,7 +131,11 @@
 
 (defn- check-push-impact
   "wait for all channels to finish
-   iterate over each after fingerprint and compute fingerprint diff"
+   iterate over each after fingerprint and compute fingerprint diff
+
+   returns channel with an array of arrays of :done || {:failure} || Vote
+      top array is each fingerprint in the push impact and sub arrays are each active handler
+      not all handlers will vote"
   [event]
   (->> (-> event after-commit :fingerprints)
        (map (fn [fp] (diff-fp
@@ -141,6 +147,6 @@
 
 (defn process-push-impact
   "main entry point for dispatching handlers for Push Impact events
-   returns a channel with a value equal to the number of handlers called"
+   returns a channel with an array of arrays (fingerprints X handlers)"
   [event get-fingerprint handlers no-diff-handlers]
   (check-push-impact (assoc event :get-fingerprint get-fingerprint :handlers handlers :no-diff-handlers no-diff-handlers)))
