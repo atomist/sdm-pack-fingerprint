@@ -38,7 +38,7 @@ import {
     Vote,
 } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
-import { FingerprintHandlerConfig } from "../machine/FingerprintSupport";
+import { FingerprintImpactHandlerConfig } from "../machine/FingerprintSupport";
 import {
     ApplyTargetFingerprint,
     ApplyTargetFingerprintParameters,
@@ -69,7 +69,7 @@ const updateableMessage: MessageIdMaker = (fingerprint, diff) => {
 // when we discover a backpack dependency that is not the target state
 // then we ask the user whether they want to update to the new target version
 // or maybe they want this backpack version to become the new target version
-function callback(ctx: HandlerContext, diff: fingerprints.Diff, config: FingerprintHandlerConfig):
+function callback(ctx: HandlerContext, diff: fingerprints.Diff, config: FingerprintImpactHandlerConfig):
     (s: string, fingerprint: fingerprints.FP) => Promise<fingerprints.Vote> {
     return async (text, fingerprint) => {
 
@@ -132,7 +132,7 @@ function fingerprintInSyncCallback(ctx: HandlerContext, diff: fingerprints.Diff,
     };
 }
 
-export function votes(config: FingerprintHandlerConfig): (ctx: HandlerContext, votes: Vote[]) => Promise<any> {
+export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerContext, votes: Vote[]) => Promise<any> {
     return async (ctx, vs) => {
         if (config.complianceGoal) {
 
@@ -162,7 +162,7 @@ export function votes(config: FingerprintHandlerConfig): (ctx: HandlerContext, v
     };
 }
 
-export async function checkFingerprintTargets(ctx: HandlerContext, diff: fingerprints.Diff, config: FingerprintHandlerConfig): Promise<any> {
+export async function checkFingerprintTargets(ctx: HandlerContext, diff: fingerprints.Diff, config: FingerprintImpactHandlerConfig): Promise<any> {
     return fingerprints.checkFingerprintTargets(
         queryPreferences(ctx.graphClient),
         callback(ctx, diff, config),

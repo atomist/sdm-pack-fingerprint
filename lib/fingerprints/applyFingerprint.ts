@@ -32,7 +32,7 @@ import * as fingerprints from "../../fingerprints/index";
 import { FP } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import {
-    editModeMaker,
+    EditModeMaker,
     FingerprintRegistration,
 } from "../machine/FingerprintSupport";
 import { footer } from "../support/util";
@@ -105,7 +105,7 @@ export let ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerpr
 
 export function applyTargetFingerprint(
     registrations: FingerprintRegistration[],
-    presentation: editModeMaker ): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
+    presentation: EditModeMaker ): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
     ApplyTargetFingerprint = {
         name: "ApplyTargetFingerprint",
         intent: "applyFingerprint",
