@@ -97,7 +97,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
         fingerprintSupport(
             FingerprintGoal,
             [
-                register("docker-base-image", dockerBaseFingerprint, applyBackpackFingerprint),
+                register("docker-base-image-node", dockerBaseFingerprint, applyBackpackFingerprint),
                 register("backpack-react-scripts", backpackFingerprint, applyBackpackFingerprint),
             ],
             simpleImpactHandler( renderDiffSnippet, "npm-project-deps"),

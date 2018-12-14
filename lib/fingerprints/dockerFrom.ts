@@ -14,33 +14,24 @@
  * limitations under the License.
  */
 
-import { logger } from "@atomist/automation-client";
-import {
-    DockerfileParser,
-    From,
-} from "dockerfile-ast";
+import { astUtils, logger } from "@atomist/automation-client";
+import { DockerFileParser } from "@atomist/sdm-pack-docker";
 import { ApplyFingerprint, ExtractFingerprint, FP, renderData, sha256 } from "../..";
 
 export const dockerBaseFingerprint: ExtractFingerprint = async p => {
 
     const file = await p.getFile("Dockerfile");
 
-    if (file) {
+    if (file && await file.getContent() !== "") {
+        const imageName: string[] = await astUtils.findValues(
+            p, DockerFileParser, "Dockerfile", "//FROM/image/name");
+        const imageVersion: string[] = await astUtils.findValues(
+            p, DockerFileParser, "Dockerfile", "//FROM/image/tag");
 
-        const dockerfile = DockerfileParser.parse(await file.getContent());
-        const instructions = dockerfile.getInstructions();
-        let data: string = "";
-
-        for (const instruction of instructions) {
-            if ("FROM" === instruction.getKeyword()) {
-                data = (instruction as From).getImage();
-            }
-            logger.info(`instruction:  ${instruction.getKeyword}  ${instruction.getInstruction()}`);
-        }
-
+        const data = JSON.stringify({image: imageName[0], version: imageVersion[0]});
         const fp: FP = {
-            name: "docker-base-image",
-            abbreviation: "dbi",
+            name: `docker-base-image-${imageName[0]}`,
+            abbreviation: `dbi-${imageName[0]}`,
             version: "0.0.1",
             data,
             sha: sha256(data),
@@ -58,5 +49,25 @@ export const dockerBaseFingerprint: ExtractFingerprint = async p => {
 
 export const applyDockerBaseFingerprint: ApplyFingerprint = async (p, fp) => {
     logger.info(`apply ${renderData(fp)} to ${p.baseDir}`);
-    return true;
+
+    interface DockerFP {
+        name: string;
+        version: string;
+    }
+    const newFP = JSON.parse(fp.data) as DockerFP;
+
+    try {
+        await astUtils.doWithAllMatches(
+            p,
+            DockerFileParser,
+            "Dockerfile",
+            "//FROM/image/tag",
+            n => n.$value = newFP.version,
+        );
+
+        return true;
+    } catch (e) {
+        logger.debug(`Failed to update fingerprint! Error: ${e}`);
+        return false;
+    }
 };
