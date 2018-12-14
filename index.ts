@@ -19,7 +19,7 @@ export {
     checkLibraryImpactHandler,
     simpleImpactHandler,
     fingerprintImpactHandler,
-    FingerprintHandlerConfig,
+    FingerprintImpactHandlerConfig,
     messageMaker,
     ApplyFingerprint,
     ExtractFingerprint,
