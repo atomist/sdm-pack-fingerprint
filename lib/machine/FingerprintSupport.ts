@@ -129,7 +129,7 @@ export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, re
 
 /**
  * register a new Fingeprint
- * 
+ *
  * @param name name of the new Fingerprint
  * @param extract function to extract the Fingerprint from a cloned code base
  * @param apply function to apply an external Fingerprint to a cloned code base

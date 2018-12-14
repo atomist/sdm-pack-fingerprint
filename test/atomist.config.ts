@@ -90,7 +90,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
         },
         whenPushSatisfies(IsNpm)
             .itMeans("fingerprint an npm project")
-            .setGoals(FingerprintingGoals)
+            .setGoals(FingerprintingGoals),
     );
 
     sdm.addExtensionPacks(
