@@ -69,7 +69,11 @@
   (let [c1 (chan)
         p (f sha name)]
     (.catch
-     (.then p (fn [x] (go (>! c1 (json/read-str x)))))
+     (.then p (fn [x] (go (>! c1 (try
+                                   (if x (json/read-str x) {})
+                                   (catch :default t
+                                     (log/info "failed to read json string from fingerprint data")
+                                     {}))))))
      (fn [x] (go (>! c1 {:error x}))))
     c1))
 
