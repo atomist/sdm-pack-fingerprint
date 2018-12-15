@@ -34,18 +34,18 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import {
-    checkFingerprintTargets,
-    depsFingerprints,
-    logbackFingerprints,
-} from "../..";
-import * as fingerprints from "../../fingerprints/index";
-import { Vote } from "../../fingerprints/index";
+    Diff,
+    FP,
+    renderData,
+    Vote,
+} from "../../fingerprints/index";
 import {
     applyTargetFingerprint,
     ApplyTargetFingerprintParameters,
 } from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
 import {
+    checkFingerprintTargets,
     MessageMaker,
     votes,
 } from "../fingerprints/impact";
@@ -83,17 +83,17 @@ function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<F
     };
 }
 
-type FingerprintRunner = (p: GitProject) => Promise<fingerprints.FP[]>;
-export type ExtractFingerprint = (p: GitProject) => Promise<fingerprints.FP>;
-export type ApplyFingerprint = (p: GitProject, fp: fingerprints.FP) => Promise<boolean>;
+type FingerprintRunner = (p: GitProject) => Promise<FP[]>;
+export type ExtractFingerprint = (p: GitProject) => Promise<FP|FP[]>;
+export type ApplyFingerprint = (p: GitProject, fp: FP) => Promise<boolean>;
 
 /**
  * different strategies can be used to handle PushImpactEventHandlers.
  */
 export interface FingerprintHandler {
-    selector: (name: fingerprints.FP) => boolean;
-    diffHandler?: (context: HandlerContext, diff: fingerprints.Diff) => Promise<Vote>;
-    handler?: (context: HandlerContext, diff: fingerprints.Diff) => Promise<Vote>;
+    selector: (name: FP) => boolean;
+    diffHandler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
+    handler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
     ballot?: (context: HandlerContext, votes: Vote[]) => Promise<any>;
 }
 
@@ -117,7 +117,7 @@ export interface FingerprintImpactHandlerConfig {
  * each new class of Fingerprints must implement this interface and pass the
  */
 export interface FingerprintRegistration {
-    selector: (name: fingerprints.FP) => boolean;
+    selector: (name: FP) => boolean;
     extract: ExtractFingerprint;
     apply?: ApplyFingerprint;
 }
@@ -136,7 +136,7 @@ export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, re
  */
 export function register(name: string, extract: ExtractFingerprint, apply?: ApplyFingerprint): FingerprintRegistration {
     return {
-        selector: (fp: fingerprints.FP) => (fp.name === name),
+        selector: (fp: FP) => (fp.name === name),
         extract,
         apply,
     };
@@ -228,7 +228,7 @@ export function checkLibraryImpactHandler(): RegisterFingerprintImpactHandler {
 }
 
 export function simpleImpactHandler(
-    handler: (context: HandlerContext, diff: fingerprints.Diff) => Promise<any>,
+    handler: (context: HandlerContext, diff: Diff) => Promise<any>,
     ...names: string[]): RegisterFingerprintImpactHandler {
     return (sdm: SoftwareDeliveryMachine) => {
         return {
@@ -242,24 +242,22 @@ export function simpleImpactHandler(
 function fingerprintRunner(fingerprinters: FingerprintRegistration[]): FingerprintRunner {
     return async (p: GitProject) => {
 
-        const fps = [].concat(
-            await depsFingerprints(p.baseDir),
-        ).concat(
-            await logbackFingerprints(p.baseDir),
-        );
+        let fps: FP[] = new Array<FP>();
 
         for (const fingerprinter of fingerprinters) {
             try {
                 const fp = await fingerprinter.extract(p);
-                if (fp) {
+                if (fp && !(fp instanceof Array)) {
                     fps.push(fp);
+                } else if (fp) {
+                    fps = fps.concat(fp);
                 }
             } catch (e) {
                 logger.error(e);
             }
         }
 
-        logger.info(fingerprints.renderData(fps));
+        logger.info(renderData(fps));
         return fps;
     };
 }

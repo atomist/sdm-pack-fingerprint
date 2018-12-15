@@ -45,6 +45,10 @@ import {
     simpleImpactHandler,
 } from "..";
 import {
+    depsFingerprints,
+    logbackFingerprints,
+} from "../fingerprints";
+import {
     applyBackpackFingerprint,
     backpackFingerprint,
 } from "../lib/fingerprints/backpack";
@@ -97,6 +101,14 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
         fingerprintSupport(
             FingerprintGoal,
             [
+                {
+                    extract: p => logbackFingerprints(p.baseDir),
+                    selector: fp => true,
+                },
+                {
+                    extract: p => depsFingerprints(p.baseDir),
+                    selector: fp => true,
+                },
                 {
                     apply: applyDockerBaseFingerprint,
                     extract: dockerBaseFingerprint,
