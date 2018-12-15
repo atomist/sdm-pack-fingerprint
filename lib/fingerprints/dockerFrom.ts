@@ -56,18 +56,18 @@ export const applyDockerBaseFingerprint: ApplyFingerprint = async (p, fp) => {
     }
     const newFP = JSON.parse(fp.data) as DockerFP;
 
-    try {
-        await astUtils.doWithAllMatches(
-            p,
-            DockerFileParser,
-            "Dockerfile",
-            "//FROM/image/tag",
-            n => n.$value = newFP.version,
-        );
+    // try {
+    await astUtils.doWithAllMatches(
+        p,
+        DockerFileParser,
+        "Dockerfile",
+        "//FROM/image/tag",
+        n => n.$value = newFP.version,
+    );
 
-        return true;
-    } catch (e) {
-        logger.debug(`Failed to update fingerprint! Error: ${e}`);
-        return false;
-    }
+    return true;
+    // } catch (e) {
+    //     logger.debug(`Failed to update fingerprint! Error: ${e}`);
+    //     return false;
+    // }
 };

@@ -49,7 +49,7 @@ import {
     backpackFingerprint,
 } from "../lib/fingerprints/backpack";
 import {
-    dockerBaseFingerprint,
+    dockerBaseFingerprint, applyDockerBaseFingerprint,
 } from "../lib/fingerprints/dockerFrom";
 import { register } from "../lib/machine/FingerprintSupport";
 
@@ -97,7 +97,11 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
         fingerprintSupport(
             FingerprintGoal,
             [
-                register("docker-base-image-node", dockerBaseFingerprint, applyBackpackFingerprint),
+                {
+                    apply: applyDockerBaseFingerprint,
+                    extract: dockerBaseFingerprint,
+                    selector: myFp => myFp.name.startsWith("docker-base-image"),
+                },
                 register("backpack-react-scripts", backpackFingerprint, applyBackpackFingerprint),
             ],
             simpleImpactHandler( renderDiffSnippet, "npm-project-deps"),

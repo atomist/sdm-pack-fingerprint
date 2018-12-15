@@ -181,6 +181,7 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
 
         handlers.map(async h => {
             if (h.ballot) {
+                logger.info("CAVE MAN DEBUG");
                 await h.ballot(ctx, filteredVotes);
             }
         });
