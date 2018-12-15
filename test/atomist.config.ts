@@ -44,7 +44,10 @@ import {
     setNewTarget,
     simpleImpactHandler,
 } from "..";
-import { depsFingerprints, logbackFingerprints } from "../fingerprints";
+import {
+    depsFingerprints,
+    logbackFingerprints,
+} from "../fingerprints";
 import {
     applyBackpackFingerprint,
     backpackFingerprint,
