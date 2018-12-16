@@ -48,9 +48,9 @@ const expectedResult = {
     name: "docker-base-image-openjdk",
     abbreviation: "dbi-openjdk",
     version: "0.0.1",
-    data: JSON.stringify({ image: "openjdk", version: "8-alpine"}),
+    data: { image: "openjdk", version: "8-alpine"},
     sha: "040ce6b4cd756db6cd2eb52b81af58b746c00a883bfe784b317fd4ea3fff415e",
-    value: JSON.stringify({ image: "openjdk", version: "8-alpine"}),
+    value: { image: "openjdk", version: "8-alpine"},
 };
 
 describe("dockerBaseFingerprint", () => {
@@ -65,7 +65,7 @@ describe("dockerBaseFingerprint", () => {
             }, ({ path: "Dockerfile", content: dummyDockerFile })) as any;
 
             const result = await dockerBaseFingerprint(p);
-            assert.strictEqual(JSON.stringify(result), JSON.stringify(expectedResult));
+            assert.deepEqual(result, expectedResult);
         });
     });
 

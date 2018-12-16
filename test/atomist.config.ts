@@ -53,7 +53,7 @@ import {
     backpackFingerprint,
 } from "../lib/fingerprints/backpack";
 import {
-    dockerBaseFingerprint, applyDockerBaseFingerprint,
+    applyDockerBaseFingerprint, dockerBaseFingerprint,
 } from "../lib/fingerprints/dockerFrom";
 import { register } from "../lib/machine/FingerprintSupport";
 
