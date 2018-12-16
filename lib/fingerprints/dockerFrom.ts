@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { astUtils, logger } from "@atomist/automation-client";
+import {
+    astUtils,
+    logger,
+} from "@atomist/automation-client";
 import { DockerFileParser } from "@atomist/sdm-pack-docker";
 import { ApplyFingerprint, ExtractFingerprint, FP, renderData, sha256 } from "../..";
 
