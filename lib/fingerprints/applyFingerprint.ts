@@ -98,9 +98,6 @@ function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransf
         return p;
     };
 }
-
-export type FingerprintTransform = (p: GitProject, fp: fingerprints.FP) => Promise<any>;
-
 export let ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
 
 export function applyTargetFingerprint(
