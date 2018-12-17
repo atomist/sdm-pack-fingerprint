@@ -39,7 +39,7 @@ import {
     messageMaker,
 } from "..";
 import {
-    depsFingerprints,
+    applyFingerprint,
     logbackFingerprints,
 } from "../fingerprints";
 import {
@@ -51,8 +51,7 @@ import {
     dockerBaseFingerprint,
 } from "../lib/fingerprints/dockerFrom";
 import { applyNpmDepsFingerprint, createNpmDepsFingerprints } from "../lib/fingerprints/npmDeps";
-import { register, checkNpmCoordinatesImpactHandler } from "../lib/machine/FingerprintSupport";
-import { logbackFingerprints, applyFingerprint } from "../fingerprints";
+import { checkNpmCoordinatesImpactHandler } from "../lib/machine/FingerprintSupport";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -90,8 +89,8 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             FingerprintGoal,
             [
                 {
-                    extract: (p) => logbackFingerprints(p.baseDir),
-                    apply: (p,fp) => applyFingerprint(p.baseDir,fp),
+                    extract: p => logbackFingerprints(p.baseDir),
+                    apply: (p, fp) => applyFingerprint(p.baseDir, fp),
                     selector: fp => fp.name === "elk-logback",
                 },
                 {
@@ -104,7 +103,12 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     extract: dockerBaseFingerprint,
                     selector: myFp => myFp.name.startsWith("docker-base-image"),
                 },
-                register("backpack-react-scripts", backpackFingerprint, applyBackpackFingerprint),
+                {
+                    extract: backpackFingerprint,
+                    apply: applyBackpackFingerprint,
+                    selector: fp => fp.name === "backpack-react-scripts",
+
+                },
             ],
             checkNpmCoordinatesImpactHandler(),
             fingerprintImpactHandler(

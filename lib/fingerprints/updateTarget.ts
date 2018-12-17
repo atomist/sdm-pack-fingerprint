@@ -16,15 +16,17 @@
 
 import {
     FailurePromise,
+    HandlerContext,
     logger,
     MappedParameter,
     MappedParameters,
     Parameter,
     Parameters,
-    HandlerContext,
 } from "@atomist/automation-client";
-import { CommandHandlerRegistration, actionableButton } from "@atomist/sdm";
+import { actionableButton, CommandHandlerRegistration } from "@atomist/sdm";
+import { SlackMessage } from "@atomist/slack-messages";
 import * as goals from "../../fingerprints/index";
+import { FP } from "../../fingerprints/index";
 import {
     queryFingerprintBySha,
     queryFingerprintOnShaByName,
@@ -33,11 +35,9 @@ import {
     mutatePreference,
     queryPreferences,
 } from "../adhoc/preferences";
+import { footer } from "../support/util";
 import { GetFingerprintOnShaByName } from "../typings/types";
 import { askAboutBroadcast } from "./broadcast";
-import { SlackMessage } from "@atomist/slack-messages";
-import { footer } from "../support/util";
-import { FP } from "../../fingerprints/index";
 
 @Parameters()
 export class SetTargetFingerprintFromLatestMasterParameters {
@@ -132,7 +132,7 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
             queryPreferences(cli.context.graphClient),
             mutatePreference(cli.context.graphClient),
             cli.parameters.fp);
-        
+
         const fp: FP = JSON.parse(cli.parameters.fp);
 
         return askAboutBroadcast(cli, fp.data[0], fp.data[1], fp.sha);

@@ -50,12 +50,13 @@ import {
     votes,
 } from "../fingerprints/impact";
 import { ListFingerprints } from "../fingerprints/list";
+import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     DeleteTargetFingerprint,
+    setNewTargetFingerprint,
+    SetTargetFingerprint,
     SetTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
-    SetTargetFingerprint,
-    setNewTargetFingerprint,
 } from "../fingerprints/updateTarget";
 import { BroadcastNudge } from "../handlers/commands/broadcast";
 import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
@@ -78,7 +79,6 @@ import {
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
 import { footer } from "../support/util";
-import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 
 function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
     return async (i: PushImpactListenerInvocation) => {
@@ -232,19 +232,19 @@ export function checkLibraryImpactHandler(): RegisterFingerprintImpactHandler {
 
 export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
     return (sdm: SoftwareDeliveryMachine) => {
-        
+
         sdm.addCommand(SetTargetFingerprint);
-        
+
         return {
             selector: forFingerprints("npm-project-coordinates"),
             diffHandler: (ctx, diff) => {
                 return setNewTargetFingerprint(
-                    ctx, 
-                    getNpmDepFingerprint(diff.to.data["name"],diff.to.data["version"]), 
+                    ctx,
+                    getNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
                     diff.channel);
-            }
+            },
         };
-    }
+    };
 }
 
 export function simpleImpactHandler(
