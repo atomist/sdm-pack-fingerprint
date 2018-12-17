@@ -76,13 +76,18 @@ export declare function withNewGoal( queryPreferences: () => Promise<any>,
                                      library: {name: string, version: string} | string
                                      ): Promise<boolean>
 // choose a new library target and set it in the team wide preferences
-// we use this to set a new library goal
+// we use this to set a new fingerprint target
 export declare function setGoalFingerprint( queryPreferences: () => Promise<any>,
                                             queryFingerprintBySha: (name: string, sha: string) => Promise<any>,
                                             mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
                                             name: string,
                                             sha: string
                                             ): Promise<boolean>
+export declare function setTargetFingerprint( queryPreferences: () => Promise<any>,
+                                              mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
+                                              fp: string,
+                                            ): Promise<boolean>
+
 export declare function deleteGoalFingerprint( queryPreferences: () => Promise<any>,
                                                mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
                                                name: string): Promise<boolean>

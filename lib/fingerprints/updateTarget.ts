@@ -21,8 +21,9 @@ import {
     MappedParameters,
     Parameter,
     Parameters,
+    HandlerContext,
 } from "@atomist/automation-client";
-import { CommandHandlerRegistration } from "@atomist/sdm";
+import { CommandHandlerRegistration, actionableButton } from "@atomist/sdm";
 import * as goals from "../../fingerprints/index";
 import {
     queryFingerprintBySha,
@@ -34,6 +35,9 @@ import {
 } from "../adhoc/preferences";
 import { GetFingerprintOnShaByName } from "../typings/types";
 import { askAboutBroadcast } from "./broadcast";
+import { SlackMessage } from "@atomist/slack-messages";
+import { footer } from "../support/util";
+import { FP } from "../../fingerprints/index";
 
 @Parameters()
 export class SetTargetFingerprintFromLatestMasterParameters {
@@ -112,6 +116,30 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
 };
 
 @Parameters()
+export class SetTargetFingerprintParameters {
+
+@Parameter({ required: true, displayable: false, control: "textarea", pattern: /.*/ })
+    public fp: string;
+}
+
+export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerprintParameters> = {
+    name: "SetTargetFingerprint",
+    description: "set a target fingerprint",
+    paramsMaker: SetTargetFingerprintParameters,
+    listener: async cli => {
+        logger.info(`set target fingerprint for ${cli.parameters.fp}`);
+        await goals.setTargetFingerprint(
+            queryPreferences(cli.context.graphClient),
+            mutatePreference(cli.context.graphClient),
+            cli.parameters.fp);
+        
+        const fp: FP = JSON.parse(cli.parameters.fp);
+
+        return askAboutBroadcast(cli, fp.data[0], fp.data[1], fp.sha);
+    },
+};
+
+@Parameters()
 export class DeleteTargetFingerprintParameters {
     @Parameter({ required: true })
     public name: string;
@@ -131,3 +159,29 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
         );
     },
 };
+
+export function setNewTargetFingerprint(ctx: HandlerContext, fp: FP, channel: string) {
+    const message: SlackMessage = {
+        attachments: [
+            {
+                text: `Shall we update the target version of \`${fp.name}\` for all projects?`,
+                fallback: "none",
+                actions: [
+                    actionableButton(
+                        {
+                            text: "Set Target",
+                        },
+                        SetTargetFingerprint,
+                        {
+                            fp: JSON.stringify( fp ),
+                        },
+                    ),
+                ],
+                color: "#ffcc00",
+                footer: footer(),
+                callback_id: "atm-confirm-done",
+            },
+        ],
+    };
+    return ctx.messageClient.addressChannels(message, channel);
+}

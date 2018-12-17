@@ -43,6 +43,3 @@ export {
     renderDiff,
     sha256,
 } from "./fingerprints";
-export {
-    setNewTarget,
-} from "./lib/handlers/commands/setLibraryGoal";

@@ -360,7 +360,6 @@
   (go
    (let [preferences (<! (from-promise (query-prefs)))
          fp-goal (get-fp-from-preferences preferences (:name fingerprint))]
-     (log/info "check-fingerprint-goals compare " (:sha fingerprint) " and then " fp-goal " ----")
      (if (and
           fp-goal
           (not
@@ -399,6 +398,21 @@
      (if fingerprint
        (do
          (<! (from-promise (pref-editor fp-name chat-team-id (json/clj->json fingerprint))))
+         true)
+       false))))
+
+(defn set-fingerprint-preference-from-json
+  "set or replace a fingerprint preference "
+  [query-prefs pref-editor fp-json]
+  (go
+   (let [preferences (<! (from-promise (query-prefs)))
+         chat-team-id (-> preferences :ChatTeam first :id)
+         fp (json/json->clj fp-json :keywordize-keys true)
+         fingerprint (assoc fp :data (-> fp :data (json/json->clj :keywordize-keys true)))]
+     (log/info "set-fingerprint-preference for team " chat-team-id " and fingerprint " fingerprint " and set to " (:name fingerprint))
+     (if fingerprint
+       (do
+         (<! (from-promise (pref-editor (:name fingerprint) chat-team-id (json/clj->json fingerprint))))
          true)
        false))))
 
