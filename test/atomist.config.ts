@@ -42,6 +42,7 @@ import {
     depsFingerprints,
     logbackFingerprints,
 } from "../fingerprints";
+import { applyFingerprint, logbackFingerprints } from "../fingerprints";
 import {
     applyBackpackFingerprint,
     backpackFingerprint,
@@ -51,8 +52,7 @@ import {
     dockerBaseFingerprint,
 } from "../lib/fingerprints/dockerFrom";
 import { applyNpmDepsFingerprint, createNpmDepsFingerprints } from "../lib/fingerprints/npmDeps";
-import { register, checkNpmCoordinatesImpactHandler } from "../lib/machine/FingerprintSupport";
-import { logbackFingerprints, applyFingerprint } from "../fingerprints";
+import { checkNpmCoordinatesImpactHandler, register } from "../lib/machine/FingerprintSupport";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -90,8 +90,8 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             FingerprintGoal,
             [
                 {
-                    extract: (p) => logbackFingerprints(p.baseDir),
-                    apply: (p,fp) => applyFingerprint(p.baseDir,fp),
+                    extract: p => logbackFingerprints(p.baseDir),
+                    apply: (p, fp) => applyFingerprint(p.baseDir, fp),
                     selector: fp => fp.name === "elk-logback",
                 },
                 {

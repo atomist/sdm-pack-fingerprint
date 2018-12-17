@@ -20,16 +20,16 @@ import { ApplyFingerprint, ExtractFingerprint, FP, sha256 } from "../..";
 import { renderData } from "../../fingerprints";
 
 export function getNpmDepFingerprint(lib: string, version: string): FP {
-    
+
     const data: string = JSON.stringify([lib, version]);
-    
+
     return {
         name: `npm-project-dep-${lib}`,
         abbreviation: "npmdeps",
         version: "0.0.1",
         data,
         sha: sha256(data),
-    }
+    };
 }
 
 export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
@@ -45,7 +45,7 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
         const fingerprints: FP[] = [];
 
         for (const [lib, version] of Object.entries(dependencies)) {
-            fingerprints.push(getNpmDepFingerprint(lib,version));
+            fingerprints.push(getNpmDepFingerprint(lib, version));
         }
 
         const coords = JSON.stringify({name: jsonData.name, version: jsonData.version});
