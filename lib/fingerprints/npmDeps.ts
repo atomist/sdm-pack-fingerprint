@@ -15,7 +15,10 @@
  */
 
 import { ChildProcessResult, logger, SuccessIsReturn0ErrorFinder } from "@atomist/automation-client";
-import { LoggingProgressLog, spawnAndWatch } from "@atomist/sdm";
+import {
+    LoggingProgressLog,
+    spawnAndWatch,
+} from "@atomist/sdm";
 import { ApplyFingerprint, ExtractFingerprint, FP, sha256 } from "../..";
 import { renderData } from "../../fingerprints";
 
