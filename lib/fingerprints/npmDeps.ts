@@ -15,7 +15,10 @@
  */
 
 import { ChildProcessResult, logger, SuccessIsReturn0ErrorFinder } from "@atomist/automation-client";
-import { LoggingProgressLog, spawnAndWatch } from "@atomist/sdm";
+import {
+    LoggingProgressLog,
+    spawnAndWatch,
+} from "@atomist/sdm";
 import { ApplyFingerprint, ExtractFingerprint, FP, sha256 } from "../..";
 import { renderData } from "../../fingerprints";
 
@@ -24,7 +27,7 @@ export function getNpmDepFingerprint(lib: string, version: string): FP {
     const data: string = JSON.stringify([lib, version]);
 
     return {
-        name: `npm-project-dep::${lib.replace("@","").replace("/","::")}`,
+        name: `npm-project-dep::${lib.replace("@", "").replace("/", "::")}`,
         abbreviation: "npmdeps",
         version: "0.0.1",
         data,

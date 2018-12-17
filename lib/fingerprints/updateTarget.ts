@@ -23,7 +23,10 @@ import {
     Parameter,
     Parameters,
 } from "@atomist/automation-client";
-import { actionableButton, CommandHandlerRegistration } from "@atomist/sdm";
+import {
+    actionableButton,
+    CommandHandlerRegistration,
+} from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as goals from "../../fingerprints/index";
 import { FP } from "../../fingerprints/index";

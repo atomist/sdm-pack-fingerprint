@@ -50,8 +50,13 @@ import {
     applyDockerBaseFingerprint,
     dockerBaseFingerprint,
 } from "../lib/fingerprints/dockerFrom";
-import { applyNpmDepsFingerprint, createNpmDepsFingerprints } from "../lib/fingerprints/npmDeps";
-import { checkNpmCoordinatesImpactHandler } from "../lib/machine/FingerprintSupport";
+import {
+    applyNpmDepsFingerprint,
+    createNpmDepsFingerprints,
+} from "../lib/fingerprints/npmDeps";
+import {
+    checkNpmCoordinatesImpactHandler,
+} from "../lib/machine/FingerprintSupport";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
