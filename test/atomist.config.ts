@@ -39,10 +39,15 @@ import {
     messageMaker,
 } from "..";
 import {
+    depsFingerprints,
+    logbackFingerprints,
+} from "../fingerprints";
+import {
     applyBackpackFingerprint,
     backpackFingerprint,
 } from "../lib/fingerprints/backpack";
 import {
+    applyDockerBaseFingerprint,
     dockerBaseFingerprint,
 } from "../lib/fingerprints/dockerFrom";
 import { applyNpmDepsFingerprint, createNpmDepsFingerprints } from "../lib/fingerprints/npmDeps";
@@ -94,7 +99,11 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     apply: applyNpmDepsFingerprint,
                     selector: fp => fp.name.startsWith("npm-project-dep"),
                 },
-                register("docker-base-image", dockerBaseFingerprint, applyBackpackFingerprint),
+                {
+                    apply: applyDockerBaseFingerprint,
+                    extract: dockerBaseFingerprint,
+                    selector: myFp => myFp.name.startsWith("docker-base-image"),
+                },
                 register("backpack-react-scripts", backpackFingerprint, applyBackpackFingerprint),
             ],
             checkNpmCoordinatesImpactHandler(),
