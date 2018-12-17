@@ -26,7 +26,7 @@
          (let [v (<! chan)]
            (if v
              (do
-               (log/info "clj-editors promise:  " v)
+               (log/info "promise:  " v)
                (accept v))
              (reject v)))
          (catch :default t

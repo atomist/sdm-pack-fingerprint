@@ -30,10 +30,6 @@ export {
     renderDiffSnippet,
 } from "./lib/handlers/events/pushImpactHandler";
 export {
-    FingerprintTransform,
-} from "./lib/fingerprints/applyFingerprint";
-export {
-    checkFingerprintTargets,
     MessageMaker,
 } from "./lib/fingerprints/impact";
 export {
@@ -47,6 +43,3 @@ export {
     renderDiff,
     sha256,
 } from "./fingerprints";
-export {
-    setNewTarget,
-} from "./lib/handlers/commands/setLibraryGoal";

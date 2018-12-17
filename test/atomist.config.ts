@@ -17,7 +17,6 @@
 import {
     Configuration,
     editModes,
-    HandlerContext,
 } from "@atomist/automation-client";
 import {
     Fingerprint,
@@ -35,14 +34,9 @@ import {
     createSoftwareDeliveryMachine,
 } from "@atomist/sdm-core";
 import {
-    checkLibraryImpactHandler,
-    Diff,
     fingerprintImpactHandler,
     fingerprintSupport,
     messageMaker,
-    renderDiffSnippet,
-    setNewTarget,
-    simpleImpactHandler,
 } from "..";
 import {
     depsFingerprints,
@@ -56,7 +50,9 @@ import {
     applyDockerBaseFingerprint,
     dockerBaseFingerprint,
 } from "../lib/fingerprints/dockerFrom";
-import { register } from "../lib/machine/FingerprintSupport";
+import { applyNpmDepsFingerprint, createNpmDepsFingerprints } from "../lib/fingerprints/npmDeps";
+import { register, checkNpmCoordinatesImpactHandler } from "../lib/machine/FingerprintSupport";
+import { logbackFingerprints, applyFingerprint } from "../fingerprints";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -77,15 +73,6 @@ export const FingerprintGoal = new Fingerprint();
 const FingerprintingGoals: Goals = goals("check fingerprints")
     .plan(FingerprintGoal, backpackComplianceGoal);
 
-async function npmDepUpdated(ctx: HandlerContext, diff: Diff): Promise<any> {
-    return setNewTarget(
-        ctx,
-        diff.to.name,
-        diff.to.data.name,
-        diff.to.data.version,
-        diff.channel);
-}
-
 export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
 
     const sdm = createSoftwareDeliveryMachine(
@@ -103,12 +90,14 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             FingerprintGoal,
             [
                 {
-                    extract: p => logbackFingerprints(p.baseDir),
-                    selector: fp => true,
+                    extract: (p) => logbackFingerprints(p.baseDir),
+                    apply: (p,fp) => applyFingerprint(p.baseDir,fp),
+                    selector: fp => fp.name === "elk-logback",
                 },
                 {
-                    extract: p => depsFingerprints(p.baseDir),
-                    selector: fp => true,
+                    extract: createNpmDepsFingerprints,
+                    apply: applyNpmDepsFingerprint,
+                    selector: fp => fp.name.startsWith("npm-project-dep"),
                 },
                 {
                     apply: applyDockerBaseFingerprint,
@@ -117,8 +106,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 },
                 register("backpack-react-scripts", backpackFingerprint, applyBackpackFingerprint),
             ],
-            simpleImpactHandler( renderDiffSnippet, "npm-project-deps"),
-            simpleImpactHandler( npmDepUpdated, "npm-project-coordinates"),
+            checkNpmCoordinatesImpactHandler(),
             fingerprintImpactHandler(
                 {
                     complianceGoal: backpackComplianceGoal,
@@ -131,7 +119,6 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     messageMaker,
                 },
             ),
-            checkLibraryImpactHandler(),
         ),
     );
 

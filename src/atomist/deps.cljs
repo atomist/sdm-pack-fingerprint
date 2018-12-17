@@ -6,7 +6,6 @@
             [atomist.json :as json]
             [atomist.cljs-log :as log]
             [atomist.fingerprint :as clojure]
-            [atomist.npm :as npm]
             [atomist.maven :as maven]
             [atomist.promise :refer [from-promise]]
             [cljs.pprint :refer [pprint]]
@@ -27,7 +26,6 @@
   (cond
     (= (.getName f) "project.clj") :lein
     (= (.getName f) "pom.xml") :pom
-    (= (.getName f) "package.json") :npm
     :else :unknown))
 
 (defn- add-fingerprint [fp-name]
@@ -37,7 +35,6 @@
   "returns ::deps"
   [basedir]
   (->> (concat
-        (map (add-fingerprint "npm-project-deps") (get-file basedir "package.json" atomist.npm/packages))
         (map (add-fingerprint "clojure-project-deps") (get-file basedir "project.clj" atomist.fingerprint/project-dependencies))
         (map (add-fingerprint "maven-project-deps") (get-file basedir "pom.xml" maven/project-dependencies)))
        (into [])))
@@ -56,8 +53,7 @@
      (accept
       (let [data (concat
                   (get-file basedir "pom.xml" maven/run)
-                  (get-file basedir "project.clj" clojure/run)
-                  (get-file basedir "package.json" npm/run))]
+                  (get-file basedir "project.clj" clojure/run))]
         (->> data
              (map #(assoc %
                      :sha (clojure/sha-256 (json/json-str (:data %)))
@@ -71,12 +67,10 @@
    synchronous call
    returns Any"
   [basedir n v]
-  (get-file basedir "package.json" (fn [f] (npm/edit {:basedir basedir :path "package.json"} {:name n :version v})))
   (get-file basedir "project.clj" (fn [f] (spit f (lein/edit-library (slurp f) n v))))
   (get-file basedir "pom.xml" (fn [f] (maven/edit basedir n v))))
 
 (defn apply-fingerprint
   ""
   [basedir {:keys [name] :as fingerprint}]
-  (get-file basedir "package.json" (fn [f] (npm/apply-fingerprint f fingerprint)))
   (get-file basedir "pom.xml" (fn [f] (maven/apply-fingerprint f fingerprint))))

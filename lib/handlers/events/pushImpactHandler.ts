@@ -61,7 +61,7 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: st
             options: QueryNoCacheOptions,
         })
             .then(result => {
-                logger.info(`getFingerprintData:  got successful result ${result}`);
+                logger.debug(`getFingerprintData:  got successful result ${result}`);
                 const fps =
                     _.get(result, "Commit[0].fingerprints") as GetFingerprintData.Fingerprints[];
                 if (fps) {
@@ -70,7 +70,7 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: st
                 return "{}";
             })
             .catch(reason => {
-                logger.info(`error getting fingerprint data ${reason}`);
+                logger.error(`error getting fingerprint data ${reason}`);
                 return "{}";
             });
     };

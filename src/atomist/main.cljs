@@ -8,7 +8,6 @@
             [atomist.cljs-log :as log]
             [atomist.impact :as impact]
             [atomist.fingerprint :as fingerprint]
-            [atomist.npm :as npm]
             [atomist.goals :as goals]
             [http.util :as util]
             [goog.string :as gstring]
@@ -45,8 +44,6 @@
    returns Promise<boolean>"
   [event get-fingerprint obj]
   (let [handlers (js->clj obj :keywordize-keys true)]
-    (log/info "processPushImpact " (count handlers) " " handlers)
-    (log/info "processPushImpact " (with-out-str (cljs.pprint/pprint (js->clj event :keywordize-keys true))))
     (let [no-diff-handlers (->> handlers
                                 (filter #(contains? % :action))
                                 (map #(dissoc % :diffAction)))
@@ -179,6 +176,14 @@
   (promise/chan->promise
    (goals/set-fingerprint-preference pref-query query-fingerprint-by-sha pref-editor fp-name fp-sha)))
 
+(defn ^:export setTargetFingerprint
+  "update a goal in the current project
+
+   returns Promise<boolean>"
+  [pref-query pref-editor fp-json]
+  (promise/chan->promise
+   (goals/set-fingerprint-preference-from-json pref-query pref-editor fp-json)))
+
 (defn ^:export withNewIgnore
   "update a goal in the current project
 
@@ -193,7 +198,6 @@
 
    returns Promise<boolean>"
   [pref-query send-message diff]
-  (log/info "checkLibraryGoals")
   (promise/chan->promise
    (goals/check-library-goals pref-query send-message (js->clj diff :keywordize-keys true))))
 
@@ -202,7 +206,6 @@
 
    returns Promise<boolean>"
   [pref-query send-message confirm-goal diff]
-  (log/info "checkFingerprintGoals")
   (promise/chan->promise
    (goals/check-fingerprint-goals pref-query send-message confirm-goal (js->clj diff :keywordize-keys true))))
 
@@ -220,7 +223,6 @@
 
    returns Promise<any>"
   [fingerprint-query fp cb]
-  (log/info "clj-editors broadcast")
   (promise/chan->promise
    (goals/broadcast-fingerprint fingerprint-query (js->clj fp :keywordize-keys true) cb)))
 
