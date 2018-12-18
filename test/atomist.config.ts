@@ -40,8 +40,8 @@ import {
 } from "..";
 import {
     applyFingerprint,
-    logbackFingerprints,
     cljFunctionFingerprints,
+    logbackFingerprints,
 } from "../fingerprints";
 import {
     applyBackpackFingerprint,

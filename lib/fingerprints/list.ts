@@ -17,15 +17,21 @@
 import {
     MappedParameter,
     MappedParameters,
+    menuForCommand,
     Parameter,
     Parameters,
-    menuForCommand,
     SlackFileMessage,
 } from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
-import { queryFingerprintsByBranchRef, queryFingerprintOnShaByName } from "../adhoc/fingerprints";
+import {
+    queryFingerprintOnShaByName,
+    queryFingerprintsByBranchRef,
+} from "../adhoc/fingerprints";
 import { SlackMessage } from "@atomist/slack-messages";
-import { GetAllFingerprintsOnSha, GetFingerprintOnShaByName } from "../typings/types";
+import {
+    GetAllFingerprintsOnSha,
+    GetFingerprintOnShaByName,
+} from "../typings/types";
 import { renderData } from "../..";
 
 @Parameters()
