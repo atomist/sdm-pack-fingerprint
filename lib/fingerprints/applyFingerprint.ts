@@ -56,13 +56,16 @@ export class ApplyTargetFingerprintParameters {
     public fingerprint: string;
 }
 
-async function pusher(p: GitProject, registrations: FingerprintRegistration[], fp: FP) {
+async function pusher( message: (s: string) => Promise<any>, p: GitProject, registrations: FingerprintRegistration[], fp: FP) {
 
     logger.info(`transform running -- ${fp} --`);
 
     for (const registration of registrations) {
         if (registration.apply && registration.selector(fp)) {
-            await registration.apply(p, fp);
+            const result: boolean = await registration.apply(p, fp);
+            if (!result) {
+                await message(`failure applying fingerprint ${fp.name}`);
+            }
         }
     }
 
@@ -73,13 +76,7 @@ async function pusher(p: GitProject, registrations: FingerprintRegistration[], f
 
 function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
-        // await cli.addressChannels(`make an edit to the project in ${(p as GitProject).baseDir} to go to version ${cli.parameters.version}`);
-        await pusher(
-            (p as GitProject),
-            registrations,
-            await fingerprints.getFingerprintPreference(
-                queryPreferences(cli.context.graphClient),
-                cli.parameters.fingerprint));
+        
         const message: SlackMessage = {
             attachments: [
                 {
@@ -94,8 +91,16 @@ function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransf
                 },
             ],
         };
+        
         await cli.addressChannels(message);
-        return p;
+        
+        return pusher(
+            async (s: string) => cli.addressChannels(s),
+            (p as GitProject),
+            registrations,
+            await fingerprints.getFingerprintPreference(
+                queryPreferences(cli.context.graphClient),
+                cli.parameters.fingerprint));
     };
 }
 export let ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerprintParameters>;

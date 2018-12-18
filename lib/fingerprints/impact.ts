@@ -138,6 +138,7 @@ export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerCont
 
             let goalState;
             const result: fingerprints.VoteResults = fingerprints.voteResults(vs);
+            logger.info(`ballot result ${fingerprints.renderData(result)} for ${fingerprints.renderData(vs)}`);
 
             if (result.failed) {
                 goalState = {
@@ -151,12 +152,16 @@ export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerCont
                 };
             }
 
-            await editGoal(
-                ctx,
-                result.diff,
-                config.complianceGoal,
-                goalState,
-            );
+            if (result.diff) { 
+                return await editGoal(
+                    ctx,
+                    result.diff,
+                    config.complianceGoal,
+                    goalState,
+                );
+            } else {
+                return undefined;
+            }
         }
         return SuccessPromise;
     };

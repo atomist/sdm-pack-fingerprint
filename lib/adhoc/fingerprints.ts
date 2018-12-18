@@ -68,7 +68,7 @@ export function queryFingerprintBySha(graphClient: GraphClient): (name: string, 
     };
 }
 
-export function queryFingerprintsByBranchRef(graphClient: GraphClient): (repo: string, owner: string, branch: string) => Promise<any> {
+export function queryFingerprintsByBranchRef(graphClient: GraphClient): (repo: string, owner: string, branch: string) => Promise<GetAllFingerprintsOnSha.Query> {
     return async (repo, owner, branch) => {
         return graphClient.query<GetAllFingerprintsOnSha.Query, GetAllFingerprintsOnSha.Variables>(
             {

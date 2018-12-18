@@ -49,7 +49,7 @@ import {
     MessageMaker,
     votes,
 } from "../fingerprints/impact";
-import { ListFingerprints } from "../fingerprints/list";
+import { ListFingerprints, ListFingerprint } from "../fingerprints/list";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     DeleteTargetFingerprint,
@@ -204,6 +204,7 @@ export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig
         sdm.addCodeTransformCommand(applyTargetFingerprint(registrations, config.transformPresentation));
 
         sdm.addCommand(ListFingerprints);
+        sdm.addCommand(ListFingerprint);
 
         return {
             selector: fp => true,

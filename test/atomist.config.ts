@@ -41,6 +41,7 @@ import {
 import {
     applyFingerprint,
     logbackFingerprints,
+    cljFunctionFingerprints,
 } from "../fingerprints";
 import {
     applyBackpackFingerprint,
@@ -114,6 +115,11 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     selector: fp => fp.name === "backpack-react-scripts",
 
                 },
+                {
+                    extract: (p) => cljFunctionFingerprints(p.baseDir),
+                    apply: (p,fp) => applyFingerprint(p.baseDir,fp),
+                    selector: fp => fp.name.startsWith("clojure-project") || fp.name.startsWith("public-defn-bodies"),
+                }
             ],
             checkNpmCoordinatesImpactHandler(),
             fingerprintImpactHandler(

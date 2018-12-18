@@ -407,8 +407,7 @@
   (go
    (let [preferences (<! (from-promise (query-prefs)))
          chat-team-id (-> preferences :ChatTeam first :id)
-         fp (json/json->clj fp-json :keywordize-keys true)
-         fingerprint (assoc fp :data (-> fp :data (json/json->clj :keywordize-keys true)))]
+         fingerprint (json/json->clj fp-json :keywordize-keys true)]
      (log/info "set-fingerprint-preference for team " chat-team-id " and fingerprint " fingerprint " and set to " (:name fingerprint))
      (if fingerprint
        (do

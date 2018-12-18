@@ -101,6 +101,7 @@ export class UpdateTargetFingerprintParameters {
     public name: string;
 }
 
+// set target fingerprint using name an sha of existing fingerprint
 export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFingerprintParameters> = {
     name: "RegisterTargetFingerprint",
     description: "set a new target for a team to consume a particular version",
@@ -121,10 +122,11 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
 @Parameters()
 export class SetTargetFingerprintParameters {
 
-@Parameter({ required: true, displayable: false, control: "textarea", pattern: /.*/ })
+    @Parameter({ required: true, displayable: false, control: "textarea", pattern: /.*/ })
     public fp: string;
 }
 
+// set target fingerprint to a new non-existing Fingerprint
 export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerprintParameters> = {
     name: "SetTargetFingerprint",
     description: "set a target fingerprint",
@@ -138,7 +140,7 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
 
         const fp: FP = JSON.parse(cli.parameters.fp);
 
-        return askAboutBroadcast(cli, fp.data[0], fp.data[1], fp.sha);
+        return askAboutBroadcast(cli, fp.name, fp.data[1], fp.sha);
     },
 };
 

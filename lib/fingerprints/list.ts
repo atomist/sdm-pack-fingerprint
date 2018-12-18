@@ -15,16 +15,18 @@
  */
 
 import {
-    logger,
     MappedParameter,
     MappedParameters,
     Parameter,
     Parameters,
+    menuForCommand,
     SlackFileMessage,
 } from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
-import * as fingerprints from "../../fingerprints";
-import { queryFingerprintsByBranchRef } from "../adhoc/fingerprints";
+import { queryFingerprintsByBranchRef, queryFingerprintOnShaByName } from "../adhoc/fingerprints";
+import { SlackMessage } from "@atomist/slack-messages";
+import { GetAllFingerprintsOnSha, GetFingerprintOnShaByName } from "../typings/types";
+import { renderData } from "../..";
 
 @Parameters()
 export class ListFingerprintParameters {
@@ -41,6 +43,51 @@ export class ListFingerprintParameters {
     public branch: string;
 }
 
+@Parameters()
+export class ListOneFingerprintParameters {
+    @MappedParameter(MappedParameters.GitHubOwner)
+    public owner: string;
+
+    @MappedParameter(MappedParameters.GitHubRepository)
+    public repo: string;
+
+    @MappedParameter(MappedParameters.GitHubRepositoryProvider)
+    public providerId: string;
+
+    @Parameter({ required: true , description: "pull fingerprints from a branch ref"})
+    public branch: string;
+
+    @Parameter({ required: true, description: "the fingerprint to render"})
+    public fingerprint: string;
+}
+
+export const ListFingerprint: CommandHandlerRegistration<ListOneFingerprintParameters> = {
+    name: "ListFingerprint",
+    description: "list one fingerprint",
+    paramsMaker: ListOneFingerprintParameters,
+    intent: "listFingerprint",
+    listener: async cli => {
+
+        const query: GetFingerprintOnShaByName.Query = await queryFingerprintOnShaByName(cli.context.graphClient)(
+            cli.parameters.repo,
+            cli.parameters.owner,
+            cli.parameters.branch,
+            cli.parameters.fingerprint
+        );
+
+        var fingerprint = query.Repo[0].branches[0].commit.fingerprints[0];
+        fingerprint.data = JSON.parse(fingerprint.data);
+        
+        const message: SlackFileMessage = {
+            title: `fingerprint ${cli.parameters.fingerprint} currently on ${cli.parameters.owner}/${cli.parameters.repo}`,
+            content: renderData(fingerprint),
+            fileType: "text",
+        };
+
+        return cli.addressChannels(message);
+    }
+}
+
 export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParameters> = {
     name: "ListFingerprints",
     intent: "listFingerprints",
@@ -50,19 +97,44 @@ export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParamet
 
         // this has got to be wrong.  ugh
         const branch: string = cli.parameters.branch || "master";
-        logger.info(`use branch ${branch}`);
 
-        const fps = fingerprints.list(
-            await queryFingerprintsByBranchRef(cli.context.graphClient)(
-                cli.parameters.repo,
-                cli.parameters.owner,
-                branch,
-            ));
-        const message: SlackFileMessage = {
-            title: `fingerprints currently on ${cli.parameters.owner}/${cli.parameters.repo}`,
-            content: fingerprints.renderData(fps),
-            fileType: "text",
+        const query: GetAllFingerprintsOnSha.Query = await queryFingerprintsByBranchRef(cli.context.graphClient)(
+            cli.parameters.repo,
+            cli.parameters.owner,
+            branch);
+        const fps: GetAllFingerprintsOnSha.Fingerprints[] = query.Repo[0].branches[0].commit.fingerprints;
+
+        const message: SlackMessage = {
+            attachments: [
+                {
+                    fallback: "select fingerprint",
+                    actions: [
+                        menuForCommand(
+                            {
+                                text: "fingerprints",
+                                options: [
+                                    ...fps.map(x => {
+                                        return {
+                                            value: x.name,
+                                            text: x.name,
+                                        }
+                                    })
+                                ],
+                            },
+                            ListFingerprint,
+                            "fingerprint",
+                            {
+                                owner: cli.parameters.owner,
+                                repo: cli.parameters.repo,
+                                branch,
+                                providerId: cli.parameters.providerId,
+                            },
+                        )
+                    ]
+                }
+            ]
         };
+
         return cli.addressChannels(message);
     },
 };

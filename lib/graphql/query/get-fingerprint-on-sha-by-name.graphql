@@ -5,6 +5,7 @@ query GetFingerprintOnShaByName($repo: String!, $owner: String!, $branch: String
         fingerprints(name: $fpName) {
           name
           sha
+          data
         }
       }
     }

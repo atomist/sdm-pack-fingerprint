@@ -24,14 +24,14 @@ import { renderData } from "../../fingerprints";
 
 export function getNpmDepFingerprint(lib: string, version: string): FP {
 
-    const data: string = JSON.stringify([lib, version]);
+    const data = [lib, version];
 
     return {
         name: `npm-project-dep::${lib.replace("@", "").replace("/", "::")}`,
         abbreviation: "npmdeps",
         version: "0.0.1",
         data,
-        sha: sha256(data),
+        sha: sha256(JSON.stringify(data)),
     };
 }
 
