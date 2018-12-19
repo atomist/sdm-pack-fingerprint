@@ -35,7 +35,12 @@ import {
 
 import { SlackMessage } from "@atomist/slack-messages";
 import * as goals from "../../../fingerprints/index";
-import { FP, fpPreference, fpPreferences, renderData } from "../../../fingerprints/index";
+import {
+    FP,
+    fpPreference,
+    fpPreferences,
+    renderData,
+} from "../../../fingerprints/index";
 import { queryChatTeamById } from "../../adhoc/fingerprints";
 import {
     mutatePreference,
