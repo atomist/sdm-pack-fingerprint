@@ -25,8 +25,14 @@ import {
 import { CommandHandlerRegistration } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import { renderData } from "../..";
-import { queryFingerprintOnShaByName, queryFingerprintsByBranchRef } from "../adhoc/fingerprints";
-import { GetAllFingerprintsOnSha, GetFingerprintOnShaByName } from "../typings/types";
+import {
+    queryFingerprintOnShaByName,
+    queryFingerprintsByBranchRef,
+} from "../adhoc/fingerprints";
+import {
+    GetAllFingerprintsOnSha,
+    GetFingerprintOnShaByName,
+} from "../typings/types";
 
 @Parameters()
 export class ListFingerprintParameters {

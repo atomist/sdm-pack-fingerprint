@@ -49,7 +49,10 @@ import {
     MessageMaker,
     votes,
 } from "../fingerprints/impact";
-import { ListFingerprint, ListFingerprints } from "../fingerprints/list";
+import {
+    ListFingerprint,
+    ListFingerprints,
+} from "../fingerprints/list";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     DeleteTargetFingerprint,
