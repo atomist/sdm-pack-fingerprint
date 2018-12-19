@@ -7,12 +7,12 @@
             [clojure.pprint :refer [pprint]]
             [atomist.cljs-log :as log]
             [atomist.impact :as impact]
-            [atomist.fingerprint :as fingerprint]
+            [atomist.lein :as lein]
             [atomist.goals :as goals]
             [http.util :as util]
             [goog.string :as gstring]
             [goog.string.format]
-            [atomist.deps :as deps]
+            [atomist.fingerprints :as fingerprints]
             [atomist.promise :as promise]
             [hasch.core :as hasch]
             [atomist.logback :as logback]
@@ -60,10 +60,10 @@
         no-diff-handlers)))))
 
 (defn ^:export sha256 [s]
-  (clj->js (fingerprint/sha-256 (js->clj s))))
+  (clj->js (lein/sha-256 (js->clj s))))
 
 (defn ^:export depsFingerprints [s]
-  (deps/get-fingerprint s))
+  (fingerprints/fingerprint s))
 
 (defn ^:export logbackFingerprints [s]
   (logback/fingerprint s))
@@ -71,21 +71,19 @@
 (defn ^:export cljFunctionFingerprints [s]
   (public-defns/fingerprint s))
 
-(defn ^:export edit [f1 n v]
-  (deps/edit f1 n v))
-
 (defn ^:export getFingerprintPreference [query-fn fp-name]
   (promise/chan->promise (goals/get-fingerprint-preference query-fn fp-name)))
 
 (defn ^:export applyFingerprint
-  "returns Promise<any>"
+  "send fingerprint to all of our fingerprinting modules
+   returns Promise<boolean>"
   [basedir fp]
   (log/info "apply fingerprint " fp " to basedir " basedir)
   (promise/chan->promise
    (go
     (let [clj-fp (js->clj fp :keywordize-keys true)]
       ;; currently sync functions but they should probably return channels
-      (deps/apply-fingerprint basedir clj-fp)
+      (fingerprints/apply-fingerprint basedir clj-fp)
       (logback/apply-fingerprint basedir clj-fp))
     true)))
 
@@ -225,18 +223,6 @@
   [fingerprint-query fp cb]
   (promise/chan->promise
    (goals/broadcast-fingerprint fingerprint-query (js->clj fp :keywordize-keys true) cb)))
-
-(defn ^:export npmLatest
-  "use npm view to determine version of library tagged with latest"
-  [package]
-  (log/info "clj-editors npm latest")
-  (js/Promise.
-   (fn [resolve reject]
-     (try
-       (resolve (npm/latest package))
-       (catch :default e
-         (log/warn "failure to run npm latest " e)
-         (reject e))))))
 
 (defn noop [])
 

@@ -42,6 +42,7 @@ import {
     applyFingerprint,
     logbackFingerprints,
     cljFunctionFingerprints,
+    depsFingerprints,
 } from "../fingerprints";
 import {
     applyBackpackFingerprint,
@@ -61,6 +62,10 @@ import {
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
+);
+
+const IsClojure: PushTest = pushTest(`contains project.clj file`, async pci =>
+    !!(await pci.project.getFile("project.clj")),
 );
 
 const backpackComplianceGoal = new GoalWithFulfillment(
@@ -88,17 +93,15 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
         whenPushSatisfies(IsNpm)
             .itMeans("fingerprint an npm project")
             .setGoals(FingerprintingGoals),
+        whenPushSatisfies(IsClojure)
+            .itMeans("fingerprint a clojure project")
+            .setGoals(FingerprintingGoals)
     );
 
     sdm.addExtensionPacks(
         fingerprintSupport(
             FingerprintGoal,
             [
-                {
-                    extract: p => logbackFingerprints(p.baseDir),
-                    apply: (p, fp) => applyFingerprint(p.baseDir, fp),
-                    selector: fp => fp.name === "elk-logback",
-                },
                 {
                     extract: createNpmDepsFingerprints,
                     apply: applyNpmDepsFingerprint,
@@ -113,13 +116,22 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     extract: backpackFingerprint,
                     apply: applyBackpackFingerprint,
                     selector: fp => fp.name === "backpack-react-scripts",
-
+                },
+                {
+                    extract: p => logbackFingerprints(p.baseDir),
+                    apply: (p, fp) => applyFingerprint(p.baseDir, fp),
+                    selector: fp => fp.name === "elk-logback",
+                },
+                {
+                    extract: (p) => depsFingerprints(p.baseDir),
+                    apply: (p,fp) => applyFingerprint(p.baseDir,fp),
+                    selector: fp => fp.name.startsWith("clojure-project"),
                 },
                 {
                     extract: (p) => cljFunctionFingerprints(p.baseDir),
                     apply: (p,fp) => applyFingerprint(p.baseDir,fp),
-                    selector: fp => fp.name.startsWith("clojure-project") || fp.name.startsWith("public-defn-bodies"),
-                }
+                    selector: fp => fp.name.startsWith("public-defn-bodies"),
+                },
             ],
             checkNpmCoordinatesImpactHandler(),
             fingerprintImpactHandler(

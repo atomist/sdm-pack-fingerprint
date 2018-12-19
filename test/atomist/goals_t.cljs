@@ -3,7 +3,6 @@
   (:require [clojure.data]
             [atomist.json :as json]
             [atomist.cljs-log :as log]
-            [atomist.deps :as deps]
             [atomist.promise :refer [from-promise]]
             [cljs.pprint :refer [pprint]]
             [cljs.core.async :refer [chan <! >!]]
@@ -92,7 +91,8 @@
              (fn [m o]
                (println "message" m)
                (is (= "Current library targets:\n*librarya:v1*" m))
-               (is (= [{:text "cljs-node-io 0.5.0", :value "cljs-node-io:0.5.0:clojure-project-deps"}] (js->clj o :keywordize-keys true)))
+               (is (= [{:text "cljs-node-io 0.5.0", :value "cljs-node-io:0.5.0:clojure-project-deps"}
+                       {:text "org.clojure/clojurescript 1.10.238", :value "org.clojure/clojurescript:1.10.238:clojure-project-deps"}] (js->clj o :keywordize-keys true)))
                (js/Promise.
                 (fn [resolve] (resolve :done)))))))))))
 

@@ -6,8 +6,8 @@
   (:require [clojure.data]
             [atomist.json :as json]
             [atomist.cljs-log :as log]
-            [atomist.deps :as deps]
             [atomist.promise :refer [from-promise]]
+            [atomist.fingerprints :as deps]
             [cljs.pprint :refer [pprint]]
             [cljs.core.async :refer [chan <! >!]]
             [cljs.test :refer-macros [deftest testing is run-tests async] :refer [report testing-vars-str empty-env get-current-env]]
@@ -421,7 +421,7 @@
   (go
    (let [preferences (<! (from-promise (query-prefs)))
          chat-team-id (-> preferences :ChatTeam first :id)]
-     (log/info "delete-fingerprint-preference on team " chat-team-id " and fingerprint " fingerprint)
+     (log/info "delete-fingerprint-preference on team " chat-team-id " and fingerprint " fp-name)
      (if fp-name
        (do
          (<! (from-promise (pref-editor fp-name chat-team-id "")))

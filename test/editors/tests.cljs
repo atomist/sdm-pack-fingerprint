@@ -1,7 +1,6 @@
 (ns editors.tests
   (:require [cljs.test :refer-macros [deftest testing is run-tests run-all-tests async] :refer [report testing-vars-str empty-env get-current-env]]
             [editors.main-t]
-            [atomist.npm-t]
             [atomist.impact-t]
             [atomist.goals-t]
             [atomist.deps-t]
@@ -21,7 +20,6 @@
 
 (doo-tests
  'editors.main-t
- 'atomist.npm-t
  'atomist.impact-t
  'atomist.deps-t
  'atomist.goals-t)

@@ -142,6 +142,9 @@
       (clj->js)
       (accept)))))
 
+(defn apply-fingerprint [f fp]
+  )
+
 (comment
  (def clj1 "/Users/slim/repo/clj1")
  (count (io/file-seq clj1))

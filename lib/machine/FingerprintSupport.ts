@@ -71,7 +71,6 @@ import {
     ShowGoals,
     ShowTargets,
 } from "../handlers/commands/showTargets";
-import { UseLatest } from "../handlers/commands/useLatest";
 import { PullRequestImpactHandlerRegistration } from "../handlers/events/prImpactHandler";
 import {
     checkLibraryGoals,
@@ -326,5 +325,4 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintIm
     sdm.addCommand(BroadcastNudge);
     sdm.addCommand(ShowTargets);
     sdm.addCommand(DumpLibraryPreferences);
-    sdm.addCommand(UseLatest);
 }

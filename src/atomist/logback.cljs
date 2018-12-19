@@ -8,8 +8,7 @@
             [atomist.cljs-log :as log]
             [cljs.test :refer-macros [deftest testing is run-tests async are] :refer [report testing-vars-str empty-env get-current-env]]
             [cljs.spec.alpha :as spec]
-            [atomist.specs :as schema]
-            [atomist.fingerprint :as fingerprint]))
+            [atomist.specs :as schema]))
 
 (defn xml->clj [f]
   (-> (.xml2json xml-js (slurp f))

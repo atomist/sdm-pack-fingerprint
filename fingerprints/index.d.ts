@@ -129,6 +129,3 @@ export declare function broadcast( queryFingerprints: (name: string) => Promise<
                                    library: {name: string, version: string, fp: string},
                                    callback: (owner: string, repo: string, channel: string) => Promise<any>
                                    ): Promise<any>
-
-// find the version of a library tagged with latest (on npmjs.org)
-export declare function npmLatest( package: string ): Promise<string>

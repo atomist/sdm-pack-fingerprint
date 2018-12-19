@@ -1,11 +1,11 @@
-(ns atomist.deps
+(ns atomist.fingerprints
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [clojure.data]
             [cljs-node-io.core :as io :refer [slurp spit]]
             [cljs-node-io.file :as file]
             [atomist.json :as json]
             [atomist.cljs-log :as log]
-            [atomist.fingerprint :as clojure]
+            [atomist.lein :as lein]
             [atomist.maven :as maven]
             [atomist.promise :refer [from-promise]]
             [cljs.pprint :refer [pprint]]
@@ -13,9 +13,9 @@
             [cljs.test :refer-macros [deftest testing is run-tests async] :refer [report testing-vars-str empty-env get-current-env]]
             [goog.string :as gstring]
             [goog.string.format]
-            [atomist.lein :as lein]
             [cljs.spec.alpha :as spec]
-            [atomist.specs :as schema]))
+            [atomist.specs :as schema]
+            [atomist.public-defns :as public-defns]))
 
 (defn- get-file [basedir path f]
   (if-let [file (io/file basedir path)]
@@ -35,14 +35,14 @@
   "returns ::deps"
   [basedir]
   (->> (concat
-        (map (add-fingerprint "clojure-project-deps") (get-file basedir "project.clj" atomist.fingerprint/project-dependencies))
+        (map (add-fingerprint "clojure-project-deps") (get-file basedir "project.clj" lein/project-dependencies))
         (map (add-fingerprint "maven-project-deps") (get-file basedir "pom.xml" maven/project-dependencies)))
        (into [])))
 (spec/fdef get-deps
            :args (spec/cat :basedir string?)
            :ret ::schema/deps)
 
-(defn get-fingerprint
+(defn fingerprint
   "extract library fingerprint data from a basedir containing some sort of project manifest and possibly
    a project lock file (depending on the system)
 
@@ -53,24 +53,30 @@
      (accept
       (let [data (concat
                   (get-file basedir "pom.xml" maven/run)
-                  (get-file basedir "project.clj" clojure/run))]
+                  (get-file basedir "project.clj" lein/run))]
         (->> data
              (map #(assoc %
-                     :sha (clojure/sha-256 (json/json-str (:data %)))
+                     :sha (lein/sha-256 (json/json-str (:data %)))
                      :data (json/json-str (:data %))
                      :value (json/json-str (:data %))))
              (into [])
              (clj->js)))))))
 
-(defn edit
-  "edit a dependency in a project manifest
-   synchronous call
-   returns Any"
-  [basedir n v]
-  (get-file basedir "project.clj" (fn [f] (spit f (lein/edit-library (slurp f) n v))))
-  (get-file basedir "pom.xml" (fn [f] (maven/edit basedir n v))))
-
 (defn apply-fingerprint
-  ""
+  "runs synchronously right now"
   [basedir {:keys [name] :as fingerprint}]
-  (get-file basedir "pom.xml" (fn [f] (maven/apply-fingerprint f fingerprint))))
+
+  (get-file
+   basedir "pom.xml"
+   (fn [f] (maven/apply-fingerprint f fingerprint)))
+
+  (get-file
+   basedir "project.clj"
+   (fn [f]
+     (cond
+
+       (gstring/startsWith (:name fingerprint) "clojure-project-deps")
+       (spit f (lein/edit-library (slurp f) (-> fingerprint :data (nth 0)) (-> fingerprint :data (nth 1)))))))
+
+  (if (gstring/startsWith (:name fingerprint) "public-defn-bodies")
+    (public-defns/apply-fingerprint basedir clj-fp)))

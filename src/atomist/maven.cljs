@@ -238,7 +238,7 @@
                     ["com.dealer.webplatform/jvms-spring-boot-test" "2.6.4-SNAPSHOT"]]
              :abbreviation "maven-deps"
              :version "0.0.1"}
-            {:name "project-coordinates"
+            {:name "maven-project-coordinates"
              :data {:name "com.dealer.webplatform/jvms-parent-pom" :version "2.6.4-SNAPSHOT"}
              :abbreviation "coords"
              :version "0.0.1"}]
