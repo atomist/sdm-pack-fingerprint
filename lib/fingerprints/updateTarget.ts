@@ -41,7 +41,10 @@ import {
     queryPreferences,
 } from "../adhoc/preferences";
 import { footer } from "../support/util";
-import { GetAllFingerprintsOnSha, GetFingerprintOnShaByName } from "../typings/types";
+import {
+    GetAllFingerprintsOnSha,
+    GetFingerprintOnShaByName,
+} from "../typings/types";
 import { askAboutBroadcast } from "./broadcast";
 
 @Parameters()
