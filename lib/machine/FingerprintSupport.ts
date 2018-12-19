@@ -49,10 +49,11 @@ import {
     MessageMaker,
     votes,
 } from "../fingerprints/impact";
-import { ListFingerprints, ListFingerprint } from "../fingerprints/list";
+import { ListFingerprint, ListFingerprints } from "../fingerprints/list";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     DeleteTargetFingerprint,
+    SelectTargetFingerprintFromCurrentProject,
     setNewTargetFingerprint,
     SetTargetFingerprint,
     SetTargetFingerprintFromLatestMaster,
@@ -68,6 +69,8 @@ import {
 import {
     ClearLibraryTargets,
     DumpLibraryPreferences,
+    ListFingerprintTargets,
+    ListOneFingerprintTarget,
     ShowGoals,
     ShowTargets,
 } from "../handlers/commands/showTargets";
@@ -204,6 +207,7 @@ export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig
 
         sdm.addCommand(ListFingerprints);
         sdm.addCommand(ListFingerprint);
+        sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
 
         return {
             selector: fp => true,
@@ -325,4 +329,6 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintIm
     sdm.addCommand(BroadcastNudge);
     sdm.addCommand(ShowTargets);
     sdm.addCommand(DumpLibraryPreferences);
+    sdm.addCommand(ListFingerprintTargets);
+    sdm.addCommand(ListOneFingerprintTarget);
 }

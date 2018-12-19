@@ -152,8 +152,8 @@ export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerCont
                 };
             }
 
-            if (result.diff) { 
-                return await editGoal(
+            if (result.diff) {
+                return editGoal(
                     ctx,
                     result.diff,
                     config.complianceGoal,

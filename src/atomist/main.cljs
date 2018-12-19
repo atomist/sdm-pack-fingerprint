@@ -16,7 +16,8 @@
             [atomist.promise :as promise]
             [hasch.core :as hasch]
             [atomist.logback :as logback]
-            [atomist.public-defns :as public-defns]))
+            [atomist.public-defns :as public-defns]
+            [atomist.json :as json]))
 
 (defn ^:export voteResults
   [votes]
@@ -99,6 +100,31 @@
       first
       :commit
       :fingerprints))
+
+(defn ^:export fpPreferences
+  ""
+  [query]
+  (->>
+   (-> query
+       (js->clj :keywordize-keys true)
+       :ChatTeam
+       first
+       :preferences)
+   (map (fn [{:keys [name value]}]
+          (try
+            (json/json->clj value :keywordize-keys true)
+            (catch :default x
+              (log/error "preference value is not json " x)))))
+   (filter (fn [x] (and x (contains? x :name) (contains? x :sha) (contains? x :data))))
+   (into [])
+   (clj->js)))
+
+(defn ^:export fpPreference
+  ""
+  [query fp-name]
+  (->> (js->clj (fpPreferences query) :keywordize-keys true)
+       (some (fn [x] (if (= fp-name (:name x)) x)))
+       (clj->js)))
 
 (defn format-list [xs]
   (->> xs

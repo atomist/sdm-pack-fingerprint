@@ -22,6 +22,8 @@ export declare function edit(f1:string,n:string,v:string): void
 export declare function getFingerprintPreference(query: () => Promise<any> ,fpName:string): Promise<FP>
 export declare function applyFingerprint(f1:string, fp: FP): Promise<any>
 export declare function list(fps: any): string
+export declare function fpPreferences(query: any): FP[]
+export declare function fpPreference(query: any, fpName: string): FP
 
 /**
  * Utility functions to rewrite in typescript

@@ -17,16 +17,16 @@
 import {
     MappedParameter,
     MappedParameters,
+    menuForCommand,
     Parameter,
     Parameters,
-    menuForCommand,
     SlackFileMessage,
 } from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
-import { queryFingerprintsByBranchRef, queryFingerprintOnShaByName } from "../adhoc/fingerprints";
 import { SlackMessage } from "@atomist/slack-messages";
-import { GetAllFingerprintsOnSha, GetFingerprintOnShaByName } from "../typings/types";
 import { renderData } from "../..";
+import { queryFingerprintOnShaByName, queryFingerprintsByBranchRef } from "../adhoc/fingerprints";
+import { GetAllFingerprintsOnSha, GetFingerprintOnShaByName } from "../typings/types";
 
 @Parameters()
 export class ListFingerprintParameters {
@@ -72,12 +72,12 @@ export const ListFingerprint: CommandHandlerRegistration<ListOneFingerprintParam
             cli.parameters.repo,
             cli.parameters.owner,
             cli.parameters.branch,
-            cli.parameters.fingerprint
+            cli.parameters.fingerprint,
         );
 
-        var fingerprint = query.Repo[0].branches[0].commit.fingerprints[0];
+        const fingerprint = query.Repo[0].branches[0].commit.fingerprints[0];
         fingerprint.data = JSON.parse(fingerprint.data);
-        
+
         const message: SlackFileMessage = {
             title: `fingerprint ${cli.parameters.fingerprint} currently on ${cli.parameters.owner}/${cli.parameters.repo}`,
             content: renderData(fingerprint),
@@ -85,8 +85,8 @@ export const ListFingerprint: CommandHandlerRegistration<ListOneFingerprintParam
         };
 
         return cli.addressChannels(message);
-    }
-}
+    },
+};
 
 export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParameters> = {
     name: "ListFingerprints",
@@ -107,18 +107,19 @@ export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParamet
         const message: SlackMessage = {
             attachments: [
                 {
+                    text: "Choose one fingerprint",
                     fallback: "select fingerprint",
                     actions: [
                         menuForCommand(
                             {
-                                text: "fingerprints",
+                                text: "select fingerprint",
                                 options: [
                                     ...fps.map(x => {
                                         return {
                                             value: x.name,
                                             text: x.name,
-                                        }
-                                    })
+                                        };
+                                    }),
                                 ],
                             },
                             ListFingerprint,
@@ -129,10 +130,10 @@ export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParamet
                                 branch,
                                 providerId: cli.parameters.providerId,
                             },
-                        )
-                    ]
-                }
-            ]
+                        ),
+                    ],
+                },
+            ],
         };
 
         return cli.addressChannels(message);

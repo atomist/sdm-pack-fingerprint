@@ -24,7 +24,7 @@ import {
 } from "../typings/types";
 
 // TODO this assumes one ChatTeam per graphql endpoint - the whole preference model will move to a custom type
-export function queryPreferences(graphClient: GraphClient): () => Promise<any> {
+export function queryPreferences(graphClient: GraphClient): () => Promise<ChatTeamPreferences.Query> {
     return () => {
         return graphClient.query<ChatTeamPreferences.Query, ChatTeamPreferences.Variables>(
             { name: "chatTeamPreferences", options: QueryNoCacheOptions },

@@ -40,9 +40,9 @@ import {
 } from "..";
 import {
     applyFingerprint,
-    logbackFingerprints,
     cljFunctionFingerprints,
     depsFingerprints,
+    logbackFingerprints,
 } from "../fingerprints";
 import {
     applyBackpackFingerprint,
@@ -95,7 +95,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             .setGoals(FingerprintingGoals),
         whenPushSatisfies(IsClojure)
             .itMeans("fingerprint a clojure project")
-            .setGoals(FingerprintingGoals)
+            .setGoals(FingerprintingGoals),
     );
 
     sdm.addExtensionPacks(
@@ -123,13 +123,13 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     selector: fp => fp.name === "elk-logback",
                 },
                 {
-                    extract: (p) => depsFingerprints(p.baseDir),
-                    apply: (p,fp) => applyFingerprint(p.baseDir,fp),
+                    extract: p => depsFingerprints(p.baseDir),
+                    apply: (p, fp) => applyFingerprint(p.baseDir, fp),
                     selector: fp => fp.name.startsWith("clojure-project"),
                 },
                 {
-                    extract: (p) => cljFunctionFingerprints(p.baseDir),
-                    apply: (p,fp) => applyFingerprint(p.baseDir,fp),
+                    extract: p => cljFunctionFingerprints(p.baseDir),
+                    apply: (p, fp) => applyFingerprint(p.baseDir, fp),
                     selector: fp => fp.name.startsWith("public-defn-bodies"),
                 },
             ],

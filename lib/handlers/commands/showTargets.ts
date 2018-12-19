@@ -21,6 +21,7 @@ import {
     MappedParameters,
     menuForCommand,
     NoParameters,
+    Parameter,
     Parameters,
     Secret,
     SlackFileMessage,
@@ -34,12 +35,14 @@ import {
 
 import { SlackMessage } from "@atomist/slack-messages";
 import * as goals from "../../../fingerprints/index";
+import { FP, fpPreference, fpPreferences, renderData } from "../../../fingerprints/index";
 import { queryChatTeamById } from "../../adhoc/fingerprints";
 import {
     mutatePreference,
     queryPreferences,
 } from "../../adhoc/preferences";
 import { footer } from "../../support/util";
+import { ChatTeamPreferences } from "../../typings/types";
 import { ChooseTeamLibrary } from "./setLibraryGoal";
 
 // ------------------------------
@@ -182,5 +185,73 @@ export const DumpLibraryPreferences: CommandHandlerRegistration = {
                 return cli.addressChannels(`unable to fetch preferences ${error}`);
             },
         );
+    },
+};
+
+@Parameters()
+export class ListOneFingeprintTargetParameters {
+    @Parameter({required: true})
+    public fingerprint: string;
+}
+
+export const ListOneFingerprintTarget: CommandHandlerRegistration<ListOneFingeprintTargetParameters> = {
+    name: "ListOneFingerprintTarget",
+    description: "list a single fingerprint target",
+    paramsMaker: ListOneFingeprintTargetParameters,
+    listener: async cli => {
+        const query: ChatTeamPreferences.Query = await (queryPreferences(cli.context.graphClient))();
+
+        const fp: FP = fpPreference(query, cli.parameters.fingerprint);
+        logger.info(`fps ${goals.renderData(fp)}`);
+
+        const message: SlackFileMessage = {
+            title: `current target for ${cli.parameters.fingerprint}`,
+            content: renderData(fp),
+            fileType: "text",
+        };
+
+        return cli.addressChannels(message);
+    },
+};
+
+export const ListFingerprintTargets: CommandHandlerRegistration = {
+    name: "ListFingerprintTargets",
+    description: "list all current fingerprint targets",
+    intent: "listFingerprintTargets",
+    listener: async cli => {
+
+        const query: ChatTeamPreferences.Query = await (queryPreferences(cli.context.graphClient))();
+
+        const fps: FP[] = fpPreferences(query);
+        logger.info(`fps ${goals.renderData(fps)}`);
+
+        const message: SlackMessage = {
+            attachments: [
+                {
+                    text: "Choose one of the current fingerprints",
+                    fallback: "select fingerprint",
+                    actions: [
+                        menuForCommand(
+                            {
+                                text: "select fingerprint",
+                                options: [
+                                    ...fps.map(x => {
+                                        return {
+                                            value: x.name,
+                                            text: x.name,
+                                        };
+                                    }),
+                                ],
+                            },
+                            ListOneFingerprintTarget,
+                            "fingerprint",
+                            {},
+                        ),
+                    ],
+                },
+            ],
+        };
+
+        return cli.addressChannels(message);
     },
 };
