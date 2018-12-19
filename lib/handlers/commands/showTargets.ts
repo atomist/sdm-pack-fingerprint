@@ -189,15 +189,16 @@ export const DumpLibraryPreferences: CommandHandlerRegistration = {
 };
 
 @Parameters()
-export class ListOneFingeprintTargetParameters {
-    @Parameter({required: true})
+export class ListOneFingerprintTargetParameters {
+    @Parameter({required: true, description: "fingerprint to display"})
     public fingerprint: string;
 }
 
-export const ListOneFingerprintTarget: CommandHandlerRegistration<ListOneFingeprintTargetParameters> = {
+export const ListOneFingerprintTarget: CommandHandlerRegistration<ListOneFingerprintTargetParameters> = {
     name: "ListOneFingerprintTarget",
     description: "list a single fingerprint target",
-    paramsMaker: ListOneFingeprintTargetParameters,
+    paramsMaker: ListOneFingerprintTargetParameters,
+    intent: "listOneFingerprintTarget",
     listener: async cli => {
         const query: ChatTeamPreferences.Query = await (queryPreferences(cli.context.graphClient))();
 
