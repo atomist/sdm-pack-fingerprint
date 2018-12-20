@@ -15,9 +15,9 @@
  */
 
 import {
+    GraphQL,
     NoParameters,
     SuccessPromise,
-    GraphQL,
 } from "@atomist/automation-client";
 import { EventHandlerRegistration } from "@atomist/sdm";
 import { PullRequestImpactEvent } from "../../typings/types";

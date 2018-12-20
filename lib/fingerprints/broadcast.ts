@@ -160,6 +160,7 @@ export const BroadcastFingerprintMandate: CommandHandlerRegistration<BroadcastFi
         },
     },
     listener: broadcastMandate,
+    autoSubmit: true,
 };
 
 export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFingerprintNudgeParameters> = {
@@ -181,4 +182,5 @@ export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFing
         },
     },
     listener: broadcastNudge,
+    autoSubmit: true,
 };
