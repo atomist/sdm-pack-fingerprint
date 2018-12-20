@@ -26,7 +26,11 @@ import {
     CodeTransformRegistration,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
-import { applyFingerprint, FP, getFingerprintPreference } from "../../fingerprints/index";
+import {
+    applyFingerprint,
+    FP,
+    getFingerprintPreference,
+} from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import {
     EditModeMaker,
