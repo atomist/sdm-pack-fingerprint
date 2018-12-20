@@ -15,6 +15,7 @@
  */
 
 import {
+    GraphQL,
     HandlerContext,
     logger,
     NoParameters,
@@ -23,7 +24,6 @@ import {
     SlackFileMessage,
     SuccessPromise,
 } from "@atomist/automation-client";
-import { GraphQL } from "@atomist/automation-client";
 import {
     actionableButton,
     EventHandlerRegistration,

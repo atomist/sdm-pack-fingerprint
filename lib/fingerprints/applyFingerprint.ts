@@ -26,8 +26,7 @@ import {
     CodeTransformRegistration,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
-import * as fingerprints from "../../fingerprints/index";
-import { FP } from "../../fingerprints/index";
+import { applyFingerprint, FP, getFingerprintPreference } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import {
     EditModeMaker,
@@ -58,12 +57,12 @@ async function pusher( message: (s: string) => Promise<any>, p: GitProject, regi
         }
     }
 
-    await fingerprints.applyFingerprint(p.baseDir, fp);
+    await applyFingerprint(p.baseDir, fp);
 
     return p;
 }
 
-function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
+function runAllFingerprintAppliers( registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
         const targets = cli.parameters as any;
@@ -89,7 +88,7 @@ function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransf
             async (s: string) => cli.addressChannels(s),
             (p as GitProject),
             registrations,
-            await fingerprints.getFingerprintPreference(
+            await getFingerprintPreference(
                 queryPreferences(cli.context.graphClient),
                 cli.parameters.fingerprint));
     };
@@ -105,7 +104,7 @@ export function applyTargetFingerprint(
         description: "choose to raise a PR on the current project to apply a target fingerprint",
         paramsMaker: ApplyTargetFingerprintParameters,
         transformPresentation: presentation,
-        transform: applyFingerprint(registrations),
+        transform: runAllFingerprintAppliers(registrations),
         autoSubmit: true,
     };
     return ApplyTargetFingerprint;

@@ -64,7 +64,7 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
 
         return fingerprints;
     } else {
-        return null;
+        return undefined;
     }
 };
 

@@ -45,7 +45,7 @@ import {
 } from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
 import {
-    checkFingerprintTargets,
+    checkFingerprintTarget,
     MessageMaker,
     votes,
 } from "../fingerprints/impact";
@@ -216,7 +216,7 @@ export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig
         return {
             selector: fp => true,
             handler: async (ctx, diff) => {
-                const v: Vote = await checkFingerprintTargets(ctx, diff, config);
+                const v: Vote = await checkFingerprintTarget(ctx, diff, config);
                 return v;
             },
             ballot: votes(config),

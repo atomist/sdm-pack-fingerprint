@@ -29,8 +29,12 @@ import {
     CommandHandlerRegistration,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
-import * as goals from "../../fingerprints/index";
-import { FP } from "../../fingerprints/index";
+import {
+    deleteGoalFingerprint,
+    FP,
+    setGoalFingerprint,
+    setTargetFingerprint,
+} from "../../fingerprints/index";
 import {
     queryFingerprintBySha,
     queryFingerprintOnShaByName,
@@ -84,7 +88,7 @@ export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<Se
         const sha: string = query.Repo[0].branches[0].commit.fingerprints[0].sha;
         logger.info(`found sha ${sha}`);
         if (sha) {
-            await goals.setGoalFingerprint(
+            await setGoalFingerprint(
                 queryPreferences(cli.context.graphClient),
                 queryFingerprintBySha(cli.context.graphClient),
                 mutatePreference(cli.context.graphClient),
@@ -118,7 +122,7 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
     paramsMaker: UpdateTargetFingerprintParameters,
     listener: async cli => {
         await cli.context.messageClient.respond(`updating the goal state for all ${cli.parameters.name} fingerprints`);
-        await goals.setGoalFingerprint(
+        await setGoalFingerprint(
             queryPreferences(cli.context.graphClient),
             queryFingerprintBySha(cli.context.graphClient),
             mutatePreference(cli.context.graphClient),
@@ -143,7 +147,7 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
     paramsMaker: SetTargetFingerprintParameters,
     listener: async cli => {
         logger.info(`set target fingerprint for ${cli.parameters.fp}`);
-        await goals.setTargetFingerprint(
+        await setTargetFingerprint(
             queryPreferences(cli.context.graphClient),
             mutatePreference(cli.context.graphClient),
             cli.parameters.fp);
@@ -167,7 +171,7 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
     paramsMaker: DeleteTargetFingerprintParameters,
     listener: async cli => {
         await cli.context.messageClient.respond(`updating the goal state for all ${cli.parameters.name} fingerprints`);
-        await goals.deleteGoalFingerprint(
+        await deleteGoalFingerprint(
             queryPreferences(cli.context.graphClient),
             mutatePreference(cli.context.graphClient),
             cli.parameters.name,

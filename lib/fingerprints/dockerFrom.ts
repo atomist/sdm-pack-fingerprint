@@ -46,7 +46,7 @@ export const dockerBaseFingerprint: ExtractFingerprint = async p => {
         return fp;
     } else {
 
-        return null;
+        return undefined;
     }
 };
 
