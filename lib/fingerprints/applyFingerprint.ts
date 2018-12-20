@@ -68,8 +68,6 @@ function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransf
 
         const targets = cli.parameters as any;
 
-        logger.info(`secret parameters in code transform ${fingerprints.renderData(cli.parameters)}`);
-
         const message: SlackMessage = {
             attachments: [
                 {
