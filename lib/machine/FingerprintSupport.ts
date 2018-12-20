@@ -167,10 +167,11 @@ export const messageMaker: MessageMaker = async params => {
                             params.editProject,
                             {
                                 msgId: params.msgId,
-                                owner: params.diff.owner,
-                                repo: params.diff.repo,
                                 fingerprint: params.fingerprint.name,
-                            }),
+                                "targets.owner": params.diff.owner,
+                                "targets.repo": params.diff.repo,
+                                "targets.sha": "master"
+                            } as any),
                         actionableButton(
                             { text: "Set New Target" },
                             params.mutateTarget,

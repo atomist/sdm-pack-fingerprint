@@ -18,8 +18,6 @@ import {
     GitProject,
     guid,
     logger,
-    MappedParameter,
-    MappedParameters,
     Parameter,
     Parameters,
 } from "@atomist/automation-client";
@@ -42,15 +40,6 @@ export class ApplyTargetFingerprintParameters {
 
     @Parameter({ required: false, displayable: false })
     public msgId?: string;
-
-    @MappedParameter(MappedParameters.GitHubOwner)
-    public owner: string;
-
-    @MappedParameter(MappedParameters.GitHubRepository)
-    public repo: string;
-
-    @MappedParameter(MappedParameters.GitHubRepositoryProvider)
-    public providerId: string;
 
     @Parameter({ required: true })
     public fingerprint: string;
@@ -77,13 +66,15 @@ async function pusher( message: (s: string) => Promise<any>, p: GitProject, regi
 function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
+        const targets = cli.parameters as any
+
         const message: SlackMessage = {
             attachments: [
                 {
                     author_name: "Apply target fingerprint",
                     author_icon: `https://images.atomist.com/rug/check-circle.gif?gif=${guid()}`,
                     text: `Applying target fingerprint \`${cli.parameters.fingerprint}\` to <https://github.com/${
-                        cli.parameters.owner}/${cli.parameters.repo}|${cli.parameters.owner}/${cli.parameters.repo}>`,
+                        targets["targets.owner"]}/${targets["targets.repo"]}|${targets["targets.owner"]}/${targets["targets.repo"]}>`,
                     mrkdwn_in: ["text"],
                     color: "#45B254",
                     fallback: "none",

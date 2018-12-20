@@ -23,7 +23,7 @@ import {
     SlackFileMessage,
     SuccessPromise,
 } from "@atomist/automation-client";
-import { subscription } from "@atomist/automation-client/lib/graph/graphQL";
+import { GraphQL } from "@atomist/automation-client";
 import {
     actionableButton,
     EventHandlerRegistration,
@@ -193,7 +193,7 @@ export function pushImpactHandler(handlers: FingerprintHandler[]): EventHandlerR
     return {
         name: "PushImpactHandler",
         description: "Register push impact handling functions",
-        subscription: subscription("PushImpactEvent"),
+        subscription: GraphQL.subscription("PushImpactEvent"),
         listener: pushImpactHandle(handlers),
     };
 }
