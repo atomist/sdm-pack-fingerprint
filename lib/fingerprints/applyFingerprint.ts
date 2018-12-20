@@ -66,7 +66,7 @@ async function pusher( message: (s: string) => Promise<any>, p: GitProject, regi
 function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
-        const targets = cli.parameters as any
+        const targets = cli.parameters as any;
 
         const message: SlackMessage = {
             attachments: [
