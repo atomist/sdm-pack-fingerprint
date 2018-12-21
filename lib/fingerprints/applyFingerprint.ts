@@ -69,15 +69,13 @@ async function pusher( message: (s: string) => Promise<any>, p: GitProject, regi
 function runAllFingerprintAppliers( registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
-        const targets = cli.parameters as any;
-
         const message: SlackMessage = {
             attachments: [
                 {
                     author_name: "Apply target fingerprint",
                     author_icon: `https://images.atomist.com/rug/check-circle.gif?gif=${guid()}`,
                     text: `Applying target fingerprint \`${cli.parameters.fingerprint}\` to <https://github.com/${
-                        targets["targets.owner"]}/${targets["targets.repo"]}|${targets["targets.owner"]}/${targets["targets.repo"]}>`,
+                        p.id.owner}/${p.id.repo}|${p.id.owner}/${p.id.repo}>`,
                     mrkdwn_in: ["text"],
                     color: "#45B254",
                     fallback: "none",

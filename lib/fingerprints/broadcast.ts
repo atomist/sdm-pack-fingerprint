@@ -50,14 +50,7 @@ export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, 
                             },
                             BroadcastFingerprintNudge,
                             { name, version, author, sha},
-                        ),
-                        actionableButton(
-                            {
-                                text: "Create PRs",
-                            },
-                            broadcastMandate,
-                            {name, version, author, sha},
-                        ),
+                        )
                     ],
                     footer: footer(),
                 }],
@@ -121,7 +114,7 @@ ${italic(cli.parameters.reason)}`,
                         actions: [
                             actionableButton(
                                 {
-                                    text: "Raise PR",
+                                    text: "Update",
                                 },
                                 ApplyTargetFingerprint,
                                 {

@@ -20,6 +20,7 @@ import {
     GitProject,
     HandlerContext,
     logger,
+    Project,
 } from "@atomist/automation-client";
 import {
     actionableButton,
@@ -108,7 +109,7 @@ export interface FingerprintHandler {
 /**
  * permits customization of EditModes in the FingerprintImpactHandlerConfig
  */
-export type EditModeMaker = (cli: CommandListenerInvocation<ApplyTargetFingerprintParameters>) => editModes.EditMode;
+export type EditModeMaker = (cli: CommandListenerInvocation<ApplyTargetFingerprintParameters>, project?: Project) => editModes.EditMode;
 
 /**
  * customize the out of the box strategy for monitoring when fingerprints are out
@@ -166,11 +167,13 @@ export const messageMaker: MessageMaker = async params => {
                             { text: "Update project" },
                             params.editProject,
                             {
-                                "msgId": params.msgId,
-                                "fingerprint": params.fingerprint.name,
-                                "targets.owner": params.diff.owner,
-                                "targets.repo": params.diff.repo,
-                                "targets.sha": "master",
+                                msgId: params.msgId,
+                                fingerprint: params.fingerprint.name,
+                                targets: {
+                                    owner: params.diff.owner,
+                                    repo: params.diff.repo,
+                                    branch: params.diff.branch,
+                                }
                             } as any),
                         actionableButton(
                             { text: "Set New Target" },

@@ -40,7 +40,7 @@ export declare function consistentHash(data: any): string
  * (to rewrite in typescript someday)
  */
 export declare interface DiffData {from: any[], to: any[]}
-export declare interface Diff {from: FP, to: FP, data: DiffData, owner: string, repo: string, sha: string, providerId: string, channel: string}
+export declare interface Diff {from: FP, to: FP, data: DiffData, owner: string, repo: string, sha: string, providerId: string, channel: string, branch: string}
 export declare interface Handler {selector: (a:FP) => boolean,
                                   action?: (b:Diff) => Promise<Vote>,
                                   diffAction?: (b:Diff) => Promise<Vote>,

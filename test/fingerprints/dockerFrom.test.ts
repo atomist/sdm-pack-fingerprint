@@ -70,7 +70,7 @@ describe("dockerBaseFingerprint", () => {
     });
 
     describe("empty dockerfile, invalid fingerprint", async () => {
-        it("should return null", async () => {
+        it("should return undefined", async () => {
             const p = InMemoryProject.from({
                 repo: "foo",
                 sha: "26e18ee3e30c0df0f0f2ff0bc42a4bd08a7024b9",
@@ -80,7 +80,7 @@ describe("dockerBaseFingerprint", () => {
             }, ({ path: "Dockerfile", content: "" })) as any;
 
             const result = await dockerBaseFingerprint(p);
-            assert.strictEqual(result, null);
+            assert.strictEqual(result, undefined);
         });
     });
 });
