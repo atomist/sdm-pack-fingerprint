@@ -113,7 +113,7 @@ export declare function checkLibraryGoals(queryPreferences: () => Promise<any>,
 
 // send a message if any project fingerprints are out of sync with the target state
 export declare function checkFingerprintTargets(queryPreferences: () => Promise<any>,
-                                                sendMessage: (s: string, fingerprint: FP) => Promise<Vote>,
+                                                sendMessage: (s: string, targetFP: FP, fingerprint: FP) => Promise<Vote>,
                                                 inSync: (fingerprint: FP) => Promise<Vote>,
                                                 diff: Diff
                                                 ): Promise<Vote>

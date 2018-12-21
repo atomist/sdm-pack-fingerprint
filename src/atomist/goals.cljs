@@ -371,6 +371,7 @@
               "\n"
               (gstring/format "<https://github.com/%s/%s|%s/%s>"
                               owner repo owner repo))
+             (clj->js fp-goal)
              (clj->js fingerprint))))
        (<! (from-promise
             (confirm-goal (clj->js fingerprint))))))))

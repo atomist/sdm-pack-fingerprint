@@ -57,6 +57,7 @@ export interface MessageMakerParams {
     ctx: HandlerContext;
     text: string;
     fingerprint: FP;
+    fpTarget: FP;
     diff: Diff;
     msgId: string;
     editProject: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
@@ -75,13 +76,14 @@ const updateableMessage: MessageIdMaker = (fingerprint, diff) => {
 // then we ask the user whether they want to update to the new target version
 // or maybe they want this backpack version to become the new target version
 function callback(ctx: HandlerContext, diff: Diff, config: FingerprintImpactHandlerConfig):
-    (s: string, fingerprint: FP) => Promise<Vote> {
-    return async (text, fingerprint) => {
+    (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
+    return async (text, fpTarget, fingerprint) => {
 
         await config.messageMaker({
             ctx,
             msgId: updateableMessage(fingerprint, diff),
             text,
+            fpTarget,
             fingerprint,
             diff,
             editProject: ApplyTargetFingerprint,
