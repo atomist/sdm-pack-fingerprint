@@ -173,7 +173,7 @@ export const messageMaker: MessageMaker = async params => {
                                     owner: params.diff.owner,
                                     repo: params.diff.repo,
                                     branch: params.diff.branch,
-                                }
+                                },
                             } as any),
                         actionableButton(
                             { text: "Set New Target" },
