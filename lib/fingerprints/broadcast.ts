@@ -50,7 +50,7 @@ export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, 
                             },
                             BroadcastFingerprintNudge,
                             { name, version, author, sha},
-                        )
+                        ),
                     ],
                     footer: footer(),
                 }],

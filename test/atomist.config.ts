@@ -18,6 +18,7 @@ import {
     Configuration,
     editModes,
 } from "@atomist/automation-client";
+import { AutoMergeMethod, AutoMergeMode } from "@atomist/automation-client/lib/operations/edit/editModes";
 import {
     Fingerprint,
     goals,
@@ -59,7 +60,6 @@ import {
 import {
     checkNpmCoordinatesImpactHandler,
 } from "../lib/machine/FingerprintSupport";
-import { AutoMergeMethod, AutoMergeMode } from "@atomist/automation-client/lib/operations/edit/editModes";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -148,7 +148,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                             {
                                 method: AutoMergeMethod.Squash,
                                 mode: AutoMergeMode.ApprovedReview,
-                            });                    
+                            });
                     },
                     messageMaker,
                 },
