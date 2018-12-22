@@ -221,7 +221,7 @@ export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig
         return {
             selector: fp => true,
             handler: async (ctx, diff) => {
-                const v: Vote = await checkFingerprintTarget(ctx, diff, config);
+                const v: Vote = await checkFingerprintTarget(ctx, diff, config, registrations);
                 return v;
             },
             ballot: votes(config),

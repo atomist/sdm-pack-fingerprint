@@ -43,7 +43,7 @@ import {
     VoteResults,
 } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
-import { FingerprintImpactHandlerConfig } from "../machine/FingerprintSupport";
+import { FingerprintImpactHandlerConfig, FingerprintRegistration } from "../machine/FingerprintSupport";
 import {
     FingerprintApplicationCommandRegistration,
 } from "./applyFingerprint";
@@ -173,7 +173,12 @@ export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerCont
     };
 }
 
-export async function checkFingerprintTarget(ctx: HandlerContext, diff: Diff, config: FingerprintImpactHandlerConfig): Promise<any> {
+export async function checkFingerprintTarget(
+    ctx: HandlerContext,
+    diff: Diff,
+    config: FingerprintImpactHandlerConfig,
+    registrations: FingerprintRegistration[]): Promise<any> {
+
     return checkFingerprintTargets(
         queryPreferences(ctx.graphClient),
         callback(ctx, diff, config),
