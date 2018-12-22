@@ -254,7 +254,7 @@ export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistrati
                                     }),
                                 ],
                             },
-                            SetTargetFingerprintFromLatestMaster,
+                            SetTargetFingerprintFromLatestMaster.name,
                             "fingerprint",
                             {
                                 owner: cli.parameters.owner,

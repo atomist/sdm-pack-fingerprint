@@ -128,7 +128,7 @@ export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParamet
                                     }),
                                 ],
                             },
-                            ListFingerprint,
+                            ListFingerprint.name,
                             "fingerprint",
                             {
                                 owner: cli.parameters.owner,

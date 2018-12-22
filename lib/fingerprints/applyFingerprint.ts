@@ -22,8 +22,12 @@ import {
     Parameters,
 } from "@atomist/automation-client";
 import {
+    branchAwareCodeTransform,
     CodeTransform,
     CodeTransformRegistration,
+    CommandHandlerRegistration,
+    RepoTargetingParameters,
+    SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import {
@@ -110,4 +114,11 @@ export function applyTargetFingerprint(
         autoSubmit: true,
     };
     return ApplyTargetFingerprint;
+}
+
+export let FingerprintApplicationCommandRegistration: CommandHandlerRegistration<RepoTargetingParameters>;
+
+export function compileCodeTransformCommand(registrations: FingerprintRegistration[], presentation: EditModeMaker, sdm: SoftwareDeliveryMachine) {
+    FingerprintApplicationCommandRegistration = branchAwareCodeTransform(applyTargetFingerprint(registrations, presentation), sdm);
+    return FingerprintApplicationCommandRegistration;
 }

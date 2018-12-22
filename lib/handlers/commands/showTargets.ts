@@ -249,7 +249,7 @@ export const ListFingerprintTargets: CommandHandlerRegistration = {
                                     }),
                                 ],
                             },
-                            ListOneFingerprintTarget,
+                            ListOneFingerprintTarget.name,
                             "fingerprint",
                             {},
                         ),

@@ -41,8 +41,8 @@ import {
     Vote,
 } from "../../fingerprints/index";
 import {
-    applyTargetFingerprint,
     ApplyTargetFingerprintParameters,
+    compileCodeTransformCommand,
 } from "../fingerprints/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
 import {
@@ -210,11 +210,13 @@ export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig
         sdm.addCommand(BroadcastFingerprintNudge);
 
         // this is the fingerprint editor
-        sdm.addCodeTransformCommand(applyTargetFingerprint(registrations, config.transformPresentation));
+        // sdm.addCodeTransformCommand(applyTargetFingerprint(registrations, config.transformPresentation));
 
         sdm.addCommand(ListFingerprints);
         sdm.addCommand(ListFingerprint);
         sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
+
+        sdm.addCommand(compileCodeTransformCommand(registrations, config.transformPresentation, sdm));
 
         return {
             selector: fp => true,

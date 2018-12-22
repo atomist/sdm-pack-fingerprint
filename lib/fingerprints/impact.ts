@@ -23,10 +23,10 @@ import {
     SuccessPromise,
 } from "@atomist/automation-client";
 import {
-    CodeTransformRegistration,
     CommandHandlerRegistration,
     findSdmGoalOnCommit,
     Goal,
+    RepoTargetingParameters,
     updateGoal,
     UpdateSdmGoalParams,
 } from "@atomist/sdm";
@@ -45,8 +45,7 @@ import {
 import { queryPreferences } from "../adhoc/preferences";
 import { FingerprintImpactHandlerConfig } from "../machine/FingerprintSupport";
 import {
-    ApplyTargetFingerprint,
-    ApplyTargetFingerprintParameters,
+    FingerprintApplicationCommandRegistration,
 } from "./applyFingerprint";
 import {
     UpdateTargetFingerprint,
@@ -60,7 +59,7 @@ export interface MessageMakerParams {
     fpTarget: FP;
     diff: Diff;
     msgId: string;
-    editProject: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
+    editProject: CommandHandlerRegistration<RepoTargetingParameters>;
     mutateTarget: CommandHandlerRegistration<UpdateTargetFingerprintParameters>;
 }
 
@@ -86,7 +85,7 @@ function callback(ctx: HandlerContext, diff: Diff, config: FingerprintImpactHand
             fpTarget,
             fingerprint,
             diff,
-            editProject: ApplyTargetFingerprint,
+            editProject: FingerprintApplicationCommandRegistration,
             mutateTarget: UpdateTargetFingerprint});
 
         if (config.complianceGoal) {
