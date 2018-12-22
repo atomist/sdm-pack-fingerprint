@@ -43,7 +43,10 @@ import {
     VoteResults,
 } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
-import { FingerprintImpactHandlerConfig, FingerprintRegistration } from "../machine/FingerprintSupport";
+import {
+    FingerprintImpactHandlerConfig,
+    FingerprintRegistration,
+} from "../machine/FingerprintSupport";
 import {
     FingerprintApplicationCommandRegistration,
 } from "./applyFingerprint";
