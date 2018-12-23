@@ -95,6 +95,8 @@ function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<F
 type FingerprintRunner = (p: GitProject) => Promise<FP[]>;
 export type ExtractFingerprint = (p: GitProject) => Promise<FP|FP[]>;
 export type ApplyFingerprint = (p: GitProject, fp: FP) => Promise<boolean>;
+export interface DiffSummary {title: string; description: string; }
+export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
 
 /**
  * different strategies can be used to handle PushImpactEventHandlers.
@@ -129,6 +131,7 @@ export interface FingerprintRegistration {
     selector: (name: FP) => boolean;
     extract: ExtractFingerprint;
     apply?: ApplyFingerprint;
+    summary?: DiffSummaryFingerprint;
 }
 
 /**
@@ -158,6 +161,7 @@ export const messageMaker: MessageMaker = async params => {
         {
             attachments: [
                 {
+                    title: params.title,
                     text: params.text,
                     color: "#45B254",
                     fallback: "Fingerprint Update",

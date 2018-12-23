@@ -59,6 +59,7 @@ import {
 import {
     applyNpmDepsFingerprint,
     createNpmDepsFingerprints,
+    diffNpmDepsFingerprints,
 } from "../lib/fingerprints/npmDeps";
 import {
     checkNpmCoordinatesImpactHandler,
@@ -110,6 +111,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     extract: createNpmDepsFingerprints,
                     apply: applyNpmDepsFingerprint,
                     selector: fp => fp.name.startsWith("npm-project-dep"),
+                    summary: diffNpmDepsFingerprints,
                 },
                 {
                     apply: applyDockerBaseFingerprint,

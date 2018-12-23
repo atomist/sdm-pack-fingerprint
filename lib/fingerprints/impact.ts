@@ -44,6 +44,7 @@ import {
 } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import {
+    DiffSummary,
     FingerprintImpactHandlerConfig,
     FingerprintRegistration,
 } from "../machine/FingerprintSupport";
@@ -57,6 +58,7 @@ import {
 
 export interface MessageMakerParams {
     ctx: HandlerContext;
+    title: string;
     text: string;
     fingerprint: FP;
     fpTarget: FP;
@@ -74,17 +76,43 @@ const updateableMessage: MessageIdMaker = (fingerprint, diff) => {
     return consistentHash([fingerprint.sha, diff.channel, diff.owner, diff.repo]);
 };
 
+function getDiffSummary(diff: Diff, target: FP, registrations: FingerprintRegistration[]): undefined | DiffSummary {
+
+    try {
+       for (const registration of registrations) {
+            if (registration.summary && registration.selector(diff.to)) {
+                return registration.summary(diff, target);
+            }
+        }
+    } catch (e) {
+        logger.warn(`failed to create summary: ${e}`);
+    }
+
+    return undefined;
+}
+
+function orDefault<T>(cb: () => T, x: T): T {
+    try {
+        return cb();
+    } catch (y) {
+        return x;
+    }
+}
+
 // when we discover a backpack dependency that is not the target state
 // then we ask the user whether they want to update to the new target version
 // or maybe they want this backpack version to become the new target version
-function callback(ctx: HandlerContext, diff: Diff, config: FingerprintImpactHandlerConfig):
+function callback(ctx: HandlerContext, diff: Diff, config: FingerprintImpactHandlerConfig, registrations: FingerprintRegistration[]):
     (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
     return async (text, fpTarget, fingerprint) => {
+
+        const summary = getDiffSummary(diff, fpTarget, registrations);
 
         await config.messageMaker({
             ctx,
             msgId: updateableMessage(fingerprint, diff),
-            text,
+            title: orDefault( () => summary.title , "New Target"),
+            text: orDefault( () => summary.description, text),
             fpTarget,
             fingerprint,
             diff,
@@ -184,7 +212,7 @@ export async function checkFingerprintTarget(
 
     return checkFingerprintTargets(
         queryPreferences(ctx.graphClient),
-        callback(ctx, diff, config),
+        callback(ctx, diff, config, registrations),
         fingerprintInSyncCallback(ctx, diff, config.complianceGoal),
         diff,
     );
