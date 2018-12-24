@@ -175,7 +175,7 @@ export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerCont
 
             let goalState;
             const result: VoteResults = voteResults(vs);
-            logger.info(`ballot result ${renderData(result)} for ${renderData(vs)}`);
+            logger.debug(`ballot result ${renderData(result)} for ${renderData(vs)}`);
 
             if (result.failed) {
                 goalState = {

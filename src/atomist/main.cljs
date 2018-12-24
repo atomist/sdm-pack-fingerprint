@@ -157,6 +157,19 @@
     (with-out-str
      (pprint event))))
 
+(defn ^:export renderClojureProjectDiff [diff, target]
+  (let [{:as d} (js->clj diff :keywordize-keys true)
+        {:as t} (js->clj target :keywordize-keys true)]
+    (clj->js
+     {:title (gstring/format "New Library Target")
+      :description (gstring/format
+                    "Target version for library *%s* is *%s*.  Currently *%s* in *%s/%s*"
+                    (-> d :from :data (nth 0))
+                    (-> t :data (nth 1))
+                    (-> d :from :data (nth 1))
+                    (-> d :owner)
+                    (-> d :repo))})))
+
 (defn ^:export commaSeparatedList [x]
   (let [event (js->clj x :keywordize-keys true)]
     (apply str (interpose "," event))))

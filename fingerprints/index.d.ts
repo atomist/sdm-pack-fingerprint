@@ -34,6 +34,7 @@ export declare function renderData(x: any): string
 export declare function commaSeparatedList(x: any): string
 export declare function sha256( data: string): string
 export declare function consistentHash(data: any): string
+export declare function renderClojureProjectDiff(diff: Diff, target: FP): {title: "string", description: string}
 
 /**
  * Fingerprint Push Impact support function - processPushImpact

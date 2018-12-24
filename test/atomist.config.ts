@@ -47,6 +47,7 @@ import {
     cljFunctionFingerprints,
     depsFingerprints,
     logbackFingerprints,
+    renderClojureProjectDiff,
 } from "../fingerprints";
 import {
     applyBackpackFingerprint,
@@ -132,6 +133,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     extract: p => depsFingerprints(p.baseDir),
                     apply: (p, fp) => applyFingerprint(p.baseDir, fp),
                     selector: fp => fp.name.startsWith("clojure-project"),
+                    summary: (diff, target) => renderClojureProjectDiff(diff, target),
                 },
                 {
                     extract: p => cljFunctionFingerprints(p.baseDir),
