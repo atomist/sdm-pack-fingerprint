@@ -16,7 +16,6 @@
 
 export {
     fingerprintSupport,
-    checkLibraryImpactHandler,
     simpleImpactHandler,
     fingerprintImpactHandler,
     FingerprintImpactHandlerConfig,

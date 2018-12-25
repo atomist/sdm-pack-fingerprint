@@ -88,19 +88,6 @@
       (logback/apply-fingerprint basedir clj-fp))
     true)))
 
-(defn ^:export list
-  ""
-  [x]
-  (log/info "list " (js->clj x :keywordize-keys true))
-  (-> x
-      (js->clj :keywordize-keys true)
-      :Repo
-      first
-      :branches
-      first
-      :commit
-      :fingerprints))
-
 (defn ^:export fpPreferences
   ""
   [query]
@@ -177,33 +164,6 @@
 (defn ^:export consistentHash [edn]
   (.toString (hasch/uuid5 (hasch/edn-hash (js->clj edn)))))
 
-(defn ^:export withProjectGoals
-  "send a message about adding new library goals from the current project
-
-   returns Promise<boolean>"
-  [pref-query basedir send-message]
-  (log/info "clj-editors withProjectGoals")
-  (promise/chan->promise
-   (goals/with-project-goals pref-query basedir send-message)))
-
-(defn ^:export withPreferences
-  "callback with a an array of maps with {:keys [text value]} maps
-
-   returns Promise<boolean>"
-  [pref-query callback]
-  (log/info "clj-editors with-preferences")
-  (promise/chan->promise
-   (goals/with-preferences pref-query callback)))
-
-(defn ^:export withNewGoal
-  "update a goal in the current project
-
-   returns Promise<boolean>"
-  [pref-query pref-editor pref-namespace lib-goal]
-  (log/info "cj-editors withNewGoal")
-  (promise/chan->promise
-   (goals/with-new-goal pref-query pref-editor (js->clj lib-goal :keywordize-keys true))))
-
 (defn ^:export setGoalFingerprint
   "update a goal in the current project
 
@@ -221,23 +181,6 @@
   (promise/chan->promise
    (goals/set-fingerprint-preference-from-json pref-query pref-editor fp-json)))
 
-(defn ^:export withNewIgnore
-  "update a goal in the current project
-
-   returns Promise<boolean>"
-  [pref-query pref-editor library]
-  (log/info "withNewGoal")
-  (promise/chan->promise
-   (goals/with-new-ignore pref-query pref-editor (js->clj library :keywordize-keys true))))
-
-(defn ^:export checkLibraryGoals
-  "check a project for whether it's dependencies are aligned with the current goals
-
-   returns Promise<boolean>"
-  [pref-query send-message diff]
-  (promise/chan->promise
-   (goals/check-library-goals pref-query send-message (js->clj diff :keywordize-keys true))))
-
 (defn ^:export checkFingerprintTargets
   "check a project for whether it's dependencies are aligned with the current goals
 
@@ -245,15 +188,6 @@
   [pref-query send-message confirm-goal diff]
   (promise/chan->promise
    (goals/check-fingerprint-goals pref-query send-message confirm-goal (js->clj diff :keywordize-keys true))))
-
-(defn ^:export broadcast
-  "use fingerprints to scan for projects that could be impacted by this new lib version
-
-   returns Promise<any>"
-  [fingerprint-query lib cb]
-  (log/info "clj-editors broadcast")
-  (promise/chan->promise
-   (goals/broadcast fingerprint-query (js->clj lib :keywordize-keys true) cb)))
 
 (defn ^:export broadcastFingerprint
   "use fingerprints to scan for projects that could be impacted by this new lib version

@@ -34,21 +34,21 @@ import {
     FP,
     setGoalFingerprint,
     setTargetFingerprint,
-} from "../../fingerprints/index";
+} from "../../../fingerprints/index";
 import {
     queryFingerprintBySha,
     queryFingerprintOnShaByName,
     queryFingerprintsByBranchRef,
-} from "../adhoc/fingerprints";
+} from "../../adhoc/fingerprints";
 import {
     mutatePreference,
     queryPreferences,
-} from "../adhoc/preferences";
-import { footer } from "../support/util";
+} from "../../adhoc/preferences";
+import { footer } from "../../support/util";
 import {
     GetAllFingerprintsOnSha,
     GetFingerprintOnShaByName,
-} from "../typings/types";
+} from "../../typings/types";
 import { askAboutBroadcast } from "./broadcast";
 
 @Parameters()

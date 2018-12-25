@@ -41,20 +41,25 @@ import {
     Vote,
 } from "../../fingerprints/index";
 import {
-    ApplyTargetFingerprintParameters,
-    compileCodeTransformCommand,
-} from "../fingerprints/applyFingerprint";
-import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
-import {
     checkFingerprintTarget,
     MessageMaker,
     votes,
 } from "../fingerprints/impact";
+import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
+import {
+    ApplyTargetFingerprintParameters,
+    compileCodeTransformCommand,
+} from "../handlers/commands/applyFingerprint";
+import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
     ListFingerprint,
     ListFingerprints,
-} from "../fingerprints/list";
-import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
+} from "../handlers/commands/list";
+import {
+    DumpLibraryPreferences,
+    ListFingerprintTargets,
+    ListOneFingerprintTarget,
+} from "../handlers/commands/showTargets";
 import {
     DeleteTargetFingerprint,
     SelectTargetFingerprintFromCurrentProject,
@@ -62,25 +67,9 @@ import {
     SetTargetFingerprint,
     SetTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
-} from "../fingerprints/updateTarget";
-import { BroadcastNudge } from "../handlers/commands/broadcast";
-import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
-import { IgnoreVersion } from "../handlers/commands/ignoreVersion";
-import {
-    ChooseTeamLibrary,
-    SetTeamLibrary,
-} from "../handlers/commands/setLibraryGoal";
-import {
-    ClearLibraryTargets,
-    DumpLibraryPreferences,
-    ListFingerprintTargets,
-    ListOneFingerprintTarget,
-    ShowGoals,
-    ShowTargets,
-} from "../handlers/commands/showTargets";
+} from "../handlers/commands/updateTarget";
 import { PullRequestImpactHandlerRegistration } from "../handlers/events/prImpactHandler";
 import {
-    checkLibraryGoals,
     forFingerprints,
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
@@ -233,20 +222,6 @@ export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig
     };
 }
 
-export function checkLibraryImpactHandler(): RegisterFingerprintImpactHandler {
-    return (sdm: SoftwareDeliveryMachine) => {
-        return {
-            selector: forFingerprints(
-                "clojure-project-deps",
-                "maven-project-deps",
-                "npm-project-deps"),
-            handler: async (ctx, diff) => {
-                return checkLibraryGoals(ctx, diff);
-            },
-        };
-    };
-}
-
 export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
     return (sdm: SoftwareDeliveryMachine) => {
 
@@ -332,15 +307,6 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintIm
     // Fired on each PR after Fingerprints are uploaded
     sdm.addEvent(PullRequestImpactHandlerRegistration);
 
-    // Deprecated
-    sdm.addCommand(IgnoreVersion);
-    sdm.addCodeTransformCommand(ConfirmUpdate);
-    sdm.addCommand(SetTeamLibrary);
-    sdm.addCodeInspectionCommand(ShowGoals);
-    sdm.addCommand(ChooseTeamLibrary);
-    sdm.addCommand(ClearLibraryTargets);
-    sdm.addCommand(BroadcastNudge);
-    sdm.addCommand(ShowTargets);
     sdm.addCommand(DumpLibraryPreferences);
     sdm.addCommand(ListFingerprintTargets);
     sdm.addCommand(ListOneFingerprintTarget);

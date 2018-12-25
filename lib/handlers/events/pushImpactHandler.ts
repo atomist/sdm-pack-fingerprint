@@ -25,24 +25,23 @@ import {
     SuccessPromise,
 } from "@atomist/automation-client";
 import {
-    actionableButton,
     EventHandlerRegistration,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
-import * as fingerprints from "../../../fingerprints/index";
-import { queryPreferences } from "../../adhoc/preferences";
+import {
+    Diff,
+    FP,
+    processPushImpact,
+    renderDiff,
+} from "../../../fingerprints";
 import { FingerprintHandler } from "../../machine/FingerprintSupport";
-import { footer } from "../../support/util";
 import {
     GetFingerprintData,
     PushImpactEvent,
 } from "../../typings/types";
-import { ConfirmUpdate } from "../commands/confirmUpdate";
-import { IgnoreVersion } from "../commands/ignoreVersion";
-import { SetTeamLibrary } from "../commands/setLibraryGoal";
 
-export function forFingerprints(...s: string[]): (fp: fingerprints.FP) => boolean {
+export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
         const m = s.map((n: string) => (fp.name === n))
             .reduce((acc, v) => acc || v);
@@ -76,72 +75,13 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: st
     };
 }
 
-export async function renderDiffSnippet(ctx: HandlerContext, diff: fingerprints.Diff) {
+export async function renderDiffSnippet(ctx: HandlerContext, diff: Diff) {
     const message: SlackFileMessage = {
-        content: fingerprints.renderDiff(diff),
+        content: renderDiff(diff),
         fileType: "text",
         title: `${diff.owner}/${diff.repo}`,
     };
     return ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
-}
-
-function libraryEditorChoiceMessage(ctx: HandlerContext, diff: fingerprints.Diff):
-    (s: string, action: { library: { name: string, version: string }, current: string }) => Promise<any> {
-    return async (text, action) => {
-        const msgId = fingerprints.consistentHash([action.library.name, action.library.version, diff.channel, diff.owner, diff.repo, action.current]);
-        const message: SlackMessage = {
-            attachments: [
-                {
-                    author_name: "New Library Target",
-                    text,
-                    color: "#45B254",
-                    fallback: "New Library Target",
-                    mrkdwn_in: ["text"],
-                    actions: [
-                        actionableButton(
-                            { text: "Accept" },
-                            ConfirmUpdate,
-                            {
-                                msgId,
-                                owner: diff.owner,
-                                repo: diff.repo,
-                                name: action.library.name,
-                                version: action.library.version,
-                            }),
-                        actionableButton(
-                            { text: "Set as Target" },
-                            SetTeamLibrary,
-                            {
-                                msgId,
-                                name: action.library.name,
-                                version: action.current,
-                                fp: diff.from.name,
-                            },
-                        ),
-                        actionableButton(
-                            { text: "Ignore" },
-                            IgnoreVersion,
-                            {
-                                msgId,
-                                name: action.library.name,
-                                version: action.library.version,
-                            },
-                        ),
-                    ],
-                    footer: footer(),
-                },
-            ],
-        };
-        return ctx.messageClient.addressChannels(message, diff.channel, { id: msgId });
-    };
-}
-
-export async function checkLibraryGoals(ctx: HandlerContext, diff: fingerprints.Diff): Promise<any> {
-    return fingerprints.checkLibraryGoals(
-        queryPreferences(ctx.graphClient),
-        libraryEditorChoiceMessage(ctx, diff),
-        diff,
-    );
 }
 
 /**
@@ -153,7 +93,7 @@ export async function checkLibraryGoals(ctx: HandlerContext, diff: fingerprints.
  */
 function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEvent.Subscription> {
     return async (event, ctx) => {
-        const votes = await fingerprints.processPushImpact(
+        const votes = await processPushImpact(
             event,
             getFingerprintDataCallback(ctx),
             [
@@ -161,14 +101,14 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
                     if (h.diffHandler) {
                         return {
                             selector: h.selector,
-                            diffAction: (diff: fingerprints.Diff) => {
+                            diffAction: (diff: Diff) => {
                                 return h.diffHandler(ctx, diff);
                             },
                         };
                     } else {
                         return {
                             selector: h.selector,
-                            action: (diff: fingerprints.Diff) => {
+                            action: (diff: Diff) => {
                                 return h.handler(ctx, diff);
                             },
                         };

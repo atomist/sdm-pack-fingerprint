@@ -44,17 +44,17 @@ import {
 } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import {
+    FingerprintApplicationCommandRegistration,
+} from "../handlers/commands/applyFingerprint";
+import {
+    UpdateTargetFingerprint,
+    UpdateTargetFingerprintParameters,
+} from "../handlers/commands/updateTarget";
+import {
     DiffSummary,
     FingerprintImpactHandlerConfig,
     FingerprintRegistration,
 } from "../machine/FingerprintSupport";
-import {
-    FingerprintApplicationCommandRegistration,
-} from "./applyFingerprint";
-import {
-    UpdateTargetFingerprint,
-    UpdateTargetFingerprintParameters,
-} from "./updateTarget";
 
 export interface MessageMakerParams {
     ctx: HandlerContext;

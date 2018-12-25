@@ -24,15 +24,15 @@ import {
 } from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
-import { renderData } from "../..";
+import { renderData } from "../../..";
 import {
     queryFingerprintOnShaByName,
     queryFingerprintsByBranchRef,
-} from "../adhoc/fingerprints";
+} from "../../adhoc/fingerprints";
 import {
     GetAllFingerprintsOnSha,
     GetFingerprintOnShaByName,
-} from "../typings/types";
+} from "../../typings/types";
 
 @Parameters()
 export class ListFingerprintParameters {

@@ -34,13 +34,13 @@ import {
     applyFingerprint,
     FP,
     getFingerprintPreference,
-} from "../../fingerprints/index";
-import { queryPreferences } from "../adhoc/preferences";
+} from "../../../fingerprints/index";
+import { queryPreferences } from "../../adhoc/preferences";
 import {
     EditModeMaker,
     FingerprintRegistration,
-} from "../machine/FingerprintSupport";
-import { footer } from "../support/util";
+} from "../../machine/FingerprintSupport";
+import { footer } from "../../support/util";
 
 @Parameters()
 export class ApplyTargetFingerprintParameters {
