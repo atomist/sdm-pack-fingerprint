@@ -21,6 +21,7 @@ import {
 } from "@atomist/sdm";
 import { ApplyFingerprint, ExtractFingerprint, FP, sha256 } from "../..";
 import { renderData } from "../../fingerprints";
+import { DiffSummaryFingerprint } from "../machine/FingerprintSupport";
 
 export function getNpmDepFingerprint(lib: string, version: string): FP {
 
@@ -64,7 +65,7 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
 
         return fingerprints;
     } else {
-        return null;
+        return undefined;
     }
 };
 
@@ -93,4 +94,13 @@ export const applyNpmDepsFingerprint: ApplyFingerprint = async (p, fp) => {
     } else {
         return false;
     }
+};
+
+/* tslint:disable:max-line-length */
+export const diffNpmDepsFingerprints: DiffSummaryFingerprint = (diff, target) => {
+    return {
+        title: "New Library Target",
+        description:
+        `Target version for library *${diff.from.data[0]}* is *${target.data[1]}*.\nCurrently *${diff.from.data[1]}* in *${diff.owner}/${diff.repo}*`,
+    };
 };

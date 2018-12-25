@@ -23,38 +23,48 @@ import {
     SuccessPromise,
 } from "@atomist/automation-client";
 import {
-    CodeTransformRegistration,
     CommandHandlerRegistration,
     findSdmGoalOnCommit,
     Goal,
+    RepoTargetingParameters,
     updateGoal,
     UpdateSdmGoalParams,
 } from "@atomist/sdm";
 import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
-import * as fingerprints from "../../fingerprints/index";
 import {
+    checkFingerprintTargets,
+    commaSeparatedList,
+    consistentHash,
     Diff,
     FP,
+    renderData,
     Vote,
+    voteResults,
+    VoteResults,
 } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
-import { FingerprintImpactHandlerConfig } from "../machine/FingerprintSupport";
 import {
-    ApplyTargetFingerprint,
-    ApplyTargetFingerprintParameters,
-} from "./applyFingerprint";
+    FingerprintApplicationCommandRegistration,
+} from "../handlers/commands/applyFingerprint";
 import {
     UpdateTargetFingerprint,
     UpdateTargetFingerprintParameters,
-} from "./updateTarget";
+} from "../handlers/commands/updateTarget";
+import {
+    DiffSummary,
+    FingerprintImpactHandlerConfig,
+    FingerprintRegistration,
+} from "../machine/FingerprintSupport";
 
 export interface MessageMakerParams {
     ctx: HandlerContext;
+    title: string;
     text: string;
-    fingerprint: fingerprints.FP;
-    diff: fingerprints.Diff;
+    fingerprint: FP;
+    fpTarget: FP;
+    diff: Diff;
     msgId: string;
-    editProject: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
+    editProject: CommandHandlerRegistration<RepoTargetingParameters>;
     mutateTarget: CommandHandlerRegistration<UpdateTargetFingerprintParameters>;
 }
 
@@ -63,23 +73,50 @@ export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult
 type MessageIdMaker = (fingerprint: FP, diff: Diff) => string;
 
 const updateableMessage: MessageIdMaker = (fingerprint, diff) => {
-    return fingerprints.consistentHash([fingerprint.sha, diff.channel, diff.owner, diff.repo]);
+    return consistentHash([fingerprint.sha, diff.channel, diff.owner, diff.repo]);
 };
+
+function getDiffSummary(diff: Diff, target: FP, registrations: FingerprintRegistration[]): undefined | DiffSummary {
+
+    try {
+       for (const registration of registrations) {
+            if (registration.summary && registration.selector(diff.to)) {
+                return registration.summary(diff, target);
+            }
+        }
+    } catch (e) {
+        logger.warn(`failed to create summary: ${e}`);
+    }
+
+    return undefined;
+}
+
+function orDefault<T>(cb: () => T, x: T): T {
+    try {
+        return cb();
+    } catch (y) {
+        return x;
+    }
+}
 
 // when we discover a backpack dependency that is not the target state
 // then we ask the user whether they want to update to the new target version
 // or maybe they want this backpack version to become the new target version
-function callback(ctx: HandlerContext, diff: fingerprints.Diff, config: FingerprintImpactHandlerConfig):
-    (s: string, fingerprint: fingerprints.FP) => Promise<fingerprints.Vote> {
-    return async (text, fingerprint) => {
+function callback(ctx: HandlerContext, diff: Diff, config: FingerprintImpactHandlerConfig, registrations: FingerprintRegistration[]):
+    (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
+    return async (text, fpTarget, fingerprint) => {
+
+        const summary = getDiffSummary(diff, fpTarget, registrations);
 
         await config.messageMaker({
             ctx,
             msgId: updateableMessage(fingerprint, diff),
-            text,
+            title: orDefault( () => summary.title , "New Target"),
+            text: orDefault( () => summary.description, text),
+            fpTarget,
             fingerprint,
             diff,
-            editProject: ApplyTargetFingerprint,
+            editProject: FingerprintApplicationCommandRegistration,
             mutateTarget: UpdateTargetFingerprint});
 
         if (config.complianceGoal) {
@@ -97,7 +134,7 @@ function callback(ctx: HandlerContext, diff: fingerprints.Diff, config: Fingerpr
     };
 }
 
-async function editGoal(ctx: HandlerContext, diff: fingerprints.Diff, goal: Goal, params: UpdateSdmGoalParams): Promise<any> {
+async function editGoal(ctx: HandlerContext, diff: Diff, goal: Goal, params: UpdateSdmGoalParams): Promise<any> {
     logger.info(`edit goal ${goal.name} to be in state ${params.state} for ${diff.owner}, ${diff.repo}, ${diff.sha}, ${diff.providerId}`);
     try {
         const id = new GitHubRepoRef(diff.owner, diff.repo, diff.sha);
@@ -114,8 +151,8 @@ async function editGoal(ctx: HandlerContext, diff: fingerprints.Diff, goal: Goal
     }
 }
 
-function fingerprintInSyncCallback(ctx: HandlerContext, diff: fingerprints.Diff, goal?: Goal):
-    (fingerprint: fingerprints.FP) => Promise<fingerprints.Vote> {
+function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff, goal?: Goal):
+    (fingerprint: FP) => Promise<Vote> {
     return async fingerprint => {
         if (goal) {
             return {
@@ -137,18 +174,18 @@ export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerCont
         if (config.complianceGoal) {
 
             let goalState;
-            const result: fingerprints.VoteResults = fingerprints.voteResults(vs);
-            logger.info(`ballot result ${fingerprints.renderData(result)} for ${fingerprints.renderData(vs)}`);
+            const result: VoteResults = voteResults(vs);
+            logger.debug(`ballot result ${renderData(result)} for ${renderData(vs)}`);
 
             if (result.failed) {
                 goalState = {
                     state: SdmGoalState.failure,
-                    description: `compliance check for ${fingerprints.commaSeparatedList(result.failedFps)} has failed`,
+                    description: `compliance check for ${commaSeparatedList(result.failedFps)} has failed`,
                 };
             } else {
                 goalState = {
                     state: SdmGoalState.success,
-                    description: `compliance check for ${fingerprints.commaSeparatedList(result.successFps)} has passed`,
+                    description: `compliance check for ${commaSeparatedList(result.successFps)} has passed`,
                 };
             }
 
@@ -167,10 +204,15 @@ export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerCont
     };
 }
 
-export async function checkFingerprintTargets(ctx: HandlerContext, diff: fingerprints.Diff, config: FingerprintImpactHandlerConfig): Promise<any> {
-    return fingerprints.checkFingerprintTargets(
+export async function checkFingerprintTarget(
+    ctx: HandlerContext,
+    diff: Diff,
+    config: FingerprintImpactHandlerConfig,
+    registrations: FingerprintRegistration[]): Promise<any> {
+
+    return checkFingerprintTargets(
         queryPreferences(ctx.graphClient),
-        callback(ctx, diff, config),
+        callback(ctx, diff, config, registrations),
         fingerprintInSyncCallback(ctx, diff, config.complianceGoal),
         diff,
     );

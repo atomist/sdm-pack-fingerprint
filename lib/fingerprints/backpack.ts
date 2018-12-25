@@ -42,7 +42,7 @@ export const backpackFingerprint: ExtractFingerprint = async p => {
         return fp;
     } else {
 
-        return null;
+        return undefined;
     }
 };
 
@@ -59,7 +59,7 @@ export const applyBackpackFingerprint: ApplyFingerprint = async (p, fp) => {
             // tslint:disable-next-line:no-string-literal
             packagejson["backpack-react-scripts"]["externals"] = fp.data;
 
-            await file.setContent(JSON.stringify(packagejson, null, 2));
+            await file.setContent(JSON.stringify(packagejson, undefined, 2));
             return true;
         } else {
             return false;

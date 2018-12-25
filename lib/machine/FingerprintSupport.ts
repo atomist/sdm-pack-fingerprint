@@ -20,6 +20,7 @@ import {
     GitProject,
     HandlerContext,
     logger,
+    Project,
 } from "@atomist/automation-client";
 import {
     actionableButton,
@@ -40,20 +41,25 @@ import {
     Vote,
 } from "../../fingerprints/index";
 import {
-    applyTargetFingerprint,
-    ApplyTargetFingerprintParameters,
-} from "../fingerprints/applyFingerprint";
-import { BroadcastFingerprintNudge } from "../fingerprints/broadcast";
-import {
-    checkFingerprintTargets,
+    checkFingerprintTarget,
     MessageMaker,
     votes,
 } from "../fingerprints/impact";
+import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
+import {
+    ApplyTargetFingerprintParameters,
+    compileCodeTransformCommand,
+} from "../handlers/commands/applyFingerprint";
+import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
     ListFingerprint,
     ListFingerprints,
-} from "../fingerprints/list";
-import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
+} from "../handlers/commands/list";
+import {
+    DumpLibraryPreferences,
+    ListFingerprintTargets,
+    ListOneFingerprintTarget,
+} from "../handlers/commands/showTargets";
 import {
     DeleteTargetFingerprint,
     SelectTargetFingerprintFromCurrentProject,
@@ -61,25 +67,9 @@ import {
     SetTargetFingerprint,
     SetTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
-} from "../fingerprints/updateTarget";
-import { BroadcastNudge } from "../handlers/commands/broadcast";
-import { ConfirmUpdate } from "../handlers/commands/confirmUpdate";
-import { IgnoreVersion } from "../handlers/commands/ignoreVersion";
-import {
-    ChooseTeamLibrary,
-    SetTeamLibrary,
-} from "../handlers/commands/setLibraryGoal";
-import {
-    ClearLibraryTargets,
-    DumpLibraryPreferences,
-    ListFingerprintTargets,
-    ListOneFingerprintTarget,
-    ShowGoals,
-    ShowTargets,
-} from "../handlers/commands/showTargets";
+} from "../handlers/commands/updateTarget";
 import { PullRequestImpactHandlerRegistration } from "../handlers/events/prImpactHandler";
 import {
-    checkLibraryGoals,
     forFingerprints,
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
@@ -94,6 +84,8 @@ function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<F
 type FingerprintRunner = (p: GitProject) => Promise<FP[]>;
 export type ExtractFingerprint = (p: GitProject) => Promise<FP|FP[]>;
 export type ApplyFingerprint = (p: GitProject, fp: FP) => Promise<boolean>;
+export interface DiffSummary {title: string; description: string; }
+export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
 
 /**
  * different strategies can be used to handle PushImpactEventHandlers.
@@ -108,7 +100,7 @@ export interface FingerprintHandler {
 /**
  * permits customization of EditModes in the FingerprintImpactHandlerConfig
  */
-export type EditModeMaker = (cli: CommandListenerInvocation<ApplyTargetFingerprintParameters>) => editModes.EditMode;
+export type EditModeMaker = (cli: CommandListenerInvocation<ApplyTargetFingerprintParameters>, project?: Project) => editModes.EditMode;
 
 /**
  * customize the out of the box strategy for monitoring when fingerprints are out
@@ -128,6 +120,7 @@ export interface FingerprintRegistration {
     selector: (name: FP) => boolean;
     extract: ExtractFingerprint;
     apply?: ApplyFingerprint;
+    summary?: DiffSummaryFingerprint;
 }
 
 /**
@@ -157,6 +150,7 @@ export const messageMaker: MessageMaker = async params => {
         {
             attachments: [
                 {
+                    title: params.title,
                     text: params.text,
                     color: "#45B254",
                     fallback: "Fingerprint Update",
@@ -167,10 +161,13 @@ export const messageMaker: MessageMaker = async params => {
                             params.editProject,
                             {
                                 msgId: params.msgId,
-                                owner: params.diff.owner,
-                                repo: params.diff.repo,
                                 fingerprint: params.fingerprint.name,
-                            }),
+                                targets: {
+                                    owner: params.diff.owner,
+                                    repo: params.diff.repo,
+                                    branch: params.diff.branch,
+                                },
+                            } as any),
                         actionableButton(
                             { text: "Set New Target" },
                             params.mutateTarget,
@@ -206,33 +203,21 @@ export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig
         sdm.addCommand(BroadcastFingerprintNudge);
 
         // this is the fingerprint editor
-        sdm.addCodeTransformCommand(applyTargetFingerprint(registrations, config.transformPresentation));
+        // sdm.addCodeTransformCommand(applyTargetFingerprint(registrations, config.transformPresentation));
 
         sdm.addCommand(ListFingerprints);
         sdm.addCommand(ListFingerprint);
         sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
 
+        sdm.addCommand(compileCodeTransformCommand(registrations, config.transformPresentation, sdm));
+
         return {
             selector: fp => true,
             handler: async (ctx, diff) => {
-                const v: Vote = await checkFingerprintTargets(ctx, diff, config);
+                const v: Vote = await checkFingerprintTarget(ctx, diff, config, registrations);
                 return v;
             },
             ballot: votes(config),
-        };
-    };
-}
-
-export function checkLibraryImpactHandler(): RegisterFingerprintImpactHandler {
-    return (sdm: SoftwareDeliveryMachine) => {
-        return {
-            selector: forFingerprints(
-                "clojure-project-deps",
-                "maven-project-deps",
-                "npm-project-deps"),
-            handler: async (ctx, diff) => {
-                return checkLibraryGoals(ctx, diff);
-            },
         };
     };
 }
@@ -322,15 +307,6 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintIm
     // Fired on each PR after Fingerprints are uploaded
     sdm.addEvent(PullRequestImpactHandlerRegistration);
 
-    // Deprecated
-    sdm.addCommand(IgnoreVersion);
-    sdm.addCodeTransformCommand(ConfirmUpdate);
-    sdm.addCommand(SetTeamLibrary);
-    sdm.addCodeInspectionCommand(ShowGoals);
-    sdm.addCommand(ChooseTeamLibrary);
-    sdm.addCommand(ClearLibraryTargets);
-    sdm.addCommand(BroadcastNudge);
-    sdm.addCommand(ShowTargets);
     sdm.addCommand(DumpLibraryPreferences);
     sdm.addCommand(ListFingerprintTargets);
     sdm.addCommand(ListOneFingerprintTarget);

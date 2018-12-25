@@ -18,39 +18,35 @@ import {
     GitProject,
     guid,
     logger,
-    MappedParameter,
-    MappedParameters,
     Parameter,
     Parameters,
 } from "@atomist/automation-client";
 import {
+    branchAwareCodeTransform,
     CodeTransform,
     CodeTransformRegistration,
+    CommandHandlerRegistration,
+    RepoTargetingParameters,
+    SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
-import * as fingerprints from "../../fingerprints/index";
-import { FP } from "../../fingerprints/index";
-import { queryPreferences } from "../adhoc/preferences";
+import {
+    applyFingerprint,
+    FP,
+    getFingerprintPreference,
+} from "../../../fingerprints/index";
+import { queryPreferences } from "../../adhoc/preferences";
 import {
     EditModeMaker,
     FingerprintRegistration,
-} from "../machine/FingerprintSupport";
-import { footer } from "../support/util";
+} from "../../machine/FingerprintSupport";
+import { footer } from "../../support/util";
 
 @Parameters()
 export class ApplyTargetFingerprintParameters {
 
     @Parameter({ required: false, displayable: false })
     public msgId?: string;
-
-    @MappedParameter(MappedParameters.GitHubOwner)
-    public owner: string;
-
-    @MappedParameter(MappedParameters.GitHubRepository)
-    public repo: string;
-
-    @MappedParameter(MappedParameters.GitHubRepositoryProvider)
-    public providerId: string;
 
     @Parameter({ required: true })
     public fingerprint: string;
@@ -69,12 +65,12 @@ async function pusher( message: (s: string) => Promise<any>, p: GitProject, regi
         }
     }
 
-    await fingerprints.applyFingerprint(p.baseDir, fp);
+    await applyFingerprint(p.baseDir, fp);
 
     return p;
 }
 
-function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
+function runAllFingerprintAppliers( registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
         const message: SlackMessage = {
@@ -83,7 +79,7 @@ function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransf
                     author_name: "Apply target fingerprint",
                     author_icon: `https://images.atomist.com/rug/check-circle.gif?gif=${guid()}`,
                     text: `Applying target fingerprint \`${cli.parameters.fingerprint}\` to <https://github.com/${
-                        cli.parameters.owner}/${cli.parameters.repo}|${cli.parameters.owner}/${cli.parameters.repo}>`,
+                        p.id.owner}/${p.id.repo}|${p.id.owner}/${p.id.repo}>`,
                     mrkdwn_in: ["text"],
                     color: "#45B254",
                     fallback: "none",
@@ -98,7 +94,7 @@ function applyFingerprint( registrations: FingerprintRegistration[]): CodeTransf
             async (s: string) => cli.addressChannels(s),
             (p as GitProject),
             registrations,
-            await fingerprints.getFingerprintPreference(
+            await getFingerprintPreference(
                 queryPreferences(cli.context.graphClient),
                 cli.parameters.fingerprint));
     };
@@ -114,7 +110,15 @@ export function applyTargetFingerprint(
         description: "choose to raise a PR on the current project to apply a target fingerprint",
         paramsMaker: ApplyTargetFingerprintParameters,
         transformPresentation: presentation,
-        transform: applyFingerprint(registrations),
+        transform: runAllFingerprintAppliers(registrations),
+        autoSubmit: true,
     };
     return ApplyTargetFingerprint;
+}
+
+export let FingerprintApplicationCommandRegistration: CommandHandlerRegistration<RepoTargetingParameters>;
+
+export function compileCodeTransformCommand(registrations: FingerprintRegistration[], presentation: EditModeMaker, sdm: SoftwareDeliveryMachine) {
+    FingerprintApplicationCommandRegistration = branchAwareCodeTransform(applyTargetFingerprint(registrations, presentation), sdm);
+    return FingerprintApplicationCommandRegistration;
 }

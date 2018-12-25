@@ -15,17 +15,17 @@
  */
 
 import {
+    GraphQL,
     NoParameters,
     SuccessPromise,
 } from "@atomist/automation-client";
-import { subscription } from "@atomist/automation-client/lib/graph/graphQL";
 import { EventHandlerRegistration } from "@atomist/sdm";
 import { PullRequestImpactEvent } from "../../typings/types";
 
 export const PullRequestImpactHandlerRegistration: EventHandlerRegistration<PullRequestImpactEvent.Subscription, NoParameters> = {
     name: "PullReqestImpactHandler",
     description: "register pull request impact handling events",
-    subscription: subscription("PullRequestImpactEvent"),
+    subscription: GraphQL.subscription("PullRequestImpactEvent"),
     listener: async (event, ctx) => {
         return SuccessPromise;
     },

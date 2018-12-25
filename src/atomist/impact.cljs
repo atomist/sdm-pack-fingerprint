@@ -46,6 +46,9 @@
 (defn- sha-impacts? [event]
   (some-> event :data :PushImpact first :data (json/read-str :key-fn keyword) push-impact?))
 
+(defn- event->branch-name [event]
+  (some-> event :data :PushImpact first :push :branch))
+
 (defn- diff-fingerprint-data
   "diffs two collections of things"
   [fp-data1 fp-data2]
@@ -102,12 +105,13 @@
                               (assoc :data data
                                      :owner owner
                                      :repo repo
+                                     :branch (event->branch-name event)
                                      :sha (:sha (after-commit event))
                                      :providerId (provider-id event)
                                      :channel channel-name)
                               (assoc-in [:from :data] from-data)
                               (assoc-in [:to :data] to-data)
-                              (select-keys [:data :owner :repo :channel :from :to :providerId :sha]))))
+                              (select-keys [:data :owner :repo :branch :channel :from :to :providerId :sha]))))
                        filtered)
                   (async/merge)
                   (async/reduce conj []))]

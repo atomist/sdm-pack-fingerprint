@@ -3,6 +3,7 @@ subscription PushImpactEvent {
     id
     data
     push {
+      branch
       before {
         sha
         fingerprints {

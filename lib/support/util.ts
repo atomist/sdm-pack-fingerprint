@@ -15,6 +15,7 @@
  */
 
 import { automationClientInstance } from "@atomist/automation-client";
+import _ = require("lodash");
 
 export function footer() {
     const client = automationClientInstance();
@@ -24,4 +25,12 @@ export function footer() {
         return undefined;
     }
 
+}
+
+export function comparator(path: string): (a: any, b: any) => number {
+    return (a, b) => {
+        const x = _.get(a, path);
+        const y = _.get(b, path);
+        return x < y ? -1 : x > y ? 1 : 0;
+    };
 }
