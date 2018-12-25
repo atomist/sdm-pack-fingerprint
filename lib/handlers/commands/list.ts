@@ -33,6 +33,7 @@ import {
     GetAllFingerprintsOnSha,
     GetFingerprintOnShaByName,
 } from "../../typings/types";
+import { comparator } from "../../support/util";
 
 @Parameters()
 export class ListFingerprintParameters {
@@ -120,7 +121,7 @@ export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParamet
                             {
                                 text: "select fingerprint",
                                 options: [
-                                    ...fps.map(x => {
+                                    ...fps.sort(comparator("name")).map(x => {
                                         return {
                                             value: x.name,
                                             text: x.name,

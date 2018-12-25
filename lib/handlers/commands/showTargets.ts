@@ -36,6 +36,7 @@ import {
     queryPreferences,
 } from "../../adhoc/preferences";
 import { ChatTeamPreferences } from "../../typings/types";
+import { comparator } from "../../support/util";
 
 export const DumpLibraryPreferences: CommandHandlerRegistration = {
     name: "DumpLibraryPreferences",
@@ -96,8 +97,7 @@ export const ListFingerprintTargets: CommandHandlerRegistration = {
 
         const query: ChatTeamPreferences.Query = await (queryPreferences(cli.context.graphClient))();
 
-        const fps: FP[] = fpPreferences(query);
-        logger.info(`fps ${renderData(fps)}`);
+        const fps: FP[] = fpPreferences(query).sort(comparator("name"));
 
         const message: SlackMessage = {
             attachments: [

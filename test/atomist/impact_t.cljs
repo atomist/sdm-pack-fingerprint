@@ -77,6 +77,7 @@
                                                      {:data {:from nil, :to nil}
                                                       :owner "org"
                                                       :repo "repo"
+                                                      :branch nil
                                                       :channel "commit-sha1"
                                                       :sha "commit-sha1"
                                                       :providerId nil
@@ -96,6 +97,7 @@
                                                      {:data {:from [["b" "b"]], :to [["a" "a"]]}
                                                       :owner "org"
                                                       :repo "repo"
+                                                      :branch nil
                                                       :channel "commit-sha1"
                                                       :sha "commit-sha1"
                                                       :providerId nil
@@ -113,6 +115,7 @@
                                                                          {:data {:from nil, :to nil}
                                                                           :owner "org"
                                                                           :repo "repo"
+                                                                          :branch nil
                                                                           :channel "commit-sha1"
                                                                           :sha "commit-sha1"
                                                                           :providerId nil
@@ -134,6 +137,7 @@
                                                         {:data {:from nil, :to nil}
                                                          :owner "org"
                                                          :repo "repo"
+                                                         :branch nil
                                                          :channel "commit-sha1"
                                                          :sha "commit-sha1"
                                                          :providerId nil
@@ -151,6 +155,7 @@
                                                                                      {:data {:from nil, :to nil}
                                                                                       :owner "org"
                                                                                       :repo "repo"
+                                                                                      :branch nil
                                                                                       :channel "commit-sha1"
                                                                                       :sha "commit-sha1"
                                                                                       :providerId nil
@@ -172,6 +177,7 @@
                                                                      {:data {:from nil, :to nil}
                                                                       :owner "org"
                                                                       :repo "repo"
+                                                                      :branch nil
                                                                       :channel "commit-sha1"
                                                                       :sha "commit-sha1"
                                                                       :providerId nil
