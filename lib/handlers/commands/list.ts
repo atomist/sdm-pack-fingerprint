@@ -29,11 +29,11 @@ import {
     queryFingerprintOnShaByName,
     queryFingerprintsByBranchRef,
 } from "../../adhoc/fingerprints";
+import { comparator } from "../../support/util";
 import {
     GetAllFingerprintsOnSha,
     GetFingerprintOnShaByName,
 } from "../../typings/types";
-import { comparator } from "../../support/util";
 
 @Parameters()
 export class ListFingerprintParameters {

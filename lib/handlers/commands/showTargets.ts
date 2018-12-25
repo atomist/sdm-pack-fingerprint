@@ -35,8 +35,8 @@ import {
 import {
     queryPreferences,
 } from "../../adhoc/preferences";
-import { ChatTeamPreferences } from "../../typings/types";
 import { comparator } from "../../support/util";
+import { ChatTeamPreferences } from "../../typings/types";
 
 export const DumpLibraryPreferences: CommandHandlerRegistration = {
     name: "DumpLibraryPreferences",
