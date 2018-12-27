@@ -6,6 +6,7 @@
             [rewrite-clj.parser :as p]
             [rewrite-clj.node :as n]
             [rewrite-clj.node.protocols :as protocols]
+            [rewrite-clj.zip.base :as base]
             [cljs.nodejs :as nodejs]
             [atomist.cljs-log :as log]
             [clojure.string :as str]
@@ -17,8 +18,13 @@
             [goog.string.format]
             [clojure.string :as s]))
 
-(defn generate-sig
+(defn- generate-sig
+  "  params
+        clj-path relative-path (string)
+        dufn zloc of defn list form
+        coll of zlocs occurring to the right of a 'defn symbol in a list"
   [clj-path dufn coll]
+  ;; even if the symbol has metadata, the z/sexpr will remove the metadata and just leave the symbol
   (let [fn-name (->> coll
                      (drop 1)
                      first
@@ -32,29 +38,51 @@
      :fn-name fn-name
      :bodies (z/string dufn)}))
 
-(defn public-sig
+(defn- public-sig
+  "collect zlocs to the right and including the zloc param
+     params
+      clj-path relative-path (string)
+      zloc - zloc for 'defn symbol that occurs at the beginning of a list"
   [clj-path zloc]
   (->> zloc
        (iterate z/right)
        (take-while identity)
        (generate-sig clj-path (z/up zloc))))
 
-(defn find-sym [sym]
+(defn find-sym
+  "return predicate function
+      taking a zloc and truthy on whether this zloc has the symbol sym"
+  [sym]
   (fn [x]
     (try
       (if (and
-           (not (-> x z/node n/printable-only?))
+           (not (-> x z/node n/printable-only?))            ;; printable-only is true if this node doesn't have a valid sexpr
            (symbol? (base/sexpr x)))
         (= (name (base/sexpr x)) (name sym)))
       (catch :default t
         (if (not (= "Namespaced keywords not supported !" (.-message t)))
           (log/errorf t "find-sym:  can't check sexpr of " (z/node x))) false))))
 
-(defn start-of-list? [zloc]
+(defn start-of-list?
+  "check whether this zloc is a node at the head of a list"
+  [zloc]
   (= :list (-> zloc z/up z/node n/tag)))
 
+(defn fingerprint-metadata?
+  ""
+  [zloc]
+  (let [symbol-loc (-> zloc z/right)]
+    (and
+     (= :meta (z/tag symbol-loc))
+     (some #(or
+             (= :fingerprint %)
+             (and (map? %) (some #{:fingerprint} (keys %))))
+           (base/child-sexprs symbol-loc)))))
+
 (defn find-public-sigs
-  "remove whitespace from all defn forms found in this zloc"
+  "remove whitespace from all defn forms found in this zloc
+   clj-path relativized path string
+   zloc zipper representing all forms in module"
   [[clj-path zloc]]
   (->> zloc
        (iterate z/next)
@@ -62,9 +90,29 @@
        (take-while (complement m/end?))
        (filter (find-sym 'defn))
        (filter start-of-list?)
+       (filter fingerprint-metadata?)
        (map (partial public-sig clj-path))))
 
+(defn find-all-named-fn-symbols-with-fingerprint-metadata
+  "  params
+       f - string path to file"
+  [f]
+  (->> (z/of-string (io/slurp f))
+       (iterate z/next)
+       (take-while identity)
+       (take-while (complement m/end?))
+       (filter (find-sym 'defn))
+       (filter start-of-list?)
+       (filter fingerprint-metadata?)
+       (map (fn [zloc] (println (base/string (z/up zloc)))))))
+
+(comment
+ (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/thing.clj")
+ (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/handler.clj"))
+
+
 (defn all-clj-files
+  "return seq of strings normalized by path module (resolves .. and .)"
   [dir]
   (->> (io/file-seq dir)
        (filter #(.endsWith (fs/basename %) ".clj"))))
@@ -146,6 +194,16 @@
   )
 
 (comment
+
+ (def f "/Users/slim/atomist/atomisthq/bot-service")
+ (def f "/Users/slim/repo/clj1")
+
+ (for [dufn (all-defns f) :when (:fn-name dufn)]
+   (try
+     (cljs.pprint/pprint dufn)
+     (catch :default t
+       (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
+
  (def clj1 "/Users/slim/repo/clj1")
  (count (io/file-seq clj1))
  (all-clj-files clj1)
@@ -163,7 +221,7 @@
  (.catch
   (.then
    (fingerprint "/Users/slim/atomist_root/atomisthq/bot-service"
-    #_"/Users/slim/repo/clj1")
+                #_"/Users/slim/repo/clj1")
    (fn [x] (log/info (count (js->clj x)))))
   (fn [x] (println "ERROR" x))))
 

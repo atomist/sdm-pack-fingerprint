@@ -23,6 +23,8 @@ export {
     ApplyFingerprint,
     ExtractFingerprint,
     register,
+    checkCljCoordinatesImpactHandler,
+    checkNpmCoordinatesImpactHandler,
 } from "./lib/machine/FingerprintSupport";
 export {
     forFingerprints,
@@ -37,8 +39,22 @@ export {
     depsFingerprints,
     logbackFingerprints,
     cljFunctionFingerprints,
+    renderClojureProjectDiff,
     renderData,
     applyFingerprint,
     renderDiff,
     sha256,
 } from "./fingerprints";
+export {
+    applfingyDockerBaseFingerprint,
+    dockerBaseFingerprint,
+} from "./lib/fingerprints/dockerFrom";
+export {
+    diffNpmDepsFingerprints,
+    applyNpmDepsFingerprint,
+    createNpmDepsFingerprints,
+} from "./lib/fingerprints/npmDeps";
+export {
+    backpackFingerprint,
+    applyBackpackFingerprint,
+} from "./lib/fingerprints/backpack";

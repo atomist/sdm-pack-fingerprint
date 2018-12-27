@@ -222,10 +222,23 @@ export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig
     };
 }
 
-export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
+export function checkCljCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
     return (sdm: SoftwareDeliveryMachine) => {
 
-        sdm.addCommand(SetTargetFingerprint);
+        return {
+            selector: forFingerprints("clojure-project-coordinates"),
+            diffHandler: (ctx, diff) => {
+                return setNewTargetFingerprint(
+                    ctx,
+                    getNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
+                    diff.channel);
+            },
+        };
+    };
+}
+
+export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
+    return (sdm: SoftwareDeliveryMachine) => {
 
         return {
             selector: forFingerprints("npm-project-coordinates"),
@@ -307,6 +320,7 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintIm
     // Fired on each PR after Fingerprints are uploaded
     sdm.addEvent(PullRequestImpactHandlerRegistration);
 
+    sdm.addCommand(SetTargetFingerprint);
     sdm.addCommand(DumpLibraryPreferences);
     sdm.addCommand(ListFingerprintTargets);
     sdm.addCommand(ListOneFingerprintTarget);
