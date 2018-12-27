@@ -46,7 +46,7 @@ export {
     sha256,
 } from "./fingerprints";
 export {
-    applfingyDockerBaseFingerprint,
+    applyDockerBaseFingerprint,
     dockerBaseFingerprint,
 } from "./lib/fingerprints/dockerFrom";
 export {
