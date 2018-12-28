@@ -12,6 +12,7 @@
             [clojure.string :as str]
             [cljs-node-io.core :as io :refer [slurp spit file-seq]]
             [cljs-node-io.fs :as fs]
+            [cljs-node-io.file :as file]
             [hasch.core :as hasch]
             [atomist.json :as json]
             [goog.string :as gstring]
@@ -35,8 +36,9 @@
                   (str/split #"\.")
                   first)
      :filename clj-path
-     :fn-name fn-name
-     :bodies (z/string dufn)}))
+     :fn-name (name fn-name)
+     :bodies (z/string dufn)
+     :zloc dufn}))
 
 (defn- public-sig
   "collect zlocs to the right and including the zloc param
@@ -49,7 +51,7 @@
        (take-while identity)
        (generate-sig clj-path (z/up zloc))))
 
-(defn find-sym
+(defn is-sym
   "return predicate function
       taking a zloc and truthy on whether this zloc has the symbol sym"
   [sym]
@@ -88,7 +90,7 @@
        (iterate z/next)
        (take-while identity)
        (take-while (complement m/end?))
-       (filter (find-sym 'defn))
+       (filter (is-sym 'defn))
        (filter start-of-list?)
        (filter fingerprint-metadata?)
        (map (partial public-sig clj-path))))
@@ -101,15 +103,9 @@
        (iterate z/next)
        (take-while identity)
        (take-while (complement m/end?))
-       (filter (find-sym 'defn))
+       (filter (is-sym 'defn))
        (filter start-of-list?)
-       (filter fingerprint-metadata?)
-       (map (fn [zloc] (println (base/string (z/up zloc)))))))
-
-(comment
- (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/thing.clj")
- (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/handler.clj"))
-
+       (filter fingerprint-metadata?)))
 
 (defn all-clj-files
   "return seq of strings normalized by path module (resolves .. and .)"
@@ -170,8 +166,8 @@
           :sha (sha (:bodies dufn))
           :version "0.0.4"
           :abbreviation "defn-bodies"
-          :data (json/json-str dufn)
-          :value (json/json-str dufn)}
+          :data (json/json-str (dissoc dufn :zloc))
+          :value (json/json-str (dissoc dufn :zloc))}
          (catch :default t
            (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
      (filter identity)
@@ -190,10 +186,49 @@
       (clj->js)
       (accept)))))
 
-(defn apply-fingerprint [f fp]
-  )
+(defn- replace-fn
+  "Replace a function in file/zipper
+     params
+       zloc - zloc of top-level list node containing the list that needs updating
+       fn-name - name of defn symbol to replace
+       bodies - string function bodies"
+  [zloc fn-name bodies]
+  (z/replace
+   zloc
+   (p/parse-string bodies)))
+
+(defn apply-fingerprint
+  [f {{:keys [filename fn-name bodies ns-name]} :data}]
+  (if-let [dufn (->> (all-defns f)
+                     (filter #(= fn-name (:fn-name %)))
+                     first)]
+    ;; found a fingerprinted function with the same name (possibly different namespace)
+    (let [zloc (:zloc dufn)
+          replaced (replace-fn zloc fn-name bodies)]
+      (println "found location" (base/string zloc))
+      (println "replaced" (base/string replaced))
+      (if (= (base/string zloc) (base/string replaced))
+        (log/warnf "%s was not replaced in %s as there is no change" fn-name filename)
+        (do
+          (log/infof "Writing new %s to %s - function coming from %s" fn-name (:filename dufn) filename)
+          (println "shared" (base/root-string replaced))
+          (spit (io/file f (:filename dufn)) (base/root-string replaced))
+          true)))
+    ;; no existing one found
+    (let [f (io/file f filename)]
+      (if (.exists f)
+        (spit f (gstring/format "%s\n%s" (slurp f) bodies))
+        (spit f (gstring/format "(ns %s)\n%s" ns-name bodies))))))
 
 (comment
+
+ (cljs.pprint/pprint (->> (all-defns "/Users/slim/repo/clj1")
+                          (map #(dissoc % :zloc))))
+
+ (apply-fingerprint "/Users/slim/repo/clj1" {:data {:filename "src/shared.clj"
+                                                    :fn-name "great"
+                                                    :bodies "(defn ^:fingerprint great [] \"thing6\")"
+                                                    :ns-name "shared"}})
 
  (def f "/Users/slim/atomist/atomisthq/bot-service")
  (def f "/Users/slim/repo/clj1")
@@ -204,25 +239,13 @@
      (catch :default t
        (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
 
- (def clj1 "/Users/slim/repo/clj1")
- (count (io/file-seq clj1))
- (all-clj-files clj1)
- (cljs.pprint/pprint (fingerprints clj1))
-
  (-> (z/of-string "(defn hey [] (#(println %) \"x\"))")
      (z/root)
      (protocols/sexpr))
 
- (cljs.pprint/pprint (fingerprints "/Users/slim/atomist_root/atomisthq/bot-service"))
+ (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/thing.clj")
+ (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/handler.clj")
 
-
- (z/of-string "(defn [] (#(println %) \"x\"))")
-
- (.catch
-  (.then
-   (fingerprint "/Users/slim/atomist_root/atomisthq/bot-service"
-                #_"/Users/slim/repo/clj1")
-   (fn [x] (log/info (count (js->clj x)))))
-  (fn [x] (println "ERROR" x))))
+ (cljs.pprint/pprint (fingerprints "/Users/slim/repo/clj1")))
 
 
