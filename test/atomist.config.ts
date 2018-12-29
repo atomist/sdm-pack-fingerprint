@@ -63,7 +63,8 @@ import {
     diffNpmDepsFingerprints,
 } from "../lib/fingerprints/npmDeps";
 import {
-    checkCljCoordinatesImpactHandler, checkNpmCoordinatesImpactHandler,
+    checkCljCoordinatesImpactHandler,
+    checkNpmCoordinatesImpactHandler,
 } from "../lib/machine/FingerprintSupport";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
