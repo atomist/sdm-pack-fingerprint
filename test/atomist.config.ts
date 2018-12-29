@@ -57,7 +57,10 @@ import {
     applyDockerBaseFingerprint,
     dockerBaseFingerprint,
 } from "../lib/fingerprints/dockerFrom";
-import { applyFileFingerprint, createFileFingerprint } from "../lib/fingerprints/jsonFiles";
+import {
+    applyFileFingerprint,
+    createFileFingerprint,
+} from "../lib/fingerprints/jsonFiles";
 import {
     applyNpmDepsFingerprint,
     createNpmDepsFingerprints,
