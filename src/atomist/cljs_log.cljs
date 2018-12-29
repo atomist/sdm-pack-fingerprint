@@ -17,3 +17,7 @@
 (defn errorf [ex s & args]
   (error (.-message ex))
   (error (apply gstring/format s args)))
+
+(defn trace [x]
+  (log (with-out-str (cljs.pprint/pprint x)))
+  x)

@@ -74,9 +74,8 @@
    basedir "project.clj"
    (fn [f]
      (cond
-
        (gstring/startsWith (:name fingerprint) "clojure-project-deps")
        (spit f (lein/edit-library (slurp f) (-> fingerprint :data (nth 0)) (-> fingerprint :data (nth 1)))))))
 
-  (if (gstring/startsWith (:name fingerprint) "public-defn-bodies")
-    (public-defns/apply-fingerprint basedir clj-fp)))
+  (if (gstring/startsWith name "public-defn-bodies")
+    (public-defns/apply-fingerprint basedir fingerprint)))

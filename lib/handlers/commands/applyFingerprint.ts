@@ -54,7 +54,7 @@ export class ApplyTargetFingerprintParameters {
 
 async function pusher( message: (s: string) => Promise<any>, p: GitProject, registrations: FingerprintRegistration[], fp: FP) {
 
-    logger.info(`transform running -- ${fp} --`);
+    logger.info(`transform running -- ${fp.name}/${fp.sha} --`);
 
     for (const registration of registrations) {
         if (registration.apply && registration.selector(fp)) {

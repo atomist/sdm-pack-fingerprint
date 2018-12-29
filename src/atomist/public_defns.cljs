@@ -17,7 +17,8 @@
             [atomist.json :as json]
             [goog.string :as gstring]
             [goog.string.format]
-            [clojure.string :as s]))
+            [clojure.string :as s]
+            [cljs.spec.alpha :as spec]))
 
 (defn- generate-sig
   "  params
@@ -166,8 +167,7 @@
           :sha (sha (:bodies dufn))
           :version "0.0.4"
           :abbreviation "defn-bodies"
-          :data (json/json-str (dissoc dufn :zloc))
-          :value (json/json-str (dissoc dufn :zloc))}
+          :data (json/json-str (dissoc dufn :zloc))}
          (catch :default t
            (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
      (filter identity)
@@ -198,7 +198,8 @@
    (p/parse-string bodies)))
 
 (defn apply-fingerprint
-  [f {{:keys [filename fn-name bodies ns-name]} :data}]
+  [f {:keys [name] {:keys [filename fn-name bodies ns-name]} :data}]
+  (log/info "run the public-defn-bodies fingerprint application in " f)
   (if-let [dufn (->> (all-defns f)
                      (filter #(= fn-name (:fn-name %)))
                      first)]
@@ -219,6 +220,7 @@
       (if (.exists f)
         (spit f (gstring/format "%s\n%s" (slurp f) bodies))
         (spit f (gstring/format "(ns %s)\n%s" ns-name bodies))))))
+(spec/fdef apply-fingerprint :args (spec/cat :dir string? :fingerprint ::spec/fp))
 
 (comment
 

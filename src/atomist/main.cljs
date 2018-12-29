@@ -83,6 +83,7 @@
   (promise/chan->promise
    (go
     (let [clj-fp (js->clj fp :keywordize-keys true)]
+      (log/info "apply fingerprint " clj-fp " to basedir " basedir)
       ;; currently sync functions but they should probably return channels
       (fingerprints/apply-fingerprint basedir clj-fp)
       (logback/apply-fingerprint basedir clj-fp))

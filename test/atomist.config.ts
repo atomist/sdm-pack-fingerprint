@@ -63,7 +63,7 @@ import {
     diffNpmDepsFingerprints,
 } from "../lib/fingerprints/npmDeps";
 import {
-    checkNpmCoordinatesImpactHandler,
+    checkCljCoordinatesImpactHandler, checkNpmCoordinatesImpactHandler,
 } from "../lib/machine/FingerprintSupport";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
@@ -142,6 +142,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 },
             ],
             checkNpmCoordinatesImpactHandler(),
+            checkCljCoordinatesImpactHandler(),
             fingerprintImpactHandler(
                 {
                     complianceGoal: backpackComplianceGoal,
