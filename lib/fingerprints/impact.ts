@@ -185,7 +185,7 @@ export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerCont
             } else {
                 goalState = {
                     state: SdmGoalState.success,
-                    description: `compliance check for ${commaSeparatedList(result.successFps)} has passed`,
+                    description: `compliance check for ${result.successFps.length} fingerprints has passed`,
                 };
             }
 

@@ -15,6 +15,7 @@
  */
 
 import { ApplyFingerprint, ExtractFingerprint, FP, sha256 } from "../..";
+import { logger } from "@atomist/automation-client";
 
 export function createFileFingerprint(...filenames: string[]): ExtractFingerprint {
 
@@ -22,29 +23,35 @@ export function createFileFingerprint(...filenames: string[]): ExtractFingerprin
 
         const fps: FP[] = new Array<FP>();
 
-        filenames.map(async filename => {
+        await Promise.all(
+            
+            filenames.map(async filename => {
 
-            const file = await p.getFile(filename);
+                const file = await p.getFile(filename);
 
-            if (file) {
+                if (file) {
 
-                const jsonData = JSON.parse(await file.getContent());
+                    const fileData = await file.getContent();
 
-                fps.push(
-                    {
-                        name: `file-${filename}`,
-                        abbreviation: `file-${filename}`,
-                        version: "0.0.1",
-                        data: {
-                            content: jsonData,
-                            filename,
+                    const jsonData = JSON.parse(fileData);
+
+                    fps.push(
+                        {
+                            name: `file-${filename}`,
+                            abbreviation: `file-${filename}`,
+                            version: "0.0.1",
+                            data: JSON.stringify(
+                                {
+                                    content: fileData,
+                                    filename,
+                                }
+                            ),
+                            sha: sha256(JSON.stringify(jsonData)),
                         },
-                        sha: sha256(jsonData),
-                    },
-                );
+                    );
+                }
             }
-
-        });
+        ));
 
         return fps;
     };
@@ -55,10 +62,14 @@ export const applyFileFingerprint: ApplyFingerprint = async (p, fp) => {
     const file = await p.getFile(fp.data.filename);
 
     if (file) {
-        await file.setContent(JSON.stringify(fp.data.content));
+        logger.info("update content on an existing file");
+        await file.setContent(fp.data.content);
         return true;
     } else {
-        // TODO
-        return false;
+        logger.info("create new file");
+        await p.addFile(fp.data.filename,fp.data.content);
+        return true;
     }
 };
+
+

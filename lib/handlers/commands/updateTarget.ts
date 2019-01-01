@@ -166,7 +166,7 @@ export class DeleteTargetFingerprintParameters {
 
 export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFingerprintParameters> = {
     name: "DeleteTargetFingerprint",
-    intent: "deleteFingerprintGoal",
+    intent: "deleteFingerprintTarget",
     description: "remove the team target for a particular fingerprint",
     paramsMaker: DeleteTargetFingerprintParameters,
     listener: async cli => {
