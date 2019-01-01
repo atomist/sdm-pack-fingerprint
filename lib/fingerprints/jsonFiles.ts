@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { ApplyFingerprint, ExtractFingerprint, FP, sha256 } from "../..";
 import { logger } from "@atomist/automation-client";
+import { ApplyFingerprint, ExtractFingerprint, FP, sha256 } from "../..";
 
 export function createFileFingerprint(...filenames: string[]): ExtractFingerprint {
 
@@ -24,7 +24,7 @@ export function createFileFingerprint(...filenames: string[]): ExtractFingerprin
         const fps: FP[] = new Array<FP>();
 
         await Promise.all(
-            
+
             filenames.map(async filename => {
 
                 const file = await p.getFile(filename);
@@ -44,13 +44,13 @@ export function createFileFingerprint(...filenames: string[]): ExtractFingerprin
                                 {
                                     content: fileData,
                                     filename,
-                                }
+                                },
                             ),
                             sha: sha256(JSON.stringify(jsonData)),
                         },
                     );
                 }
-            }
+            },
         ));
 
         return fps;
@@ -67,9 +67,7 @@ export const applyFileFingerprint: ApplyFingerprint = async (p, fp) => {
         return true;
     } else {
         logger.info("create new file");
-        await p.addFile(fp.data.filename,fp.data.content);
+        await p.addFile(fp.data.filename, fp.data.content);
         return true;
     }
 };
-
-
