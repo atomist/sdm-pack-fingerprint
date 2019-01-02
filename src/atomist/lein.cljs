@@ -73,7 +73,7 @@
   (-> []
       (concat (for [dep (project-dependencies f)]
                 {:name (gstring/format "clojure-project-deps::%s" (gstring/replaceAll (nth dep 0) "/" "::"))
-                 :data dep
+                 :data (into [] (take 2 dep))
                  :abbreviation "lein-deps"
                  :version "0.0.1"}))
       (conj {:name "clojure-project-coordinates"

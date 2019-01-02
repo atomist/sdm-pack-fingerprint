@@ -152,9 +152,9 @@
      {:title (gstring/format "New Library Target")
       :description (gstring/format
                     "Target version for library *%s* is *%s*.  Currently *%s* in *%s/%s*"
-                    (-> d :from :data (nth 0))
+                    (-> d :to :data (nth 0))
                     (-> t :data (nth 1))
-                    (-> d :from :data (nth 1))
+                    (-> d :to :data (nth 1))
                     (-> d :owner)
                     (-> d :repo))})))
 

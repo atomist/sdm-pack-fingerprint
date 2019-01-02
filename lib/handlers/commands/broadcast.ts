@@ -109,12 +109,12 @@ ${italic(cli.parameters.reason)}`,
                         color: "#ffcc00",
                     },
                     {
-                        text: `Shall we update project to use the \`${cli.parameters.name}\` target?`,
+                        text: `Shall we update project to use the new \`${cli.parameters.name}\` target?`,
                         fallback: "none",
                         actions: [
                             actionableButton(
                                 {
-                                    text: "Update",
+                                    text: "Update project",
                                 },
                                 ApplyTargetFingerprint,
                                 {
