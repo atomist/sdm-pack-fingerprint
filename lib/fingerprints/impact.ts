@@ -195,7 +195,7 @@ export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerCont
                     description: `compliance check for ${result.successFps.length} fingerprints has passed`,
                 };
             }
-            
+
             return editGoal(
                 ctx,
                 coord,

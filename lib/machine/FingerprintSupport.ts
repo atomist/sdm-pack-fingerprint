@@ -42,9 +42,9 @@ import {
 } from "../../fingerprints/index";
 import {
     checkFingerprintTarget,
+    GitCoordinate,
     MessageMaker,
     votes,
-    GitCoordinate,
 } from "../fingerprints/impact";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
