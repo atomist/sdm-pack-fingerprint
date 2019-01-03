@@ -44,6 +44,7 @@ import {
     checkFingerprintTarget,
     MessageMaker,
     votes,
+    GitCoordinate,
 } from "../fingerprints/impact";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
@@ -94,7 +95,7 @@ export interface FingerprintHandler {
     selector: (name: FP) => boolean;
     diffHandler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
     handler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
-    ballot?: (context: HandlerContext, votes: Vote[]) => Promise<any>;
+    ballot?: (context: HandlerContext, votes: Vote[], coord: GitCoordinate) => Promise<any>;
 }
 
 /**

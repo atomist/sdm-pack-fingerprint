@@ -79,6 +79,10 @@ const IsClojure: PushTest = pushTest(`contains project.clj file`, async pci =>
     !!(await pci.project.getFile("project.clj")),
 );
 
+const IsTest: PushTest = pushTest(`contains touch.txt file`, async pci =>
+    !!(await pci.project.getFile("touch.txt")),
+);
+
 const backpackComplianceGoal = new GoalWithFulfillment(
     {
         uniqueName: "backpack-react-script-compliance",
@@ -106,6 +110,9 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             .setGoals(FingerprintingGoals),
         whenPushSatisfies(IsClojure)
             .itMeans("fingerprint a clojure project")
+            .setGoals(FingerprintingGoals),
+        whenPushSatisfies(IsTest)
+            .itMeans("fingeprint an empty project")
             .setGoals(FingerprintingGoals),
     );
 

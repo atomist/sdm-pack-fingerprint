@@ -68,6 +68,13 @@ export interface MessageMakerParams {
     mutateTarget: CommandHandlerRegistration<UpdateTargetFingerprintParameters>;
 }
 
+export interface GitCoordinate {
+    owner: string;
+    repo: string;
+    sha: string;
+    providerId: string;
+}
+
 export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult>;
 
 type MessageIdMaker = (fingerprint: FP, diff: Diff) => string;
@@ -134,7 +141,7 @@ function callback(ctx: HandlerContext, diff: Diff, config: FingerprintImpactHand
     };
 }
 
-async function editGoal(ctx: HandlerContext, diff: Diff, goal: Goal, params: UpdateSdmGoalParams): Promise<any> {
+async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, params: UpdateSdmGoalParams): Promise<any> {
     logger.info(`edit goal ${goal.name} to be in state ${params.state} for ${diff.owner}, ${diff.repo}, ${diff.sha}, ${diff.providerId}`);
     try {
         const id = new GitHubRepoRef(diff.owner, diff.repo, diff.sha);
@@ -169,13 +176,13 @@ function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff, goal?: Goal)
     };
 }
 
-export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerContext, votes: Vote[]) => Promise<any> {
-    return async (ctx, vs) => {
+export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerContext, votes: Vote[], coord: GitCoordinate) => Promise<any> {
+    return async (ctx, vs, coord) => {
         if (config.complianceGoal) {
 
             let goalState;
             const result: VoteResults = voteResults(vs);
-            logger.debug(`ballot result ${renderData(result)} for ${renderData(vs)}`);
+            logger.debug(`ballot result ${renderData(result)} for ${renderData(vs)} and ${coord}`);
 
             if (result.failed) {
                 goalState = {
@@ -188,17 +195,13 @@ export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerCont
                     description: `compliance check for ${result.successFps.length} fingerprints has passed`,
                 };
             }
-
-            if (result.diff) {
-                return editGoal(
-                    ctx,
-                    result.diff,
-                    config.complianceGoal,
-                    goalState,
-                );
-            } else {
-                return undefined;
-            }
+            
+            return editGoal(
+                ctx,
+                coord,
+                config.complianceGoal,
+                goalState,
+            );
         }
         return SuccessPromise;
     };

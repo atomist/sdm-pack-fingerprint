@@ -121,7 +121,16 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
 
         handlers.map(async h => {
             if (h.ballot) {
-                await h.ballot(ctx, filteredVotes);
+                await h.ballot(
+                    ctx, 
+                    filteredVotes, 
+                    {
+                        owner: event.data.PushImpact[0].push.after.repo.org.owner, 
+                        repo: event.data.PushImpact[0].push.after.repo.name, 
+                        sha: event.data.PushImpact[0].push.after.sha, 
+                        providerId: event.data.PushImpact[0].push.after.repo.org.provider.providerId,
+                    }
+                );
             }
         });
 
