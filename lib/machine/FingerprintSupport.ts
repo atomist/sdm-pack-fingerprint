@@ -44,6 +44,7 @@ import {
     checkFingerprintTarget,
     GitCoordinate,
     MessageMaker,
+    MessageMakerParams,
     votes,
 } from "../fingerprints/impact";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
@@ -95,7 +96,7 @@ export interface FingerprintHandler {
     selector: (name: FP) => boolean;
     diffHandler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
     handler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
-    ballot?: (context: HandlerContext, votes: Vote[], coord: GitCoordinate) => Promise<any>;
+    ballot?: (context: HandlerContext, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any>;
 }
 
 /**
@@ -144,46 +145,67 @@ export function register(name: string, extract: ExtractFingerprint, apply?: Appl
     };
 }
 
+// function orDefault<T>(cb: () => T, x: T): T {
+//     try {
+//         return cb();
+//     } catch (y) {
+//         return x;
+//     }
+// }
+
+export function oneVote(params: MessageMakerParams, vote: Vote) {
+
+    return {
+        title: vote.summary.title,
+        text: vote.summary.description,
+        color: "#45B254",
+        fallback: "Fingerprint Update",
+        mrkdwn_in: ["text"],
+        actions: [
+            actionableButton(
+                { text: "Update project" },
+                params.editProject,
+                {
+                    msgId: params.msgId,
+                    fingerprint: vote.fpTarget.name,
+                    targets: {
+                        owner: vote.diff.owner,
+                        repo: vote.diff.repo,
+                        branch: vote.diff.branch,
+                    },
+                } as any),
+            actionableButton(
+                { text: "Set New Target" },
+                params.mutateTarget,
+                {
+                    msgId: params.msgId,
+                    name: vote.fpTarget.name,
+                    sha: vote.fpTarget.sha,
+                },
+            ),
+        ],
+        footer: footer(),
+    };
+}
+
+export function applyAll(params: MessageMakerParams) {
+    return {
+        title: "apply all",
+        text: "apply all",
+    };
+}
+
 // default implementation
 export const messageMaker: MessageMaker = async params => {
 
     return params.ctx.messageClient.send(
         {
             attachments: [
-                {
-                    title: params.title,
-                    text: params.text,
-                    color: "#45B254",
-                    fallback: "Fingerprint Update",
-                    mrkdwn_in: ["text"],
-                    actions: [
-                        actionableButton(
-                            { text: "Update project" },
-                            params.editProject,
-                            {
-                                msgId: params.msgId,
-                                fingerprint: params.fingerprint.name,
-                                targets: {
-                                    owner: params.diff.owner,
-                                    repo: params.diff.repo,
-                                    branch: params.diff.branch,
-                                },
-                            } as any),
-                        actionableButton(
-                            { text: "Set New Target" },
-                            params.mutateTarget,
-                            {
-                                msgId: params.msgId,
-                                name: params.fingerprint.name,
-                                sha: params.fingerprint.sha,
-                            },
-                        ),
-                    ],
-                    footer: footer(),
-                },
+                ...params.voteResults.failedVotes.map( vote => oneVote(params, vote) ),
+                applyAll(params),
             ],
         },
-        await addressSlackChannelsFromContext(params.ctx, params.diff.channel),
+        await addressSlackChannelsFromContext(params.ctx, params.channel),
         // {id: params.msgId} if you want to update messages if the target goal has not changed
         {id: undefined},
     );

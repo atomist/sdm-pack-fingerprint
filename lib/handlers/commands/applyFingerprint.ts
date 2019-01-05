@@ -99,6 +99,35 @@ function runAllFingerprintAppliers( registrations: FingerprintRegistration[]): C
                 cli.parameters.fingerprint));
     };
 }
+function runEveryFingerprintApplication( registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
+    return async (p, cli) => {
+
+        const message: SlackMessage = {
+            attachments: [
+                {
+                    author_name: "Apply target fingerprint",
+                    author_icon: `https://images.atomist.com/rug/check-circle.gif?gif=${guid()}`,
+                    text: `Applying target fingerprint \`${cli.parameters.fingerprint}\` to <https://github.com/${
+                        p.id.owner}/${p.id.repo}|${p.id.owner}/${p.id.repo}>`,
+                    mrkdwn_in: ["text"],
+                    color: "#45B254",
+                    fallback: "none",
+                    footer: footer(),
+                },
+            ],
+        };
+
+        await cli.addressChannels(message);
+
+        return pusher(
+            async (s: string) => cli.addressChannels(s),
+            (p as GitProject),
+            registrations,
+            await getFingerprintPreference(
+                queryPreferences(cli.context.graphClient),
+                cli.parameters.fingerprint));
+    };
+}
 export let ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
 
 export function applyTargetFingerprint(
@@ -116,9 +145,25 @@ export function applyTargetFingerprint(
     return ApplyTargetFingerprint;
 }
 
+export function applyAllFingerprints(
+    registrations: FingerprintRegistration[],
+    presentation: EditModeMaker,
+    ): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
+
+    return {
+        name: "ApplyAllFingerprints",
+        description: "apply a bunch of fingerprints",
+        transformPresentation: presentation,
+        transform: runEveryFingerprintApplication(registrations),
+        autoSubmit: true,
+    };
+}
+
 export let FingerprintApplicationCommandRegistration: CommandHandlerRegistration<RepoTargetingParameters>;
+export let ApplyAllFingerprintsCommandRegistration: CommandHandlerRegistration<RepoTargetingParameters>;
 
 export function compileCodeTransformCommand(registrations: FingerprintRegistration[], presentation: EditModeMaker, sdm: SoftwareDeliveryMachine) {
     FingerprintApplicationCommandRegistration = branchAwareCodeTransform(applyTargetFingerprint(registrations, presentation), sdm);
+    ApplyAllFingerprintsCommandRegistration = branchAwareCodeTransform(applyAllFingerprints(registrations, presentation), sdm);
     return FingerprintApplicationCommandRegistration;
 }

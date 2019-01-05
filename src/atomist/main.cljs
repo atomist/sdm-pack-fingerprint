@@ -31,7 +31,9 @@
               :successFps (->> vs
                                (filter #(= "For" (:decision %)))
                                (map :name))
-              :diff (-> vs first :ballot)})))
+              :failedVotes (->> vs
+                                (filter #(= "Against" (:decision %)))
+                                (into []))})))
 
 (defn ^:export processPushImpact
   "process a PushImpact event by potentially fetching additional fingerprint data, creating diffs,
