@@ -19,8 +19,6 @@ import {
     GitProject,
     guid,
     logger,
-    Parameter,
-    Parameters,
 } from "@atomist/automation-client";
 import {
     AutoMergeMethod,
@@ -46,16 +44,6 @@ import {
     FingerprintRegistration,
 } from "../../machine/FingerprintSupport";
 import { footer } from "../../support/util";
-
-@Parameters()
-export class ApplyTargetFingerprintParameters {
-
-    @Parameter({ required: false, displayable: false })
-    public msgId?: string;
-
-    @Parameter({ required: true })
-    public fingerprint: string;
-}
 
 async function pushFingerprint( message: (s: string) => Promise<any>, p: GitProject, registrations: FingerprintRegistration[], fp: FP) {
 
@@ -141,16 +129,25 @@ function runEveryFingerprintApplication( registrations: FingerprintRegistration[
     };
 }
 
+export interface ApplyTargetFingerprintParameters {
+    msgId?: string;
+    fingerprint: string;
+}
+
 export let ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
 
-export function applyTargetFingerprint(
+function createApplyTargetFingerprintRegistration(
     registrations: FingerprintRegistration[],
     presentation: EditModeMaker ): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
-    ApplyTargetFingerprint = {
+    
+    ApplyTargetFingerprint =  {
         name: "ApplyTargetFingerprint",
         intent: "applyFingerprint",
         description: "choose to raise a PR on the current project to apply a target fingerprint",
-        paramsMaker: ApplyTargetFingerprintParameters,
+        parameters: {
+            msgId: {required: false, displayable: false},
+            fingerprint: {required: true},
+        },
         transformPresentation: presentation,
         transform: runAllFingerprintAppliers(registrations),
         autoSubmit: true,
@@ -163,7 +160,7 @@ export interface ApplyTargetFingerprintsParameters {
     fingerprints: string;
 }
 
-export function applyTargetFingerprints(
+function createApplyTargetFingerprintsRegistration(
     registrations: FingerprintRegistration[],
     presentation: EditModeMaker,
     ): CodeTransformRegistration<ApplyTargetFingerprintsParameters> {
@@ -198,13 +195,13 @@ export let ApplyAllFingerprintsCommandRegistration: CommandHandlerRegistration<R
 export function compileApplyFingerprintCommand(
     registrations: FingerprintRegistration[], presentation: EditModeMaker, sdm: SoftwareDeliveryMachine) {
     
-    FingerprintApplicationCommandRegistration = branchAwareCodeTransform(applyTargetFingerprint(registrations, presentation), sdm);
+    FingerprintApplicationCommandRegistration = branchAwareCodeTransform(createApplyTargetFingerprintRegistration(registrations, presentation), sdm);
     return FingerprintApplicationCommandRegistration;
 }
 
 export function compileApplyAllFingerprintsCommand(
     registrations: FingerprintRegistration[], presentation: EditModeMaker, sdm: SoftwareDeliveryMachine) {
     
-    ApplyAllFingerprintsCommandRegistration = branchAwareCodeTransform(applyTargetFingerprints(registrations, presentation), sdm);
+    ApplyAllFingerprintsCommandRegistration = branchAwareCodeTransform(createApplyTargetFingerprintsRegistration(registrations, presentation), sdm);
     return ApplyAllFingerprintsCommandRegistration;
 }
