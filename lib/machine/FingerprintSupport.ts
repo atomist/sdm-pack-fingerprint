@@ -34,6 +34,7 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
+import { SlackMessage } from "@atomist/slack-messages";
 import {
     Diff,
     FP,
@@ -50,7 +51,8 @@ import {
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     ApplyTargetFingerprintParameters,
-    compileCodeTransformCommand,
+    compileApplyAllFingerprintsCommand,
+    compileApplyFingerprintCommand,
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
@@ -145,19 +147,19 @@ export function register(name: string, extract: ExtractFingerprint, apply?: Appl
     };
 }
 
-// function orDefault<T>(cb: () => T, x: T): T {
-//     try {
-//         return cb();
-//     } catch (y) {
-//         return x;
-//     }
-// }
+function orDefault<T>(cb: () => T, x: T): T {
+    try {
+        return cb();
+    } catch (y) {
+        return x;
+    }
+}
 
-export function oneVote(params: MessageMakerParams, vote: Vote) {
+export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
 
     return {
-        title: vote.summary.title,
-        text: vote.summary.description,
+        title: orDefault(() => vote.summary.title, "New Target"),
+        text: orDefault(() => vote.summary.description, vote.text),
         color: "#45B254",
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
@@ -179,8 +181,8 @@ export function oneVote(params: MessageMakerParams, vote: Vote) {
                 params.mutateTarget,
                 {
                     msgId: params.msgId,
-                    name: vote.fpTarget.name,
-                    sha: vote.fpTarget.sha,
+                    name: vote.fingerprint.name,
+                    sha: vote.fingerprint.sha,
                 },
             ),
         ],
@@ -192,19 +194,42 @@ export function applyAll(params: MessageMakerParams) {
     return {
         title: "apply all",
         text: "apply all",
+        color: "45B254",
+        fallback: "Fingerprint Update",
+        mrkdwn_in: ["text"],
+        actions: [
+            actionableButton(
+                { text: "Apply All" },
+                params.editAllProjects,
+                {
+                    msgId: params.msgId,
+                    fingerprints: params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(","),
+                    targets: {
+                        owner: params.coord.owner,
+                        repo: params.coord.repo,
+                        branch: params.coord.branch,
+                    },
+                } as any,
+            ),
+        ],
     };
 }
 
 // default implementation
 export const messageMaker: MessageMaker = async params => {
 
+    const message: SlackMessage = {
+        attachments: [
+            ...params.voteResults.failedVotes.map( vote => oneFingerprint(params, vote) ),
+        ],
+    };
+
+    if (params.voteResults.failedVotes.length > 1) {
+        message.attachments.push(applyAll(params));
+    }
+
     return params.ctx.messageClient.send(
-        {
-            attachments: [
-                ...params.voteResults.failedVotes.map( vote => oneVote(params, vote) ),
-                applyAll(params),
-            ],
-        },
+        message,
         await addressSlackChannelsFromContext(params.ctx, params.channel),
         // {id: params.msgId} if you want to update messages if the target goal has not changed
         {id: undefined},
@@ -232,7 +257,8 @@ export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig
         sdm.addCommand(ListFingerprint);
         sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
 
-        sdm.addCommand(compileCodeTransformCommand(registrations, config.transformPresentation, sdm));
+        sdm.addCommand(compileApplyFingerprintCommand(registrations, config.transformPresentation, sdm));
+        sdm.addCommand(compileApplyAllFingerprintsCommand(registrations, config.transformPresentation, sdm));
 
         return {
             selector: fp => true,

@@ -17,14 +17,12 @@
 import {
     Configuration,
     editModes,
-    NoParameters,
 } from "@atomist/automation-client";
 import {
     AutoMergeMethod,
     AutoMergeMode,
 } from "@atomist/automation-client/lib/operations/edit/editModes";
 import {
-    CommandHandlerRegistration,
     Fingerprint,
     goals,
     Goals,
@@ -38,6 +36,7 @@ import {
 import {
     configureSdm,
     createSoftwareDeliveryMachine,
+    goalState,
 } from "@atomist/sdm-core";
 import {
     fingerprintImpactHandler,
@@ -96,13 +95,13 @@ const backpackComplianceGoal = new GoalWithFulfillment(
     },
 );
 
-const SpecialHelp: CommandHandlerRegistration<NoParameters> = {
-    name: "SpecialHelp",
-    intent: "show skills",
-    listener: inv => {
-        return inv.addressChannels("show some help");
-    },
-};
+// const SpecialHelp: CommandHandlerRegistration<NoParameters> = {
+//     name: "SpecialHelp",
+//     intent: "show skills",
+//     listener: inv => {
+//         return inv.addressChannels("show some help");
+//     },
+// };
 
 export const FingerprintGoal = new Fingerprint();
 const FingerprintingGoals: Goals = goals("check fingerprints")
@@ -126,9 +125,8 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             .setGoals(FingerprintingGoals),
     );
 
-    sdm.addCommand(SpecialHelp);
-
     sdm.addExtensionPacks(
+        goalState(),
         fingerprintSupport(
             FingerprintGoal,
             [

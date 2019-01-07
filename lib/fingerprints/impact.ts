@@ -61,6 +61,7 @@ export interface MessageMakerParams {
     voteResults: VoteResults;
     msgId: string;
     channel: string;
+    coord: GitCoordinate;
     editProject: CommandHandlerRegistration<RepoTargetingParameters>;
     editAllProjects: CommandHandlerRegistration<RepoTargetingParameters>;
     mutateTarget: CommandHandlerRegistration<UpdateTargetFingerprintParameters>;
@@ -71,6 +72,7 @@ export interface GitCoordinate {
     repo: string;
     sha: string;
     providerId: string;
+    branch?: string;
 }
 
 export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult>;
@@ -177,6 +179,7 @@ export function votes(config: FingerprintImpactHandlerConfig):
                     msgId: updateableMessage(result.failedVotes[0].fingerprint, coord, channel),
                     channel,
                     voteResults: result,
+                    coord,
                     editProject: FingerprintApplicationCommandRegistration,
                     editAllProjects: ApplyAllFingerprintsCommandRegistration,
                     mutateTarget: UpdateTargetFingerprint,
