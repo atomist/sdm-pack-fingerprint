@@ -193,7 +193,6 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
 export function applyAll(params: MessageMakerParams) {
     return {
         title: "apply all",
-        text: "apply all",
         color: "45B254",
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
@@ -219,6 +218,7 @@ export function applyAll(params: MessageMakerParams) {
 export const messageMaker: MessageMaker = async params => {
 
     const message: SlackMessage = {
+        text: `updates on branch ${params.coord.branch}`,
         attachments: [
             ...params.voteResults.failedVotes.map( vote => oneFingerprint(params, vote) ),
         ],
