@@ -139,7 +139,7 @@ export let ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerpr
 function createApplyTargetFingerprintRegistration(
     registrations: FingerprintRegistration[],
     presentation: EditModeMaker ): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
-    
+
     ApplyTargetFingerprint =  {
         name: "ApplyTargetFingerprint",
         intent: "applyFingerprint",
@@ -194,14 +194,14 @@ export let ApplyAllFingerprintsCommandRegistration: CommandHandlerRegistration<R
 
 export function compileApplyFingerprintCommand(
     registrations: FingerprintRegistration[], presentation: EditModeMaker, sdm: SoftwareDeliveryMachine) {
-    
+
     FingerprintApplicationCommandRegistration = branchAwareCodeTransform(createApplyTargetFingerprintRegistration(registrations, presentation), sdm);
     return FingerprintApplicationCommandRegistration;
 }
 
 export function compileApplyAllFingerprintsCommand(
     registrations: FingerprintRegistration[], presentation: EditModeMaker, sdm: SoftwareDeliveryMachine) {
-    
+
     ApplyAllFingerprintsCommandRegistration = branchAwareCodeTransform(createApplyTargetFingerprintsRegistration(registrations, presentation), sdm);
     return ApplyAllFingerprintsCommandRegistration;
 }

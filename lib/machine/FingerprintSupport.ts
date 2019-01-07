@@ -219,6 +219,7 @@ export function applyAll(params: MessageMakerParams) {
 export const messageMaker: MessageMaker = async params => {
 
     const message: SlackMessage = {
+        text: `updates on branch ${params.coord.branch}`,
         attachments: [
             ...params.voteResults.failedVotes.map( vote => oneFingerprint(params, vote) ),
         ],
