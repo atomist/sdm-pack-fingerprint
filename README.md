@@ -1,7 +1,7 @@
 # @atomist/sdm-pack-fingerprints
 
 [![atomist sdm goals](http://badge.atomist.com/T29E48P34/atomist/sdm-pack-fingerprints/04e080df-3333-4783-82d3-a4c76637827b)](https://app.atomist.com/workspace/T29E48P34)
-[![npm version](https://img.shields.io/npm/v/@atomist/sdm-pack-fingerprint/next.svg)](https://www.npmjs.com/package/@atomist/sdm-pack-fingerprint/v/next)
+[![npm version](https://img.shields.io/npm/v/@atomist/sdm-pack-fingerprints.svg)](https://www.npmjs.com/package/@atomist/sdm-pack-fingerprints)
 
 [Atomist][atomist] software delivery machine (SDM) extension pack
 providing fingerprinting support.
