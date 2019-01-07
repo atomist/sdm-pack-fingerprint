@@ -192,8 +192,8 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
 
 export function applyAll(params: MessageMakerParams) {
     return {
-        title: "apply all",
-        text: "apply all",
+        title: "Apply all Changes",
+        text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => vote.name).join(",")}`,
         color: "45B254",
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
