@@ -197,14 +197,14 @@ export let ApplyAllFingerprintsCommandRegistration: CommandHandlerRegistration<R
 
 export function compileApplyFingerprintCommand(
     registrations: FingerprintRegistration[], presentation: EditModeMaker, sdm: SoftwareDeliveryMachine) {
-    
+
     FingerprintApplicationCommandRegistration = branchAwareCodeTransform(applyTargetFingerprint(registrations, presentation), sdm);
     return FingerprintApplicationCommandRegistration;
 }
 
 export function compileApplyAllFingerprintsCommand(
     registrations: FingerprintRegistration[], presentation: EditModeMaker, sdm: SoftwareDeliveryMachine) {
-    
+
     ApplyAllFingerprintsCommandRegistration = branchAwareCodeTransform(applyTargetFingerprints(registrations, presentation), sdm);
     return ApplyAllFingerprintsCommandRegistration;
 }
