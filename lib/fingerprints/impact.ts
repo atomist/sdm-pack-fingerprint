@@ -44,7 +44,8 @@ import {
 } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import {
-    ApplyAllFingerprintsCommandRegistration, FingerprintApplicationCommandRegistration,
+    ApplyAllFingerprintsCommandRegistration,
+    FingerprintApplicationCommandRegistration,
 } from "../handlers/commands/applyFingerprint";
 import {
     UpdateTargetFingerprint,
