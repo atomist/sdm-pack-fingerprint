@@ -50,7 +50,7 @@ import {
 } from "../fingerprints/impact";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
-    ApplyTargetFingerprintParameters,
+    ApplyTargetParameters,
     compileApplyAllFingerprintsCommand,
     compileApplyFingerprintCommand,
 } from "../handlers/commands/applyFingerprint";
@@ -104,7 +104,7 @@ export interface FingerprintHandler {
 /**
  * permits customization of EditModes in the FingerprintImpactHandlerConfig
  */
-export type EditModeMaker = (cli: CommandListenerInvocation<ApplyTargetFingerprintParameters>, project?: Project) => editModes.EditMode;
+export type EditModeMaker = (cli: CommandListenerInvocation<ApplyTargetParameters>, project?: Project) => editModes.EditMode;
 
 /**
  * customize the out of the box strategy for monitoring when fingerprints are out
@@ -155,12 +155,25 @@ function orDefault<T>(cb: () => T, x: T): T {
     }
 }
 
+function prBody(vote: Vote): string {
+    const title: string =
+        orDefault(
+            () => vote.summary.title,
+            `apply fingerprint ${vote.fpTarget.name}`);
+    const description: string =
+        orDefault(
+            () => vote.summary.description,
+            `no summary`);
+
+    return `#### ${title}\n${description}`;
+}
+
 export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
 
     return {
         title: orDefault(() => vote.summary.title, "New Target"),
         text: orDefault(() => vote.summary.description, vote.text),
-        color: "#45B254",
+        color: "warning",
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
         actions: [
@@ -170,6 +183,8 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
                 {
                     msgId: params.msgId,
                     fingerprint: vote.fpTarget.name,
+                    title: `Apply ${vote.fpTarget.name} to project`,
+                    body: prBody(vote),
                     targets: {
                         owner: vote.diff.owner,
                         repo: vote.diff.repo,
@@ -194,7 +209,7 @@ export function applyAll(params: MessageMakerParams) {
     return {
         title: "Apply all Changes",
         text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => vote.name).join(",")}`,
-        color: "45B254",
+        color: "warning",
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
         actions: [
@@ -204,6 +219,8 @@ export function applyAll(params: MessageMakerParams) {
                 {
                     msgId: params.msgId,
                     fingerprints: params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(","),
+                    title: `Apply all of \`${params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(",")}\` to project`,
+                    body: params.voteResults.failedVotes.map(vote => prBody(vote)).join("\n"),
                     targets: {
                         owner: params.coord.owner,
                         repo: params.coord.repo,
@@ -219,8 +236,11 @@ export function applyAll(params: MessageMakerParams) {
 export const messageMaker: MessageMaker = async params => {
 
     const message: SlackMessage = {
-        text: `updates on branch ${params.coord.branch}`,
         attachments: [
+            {
+                text: `fingerprint diffs detected on branch ${params.coord.branch}`,
+                fallback: "fingerprint diffs",
+            },
             ...params.voteResults.failedVotes.map( vote => oneFingerprint(params, vote) ),
         ],
     };
