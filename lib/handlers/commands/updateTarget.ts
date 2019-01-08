@@ -94,6 +94,7 @@ export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<Se
                 mutatePreference(cli.context.graphClient),
                 cli.parameters.fingerprint,
                 sha,
+                cli.context.source.slack.user.id,
             );
             return askAboutBroadcast(cli, cli.parameters.fingerprint, "version", sha);
         } else {
@@ -121,13 +122,14 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
     description: "set a new target for a team to consume a particular version",
     paramsMaker: UpdateTargetFingerprintParameters,
     listener: async cli => {
-        await cli.context.messageClient.respond(`updating the goal state for all ${cli.parameters.name} fingerprints`);
+        await cli.context.messageClient.respond(`updating the goal state for all ${cli.parameters.name} fingerprints (initiated by user <@${cli.context.source.slack.user.id}> )`);
         await setGoalFingerprint(
             queryPreferences(cli.context.graphClient),
             queryFingerprintBySha(cli.context.graphClient),
             mutatePreference(cli.context.graphClient),
             cli.parameters.name,
             cli.parameters.sha,
+            cli.context.source.slack.user.id,
         );
         return askAboutBroadcast(cli, cli.parameters.name, "version", cli.parameters.sha);
     },
@@ -147,12 +149,14 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
     paramsMaker: SetTargetFingerprintParameters,
     listener: async cli => {
         logger.info(`set target fingerprint for ${cli.parameters.fp}`);
+        const fp = {
+            user: {id: cli.context.source.slack.user.id},
+            ...JSON.parse(cli.parameters.fp)
+        };
         await setTargetFingerprint(
             queryPreferences(cli.context.graphClient),
             mutatePreference(cli.context.graphClient),
-            cli.parameters.fp);
-
-        const fp: FP = JSON.parse(cli.parameters.fp);
+            JSON.stringify(fp));
 
         return askAboutBroadcast(cli, fp.name, fp.data[1], fp.sha);
     },
@@ -192,7 +196,7 @@ export function setNewTargetFingerprint(ctx: HandlerContext, fp: FP, channel: st
                         },
                         SetTargetFingerprint,
                         {
-                            fp: JSON.stringify( fp ),
+                            fp: JSON.stringify(fp),
                         },
                     ),
                 ],

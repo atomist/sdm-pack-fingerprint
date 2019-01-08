@@ -388,13 +388,13 @@
 
 (defn set-fingerprint-preference
   "set or replace a fingerprint preference "
-  [query-prefs query-fingerprint-by-sha pref-editor fp-name fp-sha]
+  [query-prefs query-fingerprint-by-sha pref-editor fp-name fp-sha user-id]
   (go
    (let [preferences (<! (from-promise (query-prefs)))
          fps (<! (from-promise (query-fingerprint-by-sha fp-name fp-sha)))
          chat-team-id (-> preferences :ChatTeam first :id)
          fp (-> fps :Fingerprint first)
-         fingerprint (assoc fp :data (-> fp :data (json/json->clj :keywordize-keys true)))]
+         fingerprint (assoc fp :data (-> fp :data (json/json->clj :keywordize-keys true)) :user {:id user-id})]
      (log/info "set-fingerprint-preference to team " chat-team-id " and fingerprint " fingerprint)
      (if fingerprint
        (do

@@ -74,7 +74,8 @@ export declare function setGoalFingerprint( queryPreferences: () => Promise<any>
                                             queryFingerprintBySha: (name: string, sha: string) => Promise<any>,
                                             mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
                                             name: string,
-                                            sha: string
+                                            sha: string,
+                                            userId: string,
                                             ): Promise<boolean>
 export declare function setTargetFingerprint( queryPreferences: () => Promise<any>,
                                               mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
