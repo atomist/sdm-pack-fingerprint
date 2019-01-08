@@ -3,15 +3,15 @@
         ".idea": true,
         "**/*.js": true,
         "**/*.js.map": true,
-        "**/*.d.ts": true,
         "dev": true,
         "doc": true,
         "legal": true,
+        "lib/**/*.d.ts": true,
         "log/**": true,
         "node_modules": true,
         "out": true,
+        "src": true,
         "target": true,
-        "tmp": true,
-        "src": true
+        "tmp": true
     },
 }

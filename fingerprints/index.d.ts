@@ -3,12 +3,22 @@
  * Types:  project Fingerprint types
  */
 export declare interface FP {name: string, sha: string, data: any, version: string, abbreviation: string}
-export declare interface Vote {ballot?: any, abstain: boolean, decision?: string, name?: string}
+export declare interface Vote {
+    ballot?: any,
+    abstain: boolean,
+    decision?: string,
+    name?: string,
+    fingerprint?: FP,
+    fpTarget?: FP,
+    diff?: Diff,
+    text?: string,
+    summary?: {title: string, description: string},
+}
 export declare interface VoteResults {
     failed: boolean,
-    diff: Diff,
     failedFps: string[],
-    successFps: string[]
+    successFps: string[],
+    failedVotes: Vote[],
 }
 export declare function voteResults(votes: Vote[]): VoteResults;
 
@@ -64,7 +74,8 @@ export declare function setGoalFingerprint( queryPreferences: () => Promise<any>
                                             queryFingerprintBySha: (name: string, sha: string) => Promise<any>,
                                             mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
                                             name: string,
-                                            sha: string
+                                            sha: string,
+                                            userId: string,
                                             ): Promise<boolean>
 export declare function setTargetFingerprint( queryPreferences: () => Promise<any>,
                                               mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,

@@ -44,6 +44,7 @@ import {
 } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import {
+    ApplyAllFingerprintsCommandRegistration,
     FingerprintApplicationCommandRegistration,
 } from "../handlers/commands/applyFingerprint";
 import {
@@ -58,13 +59,12 @@ import {
 
 export interface MessageMakerParams {
     ctx: HandlerContext;
-    title: string;
-    text: string;
-    fingerprint: FP;
-    fpTarget: FP;
-    diff: Diff;
+    voteResults: VoteResults;
     msgId: string;
+    channel: string;
+    coord: GitCoordinate;
     editProject: CommandHandlerRegistration<RepoTargetingParameters>;
+    editAllProjects: CommandHandlerRegistration<RepoTargetingParameters>;
     mutateTarget: CommandHandlerRegistration<UpdateTargetFingerprintParameters>;
 }
 
@@ -73,14 +73,15 @@ export interface GitCoordinate {
     repo: string;
     sha: string;
     providerId: string;
+    branch?: string;
 }
 
 export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult>;
 
-type MessageIdMaker = (fingerprint: FP, diff: Diff) => string;
+type MessageIdMaker = (fingerprint: FP, coordinate: GitCoordinate, channel: string) => string;
 
-const updateableMessage: MessageIdMaker = (fingerprint, diff) => {
-    return consistentHash([fingerprint.sha, diff.channel, diff.owner, diff.repo]);
+const updateableMessage: MessageIdMaker = (fingerprint, coordinate: GitCoordinate, channel: string) => {
+    return consistentHash([fingerprint.sha, channel, coordinate.owner, coordinate.repo]);
 };
 
 function getDiffSummary(diff: Diff, target: FP, registrations: FingerprintRegistration[]): undefined | DiffSummary {
@@ -98,14 +99,6 @@ function getDiffSummary(diff: Diff, target: FP, registrations: FingerprintRegist
     return undefined;
 }
 
-function orDefault<T>(cb: () => T, x: T): T {
-    try {
-        return cb();
-    } catch (y) {
-        return x;
-    }
-}
-
 // when we discover a backpack dependency that is not the target state
 // then we ask the user whether they want to update to the new target version
 // or maybe they want this backpack version to become the new target version
@@ -113,24 +106,34 @@ function callback(ctx: HandlerContext, diff: Diff, config: FingerprintImpactHand
     (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
     return async (text, fpTarget, fingerprint) => {
 
-        const summary = getDiffSummary(diff, fpTarget, registrations);
-
-        await config.messageMaker({
-            ctx,
-            msgId: updateableMessage(fingerprint, diff),
-            title: orDefault( () => summary.title , "New Target"),
-            text: orDefault( () => summary.description, text),
-            fpTarget,
-            fingerprint,
-            diff,
-            editProject: FingerprintApplicationCommandRegistration,
-            mutateTarget: UpdateTargetFingerprint});
-
         if (config.complianceGoal) {
             return {
                 name: fingerprint.name,
                 decision: "Against",
                 abstain: false,
+                ballot: diff,
+                diff,
+                fingerprint,
+                fpTarget,
+                text,
+                summary: getDiffSummary(diff, fpTarget, registrations),
+            };
+        } else {
+            return {
+                abstain: true,
+            };
+        }
+    };
+}
+
+function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff, goal?: Goal):
+    (fingerprint: FP) => Promise<Vote> {
+    return async fingerprint => {
+        if (goal) {
+            return {
+                abstain: false,
+                name: fingerprint.name,
+                decision: "For",
                 ballot: diff,
             };
         } else {
@@ -158,33 +161,31 @@ async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, pa
     }
 }
 
-function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff, goal?: Goal):
-    (fingerprint: FP) => Promise<Vote> {
-    return async fingerprint => {
-        if (goal) {
-            return {
-                abstain: false,
-                name: fingerprint.name,
-                decision: "For",
-                ballot: diff,
-            };
-        } else {
-            return {
-                abstain: true,
-            };
-        }
-    };
-}
+export function votes(config: FingerprintImpactHandlerConfig):
+    (ctx: HandlerContext, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any> {
 
-export function votes(config: FingerprintImpactHandlerConfig): (ctx: HandlerContext, votes: Vote[], coord: GitCoordinate) => Promise<any> {
-    return async (ctx, vs, coord) => {
+    return async (ctx, vs, coord, channel) => {
+
+        const result: VoteResults = voteResults(vs);
+
         if (config.complianceGoal) {
 
             let goalState;
-            const result: VoteResults = voteResults(vs);
             logger.debug(`ballot result ${renderData(result)} for ${renderData(vs)} and ${coord}`);
 
             if (result.failed) {
+
+                await config.messageMaker({
+                    ctx,
+                    msgId: updateableMessage(result.failedVotes[0].fingerprint, coord, channel),
+                    channel,
+                    voteResults: result,
+                    coord,
+                    editProject: FingerprintApplicationCommandRegistration,
+                    editAllProjects: ApplyAllFingerprintsCommandRegistration,
+                    mutateTarget: UpdateTargetFingerprint,
+                });
+
                 goalState = {
                     state: SdmGoalState.failure,
                     description: `compliance check for ${commaSeparatedList(result.failedFps)} has failed`,

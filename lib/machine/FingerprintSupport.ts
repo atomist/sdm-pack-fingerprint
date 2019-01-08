@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Atomist, Inc.
+ * Copyright © 2019 Atomist, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
+import { SlackMessage } from "@atomist/slack-messages";
 import {
     Diff,
     FP,
@@ -44,12 +45,14 @@ import {
     checkFingerprintTarget,
     GitCoordinate,
     MessageMaker,
+    MessageMakerParams,
     votes,
 } from "../fingerprints/impact";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
-    ApplyTargetFingerprintParameters,
-    compileCodeTransformCommand,
+    ApplyTargetParameters,
+    compileApplyAllFingerprintsCommand,
+    compileApplyFingerprintCommand,
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
@@ -95,13 +98,13 @@ export interface FingerprintHandler {
     selector: (name: FP) => boolean;
     diffHandler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
     handler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
-    ballot?: (context: HandlerContext, votes: Vote[], coord: GitCoordinate) => Promise<any>;
+    ballot?: (context: HandlerContext, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any>;
 }
 
 /**
  * permits customization of EditModes in the FingerprintImpactHandlerConfig
  */
-export type EditModeMaker = (cli: CommandListenerInvocation<ApplyTargetFingerprintParameters>, project?: Project) => editModes.EditMode;
+export type EditModeMaker = (cli: CommandListenerInvocation<ApplyTargetParameters>, project?: Project) => editModes.EditMode;
 
 /**
  * customize the out of the box strategy for monitoring when fingerprints are out
@@ -144,46 +147,117 @@ export function register(name: string, extract: ExtractFingerprint, apply?: Appl
     };
 }
 
+function orDefault<T>(cb: () => T, x: T): T {
+    try {
+        return cb();
+    } catch (y) {
+        return x;
+    }
+}
+
+function prBody(vote: Vote): string {
+    const title: string =
+        orDefault(
+            () => vote.summary.title,
+            `apply fingerprint ${vote.fpTarget.name}`);
+    const description: string =
+        orDefault(
+            () => vote.summary.description,
+            `no summary`) + `\ntarget last updated by <@${author(vote)}>`;
+
+    return `#### ${title}\n${description}`;
+}
+
+function author(vote: Vote) {
+    logger.info(`author ${renderData(vote.fpTarget)}`);
+    return orDefault( () => (vote.fpTarget as any)["user"]["id"], "unknown");
+}
+
+export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
+
+    return {
+        title: orDefault(() => vote.summary.title, "New Target"),
+        text: orDefault(() => vote.summary.description, vote.text) 
+            + `\n(target last updated by <@${author(vote)}>)`,
+        color: "warning",
+        fallback: "Fingerprint Update",
+        mrkdwn_in: ["text"],
+        actions: [
+            actionableButton(
+                { text: "Update project" },
+                params.editProject,
+                {
+                    msgId: params.msgId,
+                    fingerprint: vote.fpTarget.name,
+                    title: `Apply ${vote.fpTarget.name} to project`,
+                    body: prBody(vote),
+                    targets: {
+                        owner: vote.diff.owner,
+                        repo: vote.diff.repo,
+                        branch: vote.diff.branch,
+                    },
+                } as any),
+            actionableButton(
+                { text: "Set New Target" },
+                params.mutateTarget,
+                {
+                    msgId: params.msgId,
+                    name: vote.fingerprint.name,
+                    sha: vote.fingerprint.sha,
+                },
+            ),
+        ],
+        footer: footer(),
+    };
+}
+
+export function applyAll(params: MessageMakerParams) {
+    return {
+        title: "Apply all Changes",
+        text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => vote.name).join(",")}`,
+        color: "warning",
+        fallback: "Fingerprint Update",
+        mrkdwn_in: ["text"],
+        actions: [
+            actionableButton(
+                { text: "Apply All" },
+                params.editAllProjects,
+                {
+                    msgId: params.msgId,
+                    fingerprints: params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(","),
+                    title: `Apply all of \`${params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(",")}\` to project`,
+                    body: params.voteResults.failedVotes.map(vote => prBody(vote)).join("\n"),
+                    targets: {
+                        owner: params.coord.owner,
+                        repo: params.coord.repo,
+                        branch: params.coord.branch,
+                    },
+                } as any,
+            ),
+        ],
+    };
+}
+
 // default implementation
 export const messageMaker: MessageMaker = async params => {
 
+    const message: SlackMessage = {
+        attachments: [
+            {
+                text: `fingerprint diffs detected on branch ${params.coord.branch}`,
+                fallback: "fingerprint diffs",
+            },
+            ...params.voteResults.failedVotes.map( vote => oneFingerprint(params, vote) ),
+        ],
+    };
+
+    if (params.voteResults.failedVotes.length > 1) {
+        message.attachments.push(applyAll(params));
+    }
+
     return params.ctx.messageClient.send(
-        {
-            attachments: [
-                {
-                    title: params.title,
-                    text: params.text,
-                    color: "#45B254",
-                    fallback: "Fingerprint Update",
-                    mrkdwn_in: ["text"],
-                    actions: [
-                        actionableButton(
-                            { text: "Update project" },
-                            params.editProject,
-                            {
-                                msgId: params.msgId,
-                                fingerprint: params.fingerprint.name,
-                                targets: {
-                                    owner: params.diff.owner,
-                                    repo: params.diff.repo,
-                                    branch: params.diff.branch,
-                                },
-                            } as any),
-                        actionableButton(
-                            { text: "Set New Target" },
-                            params.mutateTarget,
-                            {
-                                msgId: params.msgId,
-                                name: params.fingerprint.name,
-                                sha: params.fingerprint.sha,
-                            },
-                        ),
-                    ],
-                    footer: footer(),
-                },
-            ],
-        },
-        await addressSlackChannelsFromContext(params.ctx, params.diff.channel),
+        message,
+        await addressSlackChannelsFromContext(params.ctx, params.channel),
         // {id: params.msgId} if you want to update messages if the target goal has not changed
         {id: undefined},
     );
@@ -210,7 +284,8 @@ export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig
         sdm.addCommand(ListFingerprint);
         sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
 
-        sdm.addCommand(compileCodeTransformCommand(registrations, config.transformPresentation, sdm));
+        sdm.addCommand(compileApplyFingerprintCommand(registrations, config.transformPresentation, sdm));
+        sdm.addCommand(compileApplyAllFingerprintsCommand(registrations, config.transformPresentation, sdm));
 
         return {
             selector: fp => true,

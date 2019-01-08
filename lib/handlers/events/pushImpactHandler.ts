@@ -129,7 +129,9 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
                         repo: event.data.PushImpact[0].push.after.repo.name,
                         sha: event.data.PushImpact[0].push.after.sha,
                         providerId: event.data.PushImpact[0].push.after.repo.org.provider.providerId,
+                        branch: event.data.PushImpact[0].push.branch,
                     },
+                    event.data.PushImpact[0].push.after.repo.channels[0].name,
                 );
             }
         });

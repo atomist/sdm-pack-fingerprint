@@ -31,7 +31,9 @@
               :successFps (->> vs
                                (filter #(= "For" (:decision %)))
                                (map :name))
-              :diff (-> vs first :ballot)})))
+              :failedVotes (->> vs
+                                (filter #(= "Against" (:decision %)))
+                                (into []))})))
 
 (defn ^:export processPushImpact
   "process a PushImpact event by potentially fetching additional fingerprint data, creating diffs,
@@ -169,10 +171,10 @@
   "update a goal in the current project
 
    returns Promise<boolean>"
-  [pref-query query-fingerprint-by-sha pref-editor fp-name fp-sha]
+  [pref-query query-fingerprint-by-sha pref-editor fp-name fp-sha user-id]
   (log/info "withGoalFingerprint")
   (promise/chan->promise
-   (goals/set-fingerprint-preference pref-query query-fingerprint-by-sha pref-editor fp-name fp-sha)))
+   (goals/set-fingerprint-preference pref-query query-fingerprint-by-sha pref-editor fp-name fp-sha user-id)))
 
 (defn ^:export setTargetFingerprint
   "update a goal in the current project
