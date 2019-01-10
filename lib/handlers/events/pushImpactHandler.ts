@@ -119,22 +119,24 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
 
         const filteredVotes = [].concat(...votes);
 
-        handlers.map(async h => {
-            if (h.ballot) {
-                await h.ballot(
-                    ctx,
-                    filteredVotes,
-                    {
-                        owner: event.data.PushImpact[0].push.after.repo.org.owner,
-                        repo: event.data.PushImpact[0].push.after.repo.name,
-                        sha: event.data.PushImpact[0].push.after.sha,
-                        providerId: event.data.PushImpact[0].push.after.repo.org.provider.providerId,
-                        branch: event.data.PushImpact[0].push.branch,
-                    },
-                    event.data.PushImpact[0].push.after.repo.channels[0].name,
-                );
-            }
-        });
+        await Promise.all(
+            handlers.map(async h => {
+                if (h.ballot) {
+                    await h.ballot(
+                        ctx,
+                        filteredVotes,
+                        {
+                            owner: event.data.PushImpact[0].push.after.repo.org.owner,
+                            repo: event.data.PushImpact[0].push.after.repo.name,
+                            sha: event.data.PushImpact[0].push.after.sha,
+                            providerId: event.data.PushImpact[0].push.after.repo.org.provider.providerId,
+                            branch: event.data.PushImpact[0].push.branch,
+                        },
+                        event.data.PushImpact[0].push.after.repo.channels[0].name,
+                    );
+                }
+            },
+        ));
 
         return SuccessPromise;
     };

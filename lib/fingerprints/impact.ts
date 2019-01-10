@@ -168,34 +168,35 @@ export function votes(config: FingerprintImpactHandlerConfig):
 
         const result: VoteResults = voteResults(vs);
 
+        let goalState;
+        logger.debug(`ballot result ${renderData(result)} for ${renderData(vs)} and ${coord}`);
+
+        if (result.failed) {
+
+            await config.messageMaker({
+                ctx,
+                msgId: updateableMessage(result.failedVotes[0].fingerprint, coord, channel),
+                channel,
+                voteResults: result,
+                coord,
+                editProject: FingerprintApplicationCommandRegistration,
+                editAllProjects: ApplyAllFingerprintsCommandRegistration,
+                mutateTarget: UpdateTargetFingerprint,
+            });
+
+            goalState = {
+                state: SdmGoalState.failure,
+                description: `compliance check for ${commaSeparatedList(result.failedFps)} has failed`,
+            };
+        } else {
+
+            goalState = {
+                state: SdmGoalState.success,
+                description: `compliance check for ${result.successFps.length} fingerprints has passed`,
+            };
+        }
+
         if (config.complianceGoal) {
-
-            let goalState;
-            logger.debug(`ballot result ${renderData(result)} for ${renderData(vs)} and ${coord}`);
-
-            if (result.failed) {
-
-                await config.messageMaker({
-                    ctx,
-                    msgId: updateableMessage(result.failedVotes[0].fingerprint, coord, channel),
-                    channel,
-                    voteResults: result,
-                    coord,
-                    editProject: FingerprintApplicationCommandRegistration,
-                    editAllProjects: ApplyAllFingerprintsCommandRegistration,
-                    mutateTarget: UpdateTargetFingerprint,
-                });
-
-                goalState = {
-                    state: SdmGoalState.failure,
-                    description: `compliance check for ${commaSeparatedList(result.failedFps)} has failed`,
-                };
-            } else {
-                goalState = {
-                    state: SdmGoalState.success,
-                    description: `compliance check for ${result.successFps.length} fingerprints has passed`,
-                };
-            }
 
             return editGoal(
                 ctx,
@@ -204,6 +205,7 @@ export function votes(config: FingerprintImpactHandlerConfig):
                 goalState,
             );
         }
+
         return SuccessPromise;
     };
 }

@@ -122,7 +122,8 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
     description: "set a new target for a team to consume a particular version",
     paramsMaker: UpdateTargetFingerprintParameters,
     listener: async cli => {
-        await cli.context.messageClient.respond(`updating the goal state for all ${cli.parameters.name} fingerprints (initiated by user <@${cli.context.source.slack.user.id}> )`);
+        await cli.context.messageClient.respond(
+            `updating the goal state for all ${cli.parameters.name} fingerprints (initiated by user <@${cli.context.source.slack.user.id}> )`);
         await setGoalFingerprint(
             queryPreferences(cli.context.graphClient),
             queryFingerprintBySha(cli.context.graphClient),
@@ -151,7 +152,7 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
         logger.info(`set target fingerprint for ${cli.parameters.fp}`);
         const fp = {
             user: {id: cli.context.source.slack.user.id},
-            ...JSON.parse(cli.parameters.fp)
+            ...JSON.parse(cli.parameters.fp),
         };
         await setTargetFingerprint(
             queryPreferences(cli.context.graphClient),
