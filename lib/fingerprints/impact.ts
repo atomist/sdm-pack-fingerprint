@@ -102,45 +102,37 @@ function getDiffSummary(diff: Diff, target: FP, registrations: FingerprintRegist
 // when we discover a backpack dependency that is not the target state
 // then we ask the user whether they want to update to the new target version
 // or maybe they want this backpack version to become the new target version
-function callback(ctx: HandlerContext, diff: Diff, config: FingerprintImpactHandlerConfig, registrations: FingerprintRegistration[]):
-    (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
-    return async (text, fpTarget, fingerprint) => {
+function callback(
+    ctx: HandlerContext,
+    diff: Diff,
+    config: FingerprintImpactHandlerConfig,
+    registrations: FingerprintRegistration[],
+    ): (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
 
-        if (config.complianceGoal) {
-            return {
-                name: fingerprint.name,
-                decision: "Against",
-                abstain: false,
-                ballot: diff,
-                diff,
-                fingerprint,
-                fpTarget,
-                text,
-                summary: getDiffSummary(diff, fpTarget, registrations),
-            };
-        } else {
-            return {
-                abstain: true,
-            };
-        }
+    return async (text, fpTarget, fingerprint) => {
+        return {
+            name: fingerprint.name,
+            decision: "Against",
+            abstain: false,
+            ballot: diff,
+            diff,
+            fingerprint,
+            fpTarget,
+            text,
+            summary: getDiffSummary(diff, fpTarget, registrations),
+        };
     };
 }
 
 function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff, goal?: Goal):
     (fingerprint: FP) => Promise<Vote> {
     return async fingerprint => {
-        if (goal) {
-            return {
-                abstain: false,
-                name: fingerprint.name,
-                decision: "For",
-                ballot: diff,
-            };
-        } else {
-            return {
-                abstain: true,
-            };
-        }
+        return {
+            abstain: false,
+            name: fingerprint.name,
+            decision: "For",
+            ballot: diff,
+        };
     };
 }
 
