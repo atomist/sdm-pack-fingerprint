@@ -148,7 +148,6 @@ function createApplyTargetFingerprintRegistration(
             msgId: {required: false, displayable: false},
             title: {required: true, displayable: true, control: "textarea", pattern: /[\S\s]*/},
             body: {required: true, displayable: true, control: "textarea", pattern: /[\S\s]*/},
-            horror: {required: true, pattern: /45/},
             fingerprint: {required: true},
         },
         transformPresentation: presentation,
