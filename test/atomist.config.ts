@@ -17,13 +17,16 @@
 import {
     Configuration,
     editModes,
+    GitHubRepoRef,
 } from "@atomist/automation-client";
 import {
     AutoMergeMethod,
     AutoMergeMode,
 } from "@atomist/automation-client/lib/operations/edit/editModes";
 import {
+    CodeTransform,
     Fingerprint,
+    GeneratorRegistration,
     goals,
     Goals,
     GoalWithFulfillment,
@@ -84,7 +87,7 @@ const IsTest: PushTest = pushTest(`contains touch.txt file`, async pci =>
     !!(await pci.project.getFile("touch.txt")),
 );
 
-const backpackComplianceGoal = new GoalWithFulfillment(
+const complianceGoal = new GoalWithFulfillment(
     {
         uniqueName: "backpack-react-script-compliance",
         displayName: "backpack-compliance",
@@ -94,6 +97,21 @@ const backpackComplianceGoal = new GoalWithFulfillment(
         name: "backpack-react-waiting",
     },
 );
+
+const CljFingerprintTargets: CodeTransform = async (p, papi, params) => {
+
+    return p;
+};
+
+const CljServiceGenerator: GeneratorRegistration = {
+    name: "clojure service",
+    intent: "make clj service",
+    startingPoint: GitHubRepoRef.from({
+        owner: "atomist-seeds",
+        repo: "empty",
+    }),
+    transform: CljFingerprintTargets,
+};
 
 // const SpecialHelp: CommandHandlerRegistration<NoParameters> = {
 //     name: "SpecialHelp",
@@ -105,7 +123,7 @@ const backpackComplianceGoal = new GoalWithFulfillment(
 
 export const FingerprintGoal = new Fingerprint();
 const FingerprintingGoals: Goals = goals("check fingerprints")
-    .plan(FingerprintGoal, backpackComplianceGoal);
+    .plan(FingerprintGoal, complianceGoal);
 
 export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
 
@@ -124,6 +142,8 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             .itMeans("fingeprint an empty project")
             .setGoals(FingerprintingGoals),
     );
+
+    sdm.addGeneratorCommand(CljServiceGenerator);
 
     sdm.addExtensionPacks(
         goalState(),
@@ -174,7 +194,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             checkCljCoordinatesImpactHandler(),
             fingerprintImpactHandler(
                 {
-                    complianceGoal: backpackComplianceGoal,
+                    complianceGoal,
                     transformPresentation: (ci, p) => {
                         return new editModes.PullRequest(
                             `apply-target-fingerprint-${Date.now()}`,

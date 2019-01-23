@@ -177,8 +177,7 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
 
     return {
         title: orDefault(() => vote.summary.title, "New Target"),
-        text: orDefault(() => vote.summary.description, vote.text)
-            + `\n(target last updated by <@${author(vote)}>)`,
+        text: orDefault(() => vote.summary.description, vote.text),
         color: "warning",
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
