@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased](https://github.com/atomist/sdm-pack-fingerprints/compare/1.4.6...HEAD)
+## [Unreleased](https://github.com/atomist/sdm-pack-fingerprints/compare/1.4.7...HEAD)
+
+## [1.4.7](https://github.com/atomist/sdm-pack-fingerprints/compare/1.4.6...1.4.7) - 2019-01-23
 
 ## [1.4.6](https://github.com/atomist/sdm-pack-fingerprints/compare/1.4.5...1.4.6) - 2019-01-14
 
