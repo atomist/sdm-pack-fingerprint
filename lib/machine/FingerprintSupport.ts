@@ -163,15 +163,15 @@ function prBody(vote: Vote): string {
     const description: string =
         orDefault(
             () => vote.summary.description,
-            `no summary`) + `\ntarget last updated by <@${author(vote)}>`;
+            `no summary`);
 
     return `#### ${title}\n${description}`;
 }
 
-function author(vote: Vote) {
-    logger.info(`author ${renderData(vote.fpTarget)}`);
-    return orDefault( () => (vote.fpTarget as any).user.id, "unknown");
-}
+// function author(vote: Vote) {
+//     logger.info(`author ${renderData(vote.fpTarget)}`);
+//     return orDefault( () => (vote.fpTarget as any).user.id, "unknown");
+// }
 
 export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
 
