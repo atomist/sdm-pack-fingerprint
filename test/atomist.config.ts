@@ -175,7 +175,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     extract: p => depsFingerprints(p.baseDir),
                     apply: (p, fp) => applyFingerprint(p.baseDir, fp),
                     selector: fp => fp.name.startsWith("clojure-project"),
-                    summary: (diff, target) => renderClojureProjectDiff(diff, target),
+                    summary: renderClojureProjectDiff,
                 },
                 {
                     extract: p => cljFunctionFingerprints(p.baseDir),

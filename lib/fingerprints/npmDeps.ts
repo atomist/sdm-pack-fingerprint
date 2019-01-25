@@ -15,13 +15,8 @@
  */
 
 import {
-    ChildProcessResult,
-    logger,
-    SuccessIsReturn0ErrorFinder,
-} from "@atomist/automation-client";
-import {
     LoggingProgressLog,
-    spawnAndWatch,
+    spawnLog,
 } from "@atomist/sdm";
 import {
     ApplyFingerprint,
@@ -29,7 +24,6 @@ import {
     FP,
     sha256,
 } from "../..";
-import { renderData } from "../../fingerprints";
 import { DiffSummaryFingerprint } from "../machine/FingerprintSupport";
 
 export function getNpmDepFingerprint(lib: string, version: string): FP {
@@ -81,24 +75,15 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
 export const applyNpmDepsFingerprint: ApplyFingerprint = async (p, fp) => {
     const file = await p.getFile("package.json");
     if (file) {
-
-        logger.info(`use npm to install exact version of ${fp.data[0]}@${fp.data[1]}`);
         const log = new LoggingProgressLog("npm install");
-        const result: ChildProcessResult = await spawnAndWatch(
-            {
-                command: "npm",
-                args: ["install", `${fp.data[0]}@${fp.data[1]}`, "--save-exact"],
-            },
+        const result = await spawnLog(
+            "npm",
+            ["install", `${fp.data[0]}@${fp.data[1]}`, "--save-exact"],
             {
                 cwd: p.baseDir,
-            },
-            log,
-            {
-                errorFinder: SuccessIsReturn0ErrorFinder,
+                log,
                 logCommand: false,
             });
-        logger.info(`${renderData(result)}`);
-
         return result.code === 0;
     } else {
         return false;

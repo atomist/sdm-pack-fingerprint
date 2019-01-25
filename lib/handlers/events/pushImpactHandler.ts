@@ -73,7 +73,7 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: st
     };
 }
 
-export async function renderDiffSnippet(ctx: HandlerContext, diff: Diff) {
+export async function renderDiffSnippet(ctx: HandlerContext, diff: Diff): Promise<void> {
     const message: SlackFileMessage = {
         content: renderDiff(diff),
         fileType: "text",
@@ -100,7 +100,7 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
                         return {
                             selector: h.selector,
                             diffAction: (diff: Diff) => {
-                                return h.diffHandler(ctx, diff);
+                                return h.diffHandler(ctx, diff) as any;
                             },
                         };
                     } else {

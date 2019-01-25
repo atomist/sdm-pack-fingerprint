@@ -41,7 +41,9 @@ import {
     FingerprintRegistration,
 } from "../../machine/FingerprintSupport";
 
-async function pushFingerprint(message: (s: string) => Promise<any>, p: GitProject, registrations: FingerprintRegistration[], fp: FP) {
+async function pushFingerprint(message: (s: string) => Promise<any>,
+                               p: GitProject,
+                               registrations: FingerprintRegistration[], fp: FP): Promise<GitProject> {
 
     logger.info(`transform running -- ${fp.name}/${fp.sha} --`);
 
@@ -186,16 +188,16 @@ function createApplyTargetFingerprintsRegistration(
 export let FingerprintApplicationCommandRegistration: CommandHandlerRegistration<RepoTargetingParameters>;
 export let ApplyAllFingerprintsCommandRegistration: CommandHandlerRegistration<RepoTargetingParameters>;
 
-export function compileApplyFingerprintCommand(
-    registrations: FingerprintRegistration[], presentation: EditModeMaker, sdm: SoftwareDeliveryMachine) {
-
+export function compileApplyFingerprintCommand(registrations: FingerprintRegistration[],
+                                               presentation: EditModeMaker,
+                                               sdm: SoftwareDeliveryMachine): CommandHandlerRegistration<RepoTargetingParameters> {
     FingerprintApplicationCommandRegistration = branchAwareCodeTransform(createApplyTargetFingerprintRegistration(registrations, presentation), sdm);
     return FingerprintApplicationCommandRegistration;
 }
 
-export function compileApplyAllFingerprintsCommand(
-    registrations: FingerprintRegistration[], presentation: EditModeMaker, sdm: SoftwareDeliveryMachine) {
-
+export function compileApplyAllFingerprintsCommand(registrations: FingerprintRegistration[],
+                                                   presentation: EditModeMaker,
+                                                   sdm: SoftwareDeliveryMachine): CommandHandlerRegistration<RepoTargetingParameters> {
     ApplyAllFingerprintsCommandRegistration = branchAwareCodeTransform(createApplyTargetFingerprintsRegistration(registrations, presentation), sdm);
     return ApplyAllFingerprintsCommandRegistration;
 }

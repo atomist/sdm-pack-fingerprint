@@ -36,6 +36,7 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import {
+    Attachment,
     bold,
     SlackMessage,
 } from "@atomist/slack-messages";
@@ -104,7 +105,7 @@ export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
  */
 export interface FingerprintHandler {
     selector: (name: FP) => boolean;
-    diffHandler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
+    diffHandler?: (context: HandlerContext, diff: Diff) => Promise<void>;
     handler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
     ballot?: (context: HandlerContext, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any>;
 }
@@ -181,7 +182,7 @@ function prBody(vote: Vote): string {
 //     return orDefault( () => (vote.fpTarget as any).user.id, "unknown");
 // }
 
-export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
+export function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
     return {
         title: orDefault(() => vote.summary.title, "New Target"),
         text: orDefault(() => vote.summary.description, vote.text),
@@ -216,7 +217,7 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
     };
 }
 
-export function applyAll(params: MessageMakerParams) {
+export function applyAll(params: MessageMakerParams): Attachment {
     return {
         title: "Apply all Changes",
         text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => vote.name).join(", ")}`,
@@ -231,7 +232,7 @@ export function applyAll(params: MessageMakerParams) {
                     msgId: params.msgId,
                     fingerprints: params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(","),
                     title: `Apply all of \`${params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(", ")}\``,
-                    body: params.voteResults.failedVotes.map(vote => prBody(vote)).join("\n"),
+                    body: params.voteResults.failedVotes.map(prBody).join("\n"),
                     targets: {
                         owner: params.coord.owner,
                         repo: params.coord.repo,
