@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { SuccessPromise } from "@atomist/automation-client";
+import {
+    ParameterType,
+    SuccessPromise,
+} from "@atomist/automation-client";
 import {
     actionableButton,
     CommandHandlerRegistration,
@@ -62,7 +65,7 @@ export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, 
 // broadcast nudge
 // ------------------------------
 
-export interface BroadcastFingerprintNudgeParameters {
+export interface BroadcastFingerprintNudgeParameters extends ParameterType {
     name: string;
     version: string;
     sha: string;

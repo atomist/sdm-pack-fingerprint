@@ -32,9 +32,13 @@ import {
     metadata,
     PushImpactListener,
     PushImpactListenerInvocation,
+    slackFooter,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import { SlackMessage } from "@atomist/slack-messages";
+import {
+    bold,
+    SlackMessage,
+} from "@atomist/slack-messages";
 import {
     Diff,
     FP,
@@ -77,7 +81,6 @@ import {
     forFingerprints,
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
-import { footer } from "../support/util";
 
 function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
     return async (i: PushImpactListenerInvocation) => {
@@ -86,9 +89,14 @@ function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<F
 }
 
 type FingerprintRunner = (p: GitProject) => Promise<FP[]>;
-export type ExtractFingerprint = (p: GitProject) => Promise<FP|FP[]>;
+export type ExtractFingerprint = (p: GitProject) => Promise<FP | FP[]>;
 export type ApplyFingerprint = (p: GitProject, fp: FP) => Promise<boolean>;
-export interface DiffSummary {title: string; description: string; }
+
+export interface DiffSummary {
+    title: string;
+    description: string;
+}
+
 export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
 
 /**
@@ -174,7 +182,6 @@ function prBody(vote: Vote): string {
 // }
 
 export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
-
     return {
         title: orDefault(() => vote.summary.title, "New Target"),
         text: orDefault(() => vote.summary.description, vote.text),
@@ -182,13 +189,13 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
         actions: [
-            actionableButton(
-                { text: "Update project" },
+            actionableButton<any>(
+                { text: "Apply" },
                 params.editProject,
                 {
                     msgId: params.msgId,
                     fingerprint: vote.fpTarget.name,
-                    title: `Apply ${vote.fpTarget.name} to project`,
+                    title: `Apply ${vote.fpTarget.name}`,
                     body: prBody(vote),
                     targets: {
                         owner: vote.diff.owner,
@@ -196,7 +203,7 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
                         branch: vote.diff.branch,
                     },
                 } as any),
-            actionableButton(
+            actionableButton<any>(
                 { text: "Set New Target" },
                 params.mutateTarget,
                 {
@@ -206,25 +213,24 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
                 },
             ),
         ],
-        footer: footer(),
     };
 }
 
 export function applyAll(params: MessageMakerParams) {
     return {
         title: "Apply all Changes",
-        text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => vote.name).join(",")}`,
+        text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => vote.name).join(", ")}`,
         color: "warning",
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
         actions: [
-            actionableButton(
+            actionableButton<any>(
                 { text: "Apply All" },
                 params.editAllProjects,
                 {
                     msgId: params.msgId,
                     fingerprints: params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(","),
-                    title: `Apply all of \`${params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(",")}\` to project`,
+                    title: `Apply all of \`${params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(", ")}\``,
                     body: params.voteResults.failedVotes.map(vote => prBody(vote)).join("\n"),
                     targets: {
                         owner: params.coord.owner,
@@ -243,10 +249,10 @@ export const messageMaker: MessageMaker = async params => {
     const message: SlackMessage = {
         attachments: [
             {
-                text: `fingerprint diffs detected on branch ${params.coord.branch}`,
-                fallback: "fingerprint diffs",
+                text: `Fingerprint differences detected on ${bold(`${params.coord.owner}/${params.coord.repo}/${params.coord.branch}`)}`,
+                fallback: "Fingerprint diffs",
             },
-            ...params.voteResults.failedVotes.map( vote => oneFingerprint(params, vote) ),
+            ...params.voteResults.failedVotes.map(vote => oneFingerprint(params, vote)),
         ],
     };
 
@@ -254,16 +260,18 @@ export const messageMaker: MessageMaker = async params => {
         message.attachments.push(applyAll(params));
     }
 
+    message.attachments[message.attachments.length - 1].footer = slackFooter();
+
     return params.ctx.messageClient.send(
         message,
         await addressSlackChannelsFromContext(params.ctx, params.channel),
         // {id: params.msgId} if you want to update messages if the target goal has not changed
-        {id: undefined},
+        { id: undefined },
     );
 };
 
-export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig ): RegisterFingerprintImpactHandler {
-    return  (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => {
+export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig): RegisterFingerprintImpactHandler {
+    return (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => {
         // set goal Fingerprints
         //   - first can be added as an option when difference is noticed (uses our api to update the fingerprint)
         //   - second is a default intent
@@ -382,7 +390,7 @@ export function fingerprintSupport(
     return {
         ...metadata(),
         configure: (sdm: SoftwareDeliveryMachine) => {
-            configure( sdm, handlers, fingerprinters);
+            configure(sdm, handlers, fingerprinters);
         },
     };
 }

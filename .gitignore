@@ -13,6 +13,7 @@ index.js
 unit-tests.js
 
 .idea/
+.vscode/
 *.iml
 .idea/workspace.xml
 /release

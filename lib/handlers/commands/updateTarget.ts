@@ -191,7 +191,7 @@ export function setNewTargetFingerprint(ctx: HandlerContext, fp: FP, channel: st
                 text: `Shall we update the target version of \`${fp.name}\` for all projects?`,
                 fallback: "none",
                 actions: [
-                    actionableButton(
+                    actionableButton<any>(
                         {
                             text: "Set Target",
                         },
