@@ -39,7 +39,7 @@ import { queryPreferences } from "../../adhoc/preferences";
 import {
     EditModeMaker,
     FingerprintRegistration,
-} from "../../machine/FingerprintSupport";
+} from "../../machine/fingerprintSupport";
 
 async function pushFingerprint(message: (s: string) => Promise<any>,
                                p: GitProject,

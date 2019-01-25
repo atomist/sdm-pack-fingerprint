@@ -33,7 +33,7 @@ import {
     processPushImpact,
     renderDiff,
 } from "../../../fingerprints";
-import { FingerprintHandler } from "../../machine/FingerprintSupport";
+import { FingerprintHandler } from "../../machine/fingerprintSupport";
 import {
     GetFingerprintData,
     PushImpactEvent,

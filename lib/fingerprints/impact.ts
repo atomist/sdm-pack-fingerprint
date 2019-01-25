@@ -55,7 +55,7 @@ import {
     DiffSummary,
     FingerprintImpactHandlerConfig,
     FingerprintRegistration,
-} from "../machine/FingerprintSupport";
+} from "../machine/fingerprintSupport";
 
 export interface MessageMakerParams {
     ctx: HandlerContext;

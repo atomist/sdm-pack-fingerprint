@@ -66,8 +66,8 @@ import {
 } from "../handlers/commands/list";
 import {
     DumpLibraryPreferences,
-    ListFingerprintTargets,
-    ListOneFingerprintTarget,
+    listFingerprintTargets,
+    listOneFingerprintTarget,
 } from "../handlers/commands/showTargets";
 import {
     DeleteTargetFingerprint,
@@ -372,31 +372,52 @@ function fingerprintRunner(fingerprinters: FingerprintRegistration[]): Fingerpri
 }
 
 /**
- *
- *
- * @param goal use this Goal to run Fingeprints
- * @param fingerprinters registrations for each class of supported Fingerprints
- * @param handlers different strategies for handling fingeprint push impact events
+ * Options to configure the Fingerprint support
  */
-export function fingerprintSupport(
-    goal: Fingerprint,
-    fingerprinters: FingerprintRegistration[],
-    ...handlers: RegisterFingerprintImpactHandler[]): ExtensionPack {
+export interface FingerprintOptions {
+    /**
+     * Optional Fingerprint goal that will get configured.
+     * If not provided fingerprints need to be registered manually with the goal.
+     */
+    fingerprintGoal?: Fingerprint;
 
-    goal.with({
-        name: "fingerprinter",
-        action: runFingerprints(fingerprintRunner(fingerprinters)),
-    });
+    /**
+     * Registrations for desired fingerprints
+     */
+    fingerprints: FingerprintRegistration | FingerprintRegistration[];
 
+    /**
+     * Register FingerprintHandler factories to handle fingerprint impacts
+     */
+    handlers: RegisterFingerprintImpactHandler | RegisterFingerprintImpactHandler[];
+}
+
+/**
+ * Install and configure the fingerprint support in this SDM
+ */
+export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
     return {
         ...metadata(),
         configure: (sdm: SoftwareDeliveryMachine) => {
-            configure(sdm, handlers, fingerprinters);
+
+            const fingerprints = Array.isArray(options.fingerprints) ? options.fingerprints : [options.fingerprints];
+            const handlers = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
+
+            if (!!options.fingerprintGoal) {
+                options.fingerprintGoal.with({
+                    name: `${options.fingerprintGoal.uniqueName}-fingerprinter`,
+                    action: runFingerprints(fingerprintRunner(fingerprints)),
+                });
+            }
+
+            configure(sdm, handlers, fingerprints);
         },
     };
 }
 
-function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintImpactHandler[], fpRegistraitons: FingerprintRegistration[]): void {
+function configure(sdm: SoftwareDeliveryMachine,
+                   handlers: RegisterFingerprintImpactHandler[],
+                   fpRegistraitons: FingerprintRegistration[]): void {
 
     // Fired on every Push after Fingerprints are uploaded
     sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm, fpRegistraitons))));
@@ -406,6 +427,6 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintIm
 
     sdm.addCommand(SetTargetFingerprint);
     sdm.addCommand(DumpLibraryPreferences);
-    sdm.addCommand(ListFingerprintTargets);
-    sdm.addCommand(ListOneFingerprintTarget);
+    sdm.addCommand(listFingerprintTargets(sdm));
+    sdm.addCommand(listOneFingerprintTarget(sdm));
 }

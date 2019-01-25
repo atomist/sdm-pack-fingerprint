@@ -25,7 +25,7 @@ export {
     register,
     checkCljCoordinatesImpactHandler,
     checkNpmCoordinatesImpactHandler,
-} from "./lib/machine/FingerprintSupport";
+} from "./lib/machine/fingerprintSupport";
 export {
     forFingerprints,
     renderDiffSnippet,
