@@ -24,9 +24,7 @@ import {
     SlackFileMessage,
     SuccessPromise,
 } from "@atomist/automation-client";
-import {
-    EventHandlerRegistration,
-} from "@atomist/sdm";
+import { EventHandlerRegistration } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
 import {
@@ -121,22 +119,22 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
 
         await Promise.all(
             handlers.map(async h => {
-                if (h.ballot) {
-                    await h.ballot(
-                        ctx,
-                        filteredVotes,
-                        {
-                            owner: event.data.PushImpact[0].push.after.repo.org.owner,
-                            repo: event.data.PushImpact[0].push.after.repo.name,
-                            sha: event.data.PushImpact[0].push.after.sha,
-                            providerId: event.data.PushImpact[0].push.after.repo.org.provider.providerId,
-                            branch: event.data.PushImpact[0].push.branch,
-                        },
-                        event.data.PushImpact[0].push.after.repo.channels[0].name,
-                    );
-                }
-            },
-        ));
+                    if (h.ballot) {
+                        await h.ballot(
+                            ctx,
+                            filteredVotes,
+                            {
+                                owner: event.data.PushImpact[0].push.after.repo.org.owner,
+                                repo: event.data.PushImpact[0].push.after.repo.name,
+                                sha: event.data.PushImpact[0].push.after.sha,
+                                providerId: event.data.PushImpact[0].push.after.repo.org.provider.providerId,
+                                branch: event.data.PushImpact[0].push.branch,
+                            },
+                            event.data.PushImpact[0].push.after.repo.channels[0].name,
+                        );
+                    }
+                },
+            ));
 
         return SuccessPromise;
     };

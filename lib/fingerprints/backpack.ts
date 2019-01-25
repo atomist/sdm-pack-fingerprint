@@ -15,7 +15,13 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import { ApplyFingerprint, ExtractFingerprint, FP, renderData, sha256 } from "../..";
+import {
+    ApplyFingerprint,
+    ExtractFingerprint,
+    FP,
+    renderData,
+    sha256,
+} from "../..";
 
 export const backpackFingerprint: ExtractFingerprint = async p => {
 

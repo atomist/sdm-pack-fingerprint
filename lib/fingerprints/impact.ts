@@ -87,7 +87,7 @@ const updateableMessage: MessageIdMaker = (fingerprint, coordinate: GitCoordinat
 function getDiffSummary(diff: Diff, target: FP, registrations: FingerprintRegistration[]): undefined | DiffSummary {
 
     try {
-       for (const registration of registrations) {
+        for (const registration of registrations) {
             if (registration.summary && registration.selector(diff.to)) {
                 return registration.summary(diff, target);
             }
@@ -107,7 +107,7 @@ function callback(
     diff: Diff,
     config: FingerprintImpactHandlerConfig,
     registrations: FingerprintRegistration[],
-    ): (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
+): (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
 
     return async (text, fpTarget, fingerprint) => {
         return {

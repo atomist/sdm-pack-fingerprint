@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-import { ChildProcessResult, logger, SuccessIsReturn0ErrorFinder } from "@atomist/automation-client";
+import {
+    ChildProcessResult,
+    logger,
+    SuccessIsReturn0ErrorFinder,
+} from "@atomist/automation-client";
 import {
     LoggingProgressLog,
     spawnAndWatch,
 } from "@atomist/sdm";
-import { ApplyFingerprint, ExtractFingerprint, FP, sha256 } from "../..";
+import {
+    ApplyFingerprint,
+    ExtractFingerprint,
+    FP,
+    sha256,
+} from "../..";
 import { renderData } from "../../fingerprints";
 import { DiffSummaryFingerprint } from "../machine/FingerprintSupport";
 
@@ -52,7 +61,7 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
             fingerprints.push(getNpmDepFingerprint(lib, version));
         }
 
-        const coords = JSON.stringify({name: jsonData.name, version: jsonData.version});
+        const coords = JSON.stringify({ name: jsonData.name, version: jsonData.version });
         fingerprints.push(
             {
                 name: "npm-project-coordinates",
@@ -75,7 +84,7 @@ export const applyNpmDepsFingerprint: ApplyFingerprint = async (p, fp) => {
 
         logger.info(`use npm to install exact version of ${fp.data[0]}@${fp.data[1]}`);
         const log = new LoggingProgressLog("npm install");
-        const result: ChildProcessResult =  await spawnAndWatch(
+        const result: ChildProcessResult = await spawnAndWatch(
             {
                 command: "npm",
                 args: ["install", `${fp.data[0]}@${fp.data[1]}`, "--save-exact"],
@@ -101,6 +110,6 @@ export const diffNpmDepsFingerprints: DiffSummaryFingerprint = (diff, target) =>
     return {
         title: "New Library Target",
         description:
-        `Target version for library *${diff.from.data[0]}* is *${target.data[1]}*.\nCurrently *${diff.from.data[1]}* in *${diff.owner}/${diff.repo}*`,
+            `Target version for library *${diff.from.data[0]}* is *${target.data[1]}*.\nCurrently *${diff.from.data[1]}* in *${diff.owner}/${diff.repo}*`,
     };
 };

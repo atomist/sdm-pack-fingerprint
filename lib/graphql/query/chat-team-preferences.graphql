@@ -1,8 +1,8 @@
 query chatTeamPreferences {
     ChatTeam {
-        id 
+        id
         preferences {
-            name 
+            name
             value
         }
     }

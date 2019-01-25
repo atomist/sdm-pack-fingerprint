@@ -26,6 +26,7 @@ import {
     CodeTransformRegistration,
     CommandHandlerRegistration,
     RepoTargetingParameters,
+    slackFooter,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
@@ -39,7 +40,6 @@ import {
     EditModeMaker,
     FingerprintRegistration,
 } from "../../machine/FingerprintSupport";
-import { footer } from "../../support/util";
 
 async function pushFingerprint(message: (s: string) => Promise<any>, p: GitProject, registrations: FingerprintRegistration[], fp: FP) {
 
@@ -72,7 +72,7 @@ function runAllFingerprintAppliers(registrations: FingerprintRegistration[]): Co
                     mrkdwn_in: ["text"],
                     color: "#45B254",
                     fallback: "none",
-                    footer: footer(),
+                    footer: slackFooter(),
                 },
             ],
         };
@@ -102,7 +102,7 @@ function runEveryFingerprintApplication(registrations: FingerprintRegistration[]
                     mrkdwn_in: ["text"],
                     color: "#45B254",
                     fallback: "none",
-                    footer: footer(),
+                    footer: slackFooter(),
                 },
             ],
         };

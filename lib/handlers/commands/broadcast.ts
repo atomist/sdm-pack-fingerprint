@@ -22,6 +22,7 @@ import {
     actionableButton,
     CommandHandlerRegistration,
     CommandListenerInvocation,
+    slackFooter,
 } from "@atomist/sdm";
 import {
     codeLine,
@@ -31,7 +32,6 @@ import {
 } from "@atomist/slack-messages";
 import { broadcastFingerprint } from "../../../fingerprints";
 import { queryFingerprints } from "../../adhoc/fingerprints";
-import { footer } from "../../support/util";
 import { ApplyTargetFingerprint } from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, version: string, sha: string) {
@@ -52,10 +52,10 @@ export function askAboutBroadcast(cli: CommandListenerInvocation, name: string, 
                                 text: "Broadcast Nudge",
                             },
                             BroadcastFingerprintNudge,
-                            { name, version, author, sha},
+                            { name, version, author, sha },
                         ),
                     ],
-                    footer: footer(),
+                    footer: slackFooter(),
                 }],
         },
     );
@@ -127,12 +127,12 @@ ${italic(cli.parameters.reason)}`,
                             ),
                         ],
                         color: "#ffcc00",
-                        footer: footer(),
+                        footer: slackFooter(),
                         callback_id: "atm-confirm-done",
                     },
                 ],
             };
-            return cli.context.messageClient.addressChannels(message, channel, {id: msgId});
+            return cli.context.messageClient.addressChannels(message, channel, { id: msgId });
         },
     );
 }
@@ -143,8 +143,10 @@ export const BroadcastFingerprintMandate: CommandHandlerRegistration<BroadcastFi
     parameters: {
         name: { required: true },
         version: { required: true },
-        sha: { required: true,
-               description: "sha of fingerprint to broadcast"},
+        sha: {
+            required: true,
+            description: "sha of fingerprint to broadcast",
+        },
         reason: {
             required: false,
             control: "textarea",
@@ -165,8 +167,10 @@ export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFing
     parameters: {
         name: { required: true },
         version: { required: true },
-        sha: { required: true,
-               description: "sha of fingerprint to broadcast"},
+        sha: {
+            required: true,
+            description: "sha of fingerprint to broadcast",
+        },
         reason: {
             required: true,
             control: "textarea",

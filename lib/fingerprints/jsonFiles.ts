@@ -15,7 +15,12 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import { ApplyFingerprint, ExtractFingerprint, FP, sha256 } from "../..";
+import {
+    ApplyFingerprint,
+    ExtractFingerprint,
+    FP,
+    sha256,
+} from "../..";
 
 export function createFileFingerprint(...filenames: string[]): ExtractFingerprint {
 
@@ -24,34 +29,33 @@ export function createFileFingerprint(...filenames: string[]): ExtractFingerprin
         const fps: FP[] = new Array<FP>();
 
         await Promise.all(
-
             filenames.map(async filename => {
 
-                const file = await p.getFile(filename);
+                    const file = await p.getFile(filename);
 
-                if (file) {
+                    if (file) {
 
-                    const fileData = await file.getContent();
+                        const fileData = await file.getContent();
 
-                    const jsonData = JSON.parse(fileData);
+                        const jsonData = JSON.parse(fileData);
 
-                    fps.push(
-                        {
-                            name: `file-${filename}`,
-                            abbreviation: `file-${filename}`,
-                            version: "0.0.1",
-                            data: JSON.stringify(
-                                {
-                                    content: fileData,
-                                    filename,
-                                },
-                            ),
-                            sha: sha256(JSON.stringify(jsonData)),
-                        },
-                    );
-                }
-            },
-        ));
+                        fps.push(
+                            {
+                                name: `file-${filename}`,
+                                abbreviation: `file-${filename}`,
+                                version: "0.0.1",
+                                data: JSON.stringify(
+                                    {
+                                        content: fileData,
+                                        filename,
+                                    },
+                                ),
+                                sha: sha256(JSON.stringify(jsonData)),
+                            },
+                        );
+                    }
+                },
+            ));
 
         return fps;
     };

@@ -21,9 +21,7 @@ import {
     Parameters,
     SlackFileMessage,
 } from "@atomist/automation-client";
-import {
-    CommandHandlerRegistration,
-} from "@atomist/sdm";
+import { CommandHandlerRegistration } from "@atomist/sdm";
 
 import { SlackMessage } from "@atomist/slack-messages";
 import {
@@ -32,9 +30,7 @@ import {
     fpPreferences,
     renderData,
 } from "../../../fingerprints/index";
-import {
-    queryPreferences,
-} from "../../adhoc/preferences";
+import { queryPreferences } from "../../adhoc/preferences";
 import { comparator } from "../../support/util";
 import { ChatTeamPreferences } from "../../typings/types";
 
@@ -45,26 +41,26 @@ export const DumpLibraryPreferences: CommandHandlerRegistration = {
     listener: async cli => {
         const query = queryPreferences(cli.context.graphClient);
         return query()
-        .then(
-            result => {
-                const message: SlackFileMessage = {
-                    title: "library prefs",
-                    content: renderData(result),
-                    fileType: "text",
-                };
-                return cli.addressChannels(message);
-            },
-        ).catch(
-            error => {
-                return cli.addressChannels(`unable to fetch preferences ${error}`);
-            },
-        );
+            .then(
+                result => {
+                    const message: SlackFileMessage = {
+                        title: "library prefs",
+                        content: renderData(result),
+                        fileType: "text",
+                    };
+                    return cli.addressChannels(message);
+                },
+            ).catch(
+                error => {
+                    return cli.addressChannels(`unable to fetch preferences ${error}`);
+                },
+            );
     },
 };
 
 @Parameters()
 export class ListOneFingerprintTargetParameters {
-    @Parameter({required: true, description: "fingerprint to display"})
+    @Parameter({ required: true, description: "fingerprint to display" })
     public fingerprint: string;
 }
 

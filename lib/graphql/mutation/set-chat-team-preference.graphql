@@ -1,6 +1,6 @@
 mutation setTeamPreference($team: String!, $name: String!, $value: String!) {
     setChatTeamPreference(chatTeamId: $team, name: $name, value: $value) {
-        name 
+        name
         value
     }
 }

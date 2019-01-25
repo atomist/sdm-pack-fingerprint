@@ -1,8 +1,8 @@
 query chatTeamById($id: String!) {
-  Team(id: $id) {
-    chatTeams {
-      id
-      name
+    Team(id: $id) {
+        chatTeams {
+            id
+            name
+        }
     }
-  }
 }

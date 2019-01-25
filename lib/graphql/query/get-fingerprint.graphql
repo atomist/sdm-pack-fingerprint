@@ -1,9 +1,9 @@
 query GetFingerprintData($sha: String!, $name: String!) {
-  Commit(sha: $sha) {
-    fingerprints(name: $name) {
-      name
-      _id
-      data
+    Commit(sha: $sha) {
+        fingerprints(name: $name) {
+            name
+            _id
+            data
+        }
     }
-  }
 }

@@ -1,45 +1,45 @@
 subscription PushImpactEvent {
-  PushImpact {
-    id
-    data
-    push {
-      branch
-      before {
-        sha
-        fingerprints {
-          sha
-          name
-        }
-      }
-      after {
-        author {
-          login
-          emails {
-            address
-          }
-        }
-        sha
-        fingerprints {
-          sha
-          name
-        }
-        repo {
-          name
-          org {
-            owner
-            ownerType
-            provider {
-              id,
-              providerId,
-              providerType
+    PushImpact {
+        id
+        data
+        push {
+            branch
+            before {
+                sha
+                fingerprints {
+                    sha
+                    name
+                }
             }
-          }
-          channels {
-            channelId
-            name
-          }
+            after {
+                author {
+                    login
+                    emails {
+                        address
+                    }
+                }
+                sha
+                fingerprints {
+                    sha
+                    name
+                }
+                repo {
+                    name
+                    org {
+                        owner
+                        ownerType
+                        provider {
+                            id,
+                            providerId,
+                            providerType
+                        }
+                    }
+                    channels {
+                        channelId
+                        name
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }
