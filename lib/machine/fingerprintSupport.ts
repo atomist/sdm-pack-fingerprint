@@ -83,7 +83,7 @@ import {
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
 
-function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
+export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
     return async (i: PushImpactListenerInvocation) => {
         return fingerprinter(i.project);
     };
@@ -348,7 +348,7 @@ export function simpleImpactHandler(
 }
 
 // TODO error handling goes here
-function fingerprintRunner(fingerprinters: FingerprintRegistration[]): FingerprintRunner {
+export function fingerprintRunner(fingerprinters: FingerprintRegistration[]): FingerprintRunner {
     return async (p: GitProject) => {
 
         let fps: FP[] = new Array<FP>();
