@@ -35,6 +35,7 @@ import {
     FP,
     setGoalFingerprint,
     setTargetFingerprint,
+    Vote,
 } from "../../../fingerprints/index";
 import {
     queryFingerprintBySha,
@@ -184,9 +185,9 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
     },
 };
 
-export function setNewTargetFingerprint(ctx: HandlerContext,
+export async function setNewTargetFingerprint(ctx: HandlerContext,
                                         fp: FP,
-                                        channel: string): Promise<void> {
+                                        channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {
@@ -209,7 +210,9 @@ export function setNewTargetFingerprint(ctx: HandlerContext,
             },
         ],
     };
-    return ctx.messageClient.addressChannels(message, channel);
+    await ctx.messageClient.addressChannels(message, channel);
+    
+    return {abstain: true};
 }
 
 @Parameters()

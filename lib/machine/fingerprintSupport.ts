@@ -82,6 +82,7 @@ import {
     forFingerprints,
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
+import _ = require("lodash");
 
 export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
     return async (i: PushImpactListenerInvocation) => {
@@ -105,7 +106,7 @@ export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
  */
 export interface FingerprintHandler {
     selector: (name: FP) => boolean;
-    diffHandler?: (context: HandlerContext, diff: Diff) => Promise<void>;
+    diffHandler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
     handler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
     ballot?: (context: HandlerContext, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any>;
 }
@@ -271,6 +272,12 @@ export const messageMaker: MessageMaker = async params => {
     );
 };
 
+function checkScope( fp: FP, registrations: FingerprintRegistration[]): boolean {
+    const inScope: boolean = _.some(registrations, reg => reg.selector(fp));
+    logger.info(`checked scope for ${fp.name} => ${inScope}`);
+    return inScope;
+}
+
 export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig): RegisterFingerprintImpactHandler {
     return (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => {
         // set goal Fingerprints
@@ -296,7 +303,7 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
         sdm.addCommand(compileApplyAllFingerprintsCommand(registrations, config.transformPresentation, sdm));
 
         return {
-            selector: fp => true,
+            selector: fp => checkScope( fp, registrations),
             handler: async (ctx, diff) => {
                 const v: Vote = await checkFingerprintTarget(ctx, diff, config, registrations);
                 return v;
