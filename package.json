@@ -38,9 +38,9 @@
     "@atomist/sdm-pack-docker": "*"
   },
   "devDependencies": {
-    "@atomist/automation-client": "1.3.0-master.20190124132630",
-    "@atomist/sdm": "1.3.0-master.20190125112534",
-    "@atomist/sdm-core": "1.3.0-master.20190125110602",
+    "@atomist/automation-client": "1.3.0-master.20190206192652",
+    "@atomist/sdm": "1.3.0-master.20190206205235",
+    "@atomist/sdm-core": "1.3.0-master.20190207130924",
     "@atomist/sdm-pack-docker": "1.0.3-parse.20181212031606",
     "@types/lodash": "^4.14.116",
     "@types/mocha": "^2.2.48",
