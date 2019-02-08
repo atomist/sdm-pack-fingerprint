@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Atomist, Inc.
+ * Copyright © 2019 Atomist, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,13 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import { ApplyFingerprint, ExtractFingerprint, FP, renderData, sha256 } from "../..";
+import {
+    ApplyFingerprint,
+    ExtractFingerprint,
+    FP,
+    renderData,
+    sha256,
+} from "../..";
 
 export const backpackFingerprint: ExtractFingerprint = async p => {
 

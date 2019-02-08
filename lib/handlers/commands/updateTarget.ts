@@ -27,6 +27,7 @@ import {
 import {
     actionableButton,
     CommandHandlerRegistration,
+    slackFooter,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import {
@@ -34,6 +35,7 @@ import {
     FP,
     setGoalFingerprint,
     setTargetFingerprint,
+    Vote,
 } from "../../../fingerprints/index";
 import {
     queryFingerprintBySha,
@@ -44,7 +46,6 @@ import {
     mutatePreference,
     queryPreferences,
 } from "../../adhoc/preferences";
-import { footer } from "../../support/util";
 import {
     GetAllFingerprintsOnSha,
     GetFingerprintOnShaByName,
@@ -65,7 +66,7 @@ export class SetTargetFingerprintFromLatestMasterParameters {
     @Parameter({ required: true })
     public fingerprint: string;
 
-    @Parameter({ required: false})
+    @Parameter({ required: false })
     public branch: string;
 }
 
@@ -151,7 +152,7 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
     listener: async cli => {
         logger.info(`set target fingerprint for ${cli.parameters.fp}`);
         const fp = {
-            user: {id: cli.context.source.slack.user.id},
+            user: { id: cli.context.source.slack.user.id },
             ...JSON.parse(cli.parameters.fp),
         };
         await setTargetFingerprint(
@@ -184,14 +185,16 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
     },
 };
 
-export function setNewTargetFingerprint(ctx: HandlerContext, fp: FP, channel: string) {
+export async function setNewTargetFingerprint(ctx: HandlerContext,
+                                              fp: FP,
+                                              channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {
                 text: `Shall we update the target version of \`${fp.name}\` for all projects?`,
                 fallback: "none",
                 actions: [
-                    actionableButton(
+                    actionableButton<any>(
                         {
                             text: "Set Target",
                         },
@@ -202,12 +205,14 @@ export function setNewTargetFingerprint(ctx: HandlerContext, fp: FP, channel: st
                     ),
                 ],
                 color: "#ffcc00",
-                footer: footer(),
+                footer: slackFooter(),
                 callback_id: "atm-confirm-done",
             },
         ],
     };
-    return ctx.messageClient.addressChannels(message, channel);
+    await ctx.messageClient.addressChannels(message, channel);
+
+    return {abstain: true};
 }
 
 @Parameters()
@@ -221,7 +226,7 @@ export class SelectTargetFingerprintFromCurrentProjectParameters {
     @MappedParameter(MappedParameters.GitHubRepositoryProvider)
     public providerId: string;
 
-    @Parameter({ required: false , description: "pull fingerprints from a branch ref"})
+    @Parameter({ required: false, description: "pull fingerprints from a branch ref" })
     public branch: string;
 }
 

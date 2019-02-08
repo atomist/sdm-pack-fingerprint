@@ -1,13 +1,13 @@
 query GetFingerprintOnShaByName($repo: String!, $owner: String!, $branch: String!, $fpName: String!) {
-  Repo(name: $repo, owner: $owner) {
-    branches(name: $branch) {
-      commit {
-        fingerprints(name: $fpName) {
-          name
-          sha
-          data
+    Repo(name: $repo, owner: $owner) {
+        branches(name: $branch) {
+            commit {
+                fingerprints(name: $fpName) {
+                    name
+                    sha
+                    data
+                }
+            }
         }
-      }
     }
-  }
 }

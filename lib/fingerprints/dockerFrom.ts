@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Atomist, Inc.
+ * Copyright © 2019 Atomist, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,13 @@ import {
     logger,
 } from "@atomist/automation-client";
 import { DockerFileParser } from "@atomist/sdm-pack-docker";
-import { ApplyFingerprint, ExtractFingerprint, FP, renderData, sha256 } from "../..";
+import {
+    ApplyFingerprint,
+    ExtractFingerprint,
+    FP,
+    renderData,
+    sha256,
+} from "../..";
 
 export const dockerBaseFingerprint: ExtractFingerprint = async p => {
 
@@ -31,7 +37,7 @@ export const dockerBaseFingerprint: ExtractFingerprint = async p => {
         const imageVersion: string[] = await astUtils.findValues(
             p, DockerFileParser, "Dockerfile", "//FROM/image/tag");
 
-        const data = {image: imageName[0], version: imageVersion[0]};
+        const data = { image: imageName[0], version: imageVersion[0] };
         const fp: FP = {
             name: `docker-base-image-${imageName[0]}`,
             abbreviation: `dbi-${imageName[0]}`,
@@ -57,6 +63,7 @@ export const applyDockerBaseFingerprint: ApplyFingerprint = async (p, fp) => {
         name: string;
         version: string;
     }
+
     const newFP = fp.data as DockerFP;
 
     try {
@@ -67,7 +74,7 @@ export const applyDockerBaseFingerprint: ApplyFingerprint = async (p, fp) => {
             "//FROM/image/tag",
             n => n.$value = newFP.version,
         );
-        return(true);
+        return (true);
     } catch (e) {
         logger.error(e);
         return false;

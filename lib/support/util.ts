@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Atomist, Inc.
+ * Copyright © 2019 Atomist, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-import { automationClientInstance } from "@atomist/automation-client";
-import _ = require("lodash");
-
-export function footer() {
-    const client = automationClientInstance();
-    if (client) {
-        return `${client.configuration.name}/${client.configuration.version}`;
-    } else {
-        return undefined;
-    }
-
-}
+import * as _ from "lodash";
 
 export function comparator(path: string): (a: any, b: any) => number {
     return (a, b) => {

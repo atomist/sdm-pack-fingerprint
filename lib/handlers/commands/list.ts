@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Atomist, Inc.
+ * Copyright © 2019 Atomist, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ export class ListFingerprintParameters {
     @MappedParameter(MappedParameters.GitHubRepositoryProvider)
     public providerId: string;
 
-    @Parameter({ required: false , description: "pull fingerprints from a branch ref"})
+    @Parameter({ required: false, description: "pull fingerprints from a branch ref" })
     public branch: string;
 }
 
@@ -61,10 +61,10 @@ export class ListOneFingerprintParameters {
     @MappedParameter(MappedParameters.GitHubRepositoryProvider)
     public providerId: string;
 
-    @Parameter({ required: true , description: "pull fingerprints from a branch ref"})
+    @Parameter({ required: true, description: "pull fingerprints from a branch ref" })
     public branch: string;
 
-    @Parameter({ required: true, description: "the fingerprint to render"})
+    @Parameter({ required: true, description: "the fingerprint to render" })
     public fingerprint: string;
 }
 

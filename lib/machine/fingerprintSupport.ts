@@ -32,9 +32,15 @@ import {
     metadata,
     PushImpactListener,
     PushImpactListenerInvocation,
+    slackFooter,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import { SlackMessage } from "@atomist/slack-messages";
+import {
+    Attachment,
+    bold,
+    SlackMessage,
+} from "@atomist/slack-messages";
+import _ = require("lodash");
 import {
     Diff,
     FP,
@@ -61,8 +67,8 @@ import {
 } from "../handlers/commands/list";
 import {
     DumpLibraryPreferences,
-    ListFingerprintTargets,
-    ListOneFingerprintTarget,
+    listFingerprintTargets,
+    listOneFingerprintTarget,
 } from "../handlers/commands/showTargets";
 import {
     DeleteTargetFingerprint,
@@ -77,18 +83,22 @@ import {
     forFingerprints,
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
-import { footer } from "../support/util";
 
-function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
+export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
     return async (i: PushImpactListenerInvocation) => {
         return fingerprinter(i.project);
     };
 }
 
 type FingerprintRunner = (p: GitProject) => Promise<FP[]>;
-export type ExtractFingerprint = (p: GitProject) => Promise<FP|FP[]>;
+export type ExtractFingerprint = (p: GitProject) => Promise<FP | FP[]>;
 export type ApplyFingerprint = (p: GitProject, fp: FP) => Promise<boolean>;
-export interface DiffSummary {title: string; description: string; }
+
+export interface DiffSummary {
+    title: string;
+    description: string;
+}
+
 export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
 
 /**
@@ -173,8 +183,7 @@ function prBody(vote: Vote): string {
 //     return orDefault( () => (vote.fpTarget as any).user.id, "unknown");
 // }
 
-export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
-
+export function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
     return {
         title: orDefault(() => vote.summary.title, "New Target"),
         text: orDefault(() => vote.summary.description, vote.text),
@@ -182,13 +191,13 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
         actions: [
-            actionableButton(
-                { text: "Update project" },
+            actionableButton<any>(
+                { text: "Apply" },
                 params.editProject,
                 {
                     msgId: params.msgId,
                     fingerprint: vote.fpTarget.name,
-                    title: `Apply ${vote.fpTarget.name} to project`,
+                    title: `Apply ${vote.fpTarget.name}`,
                     body: prBody(vote),
                     targets: {
                         owner: vote.diff.owner,
@@ -196,7 +205,7 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
                         branch: vote.diff.branch,
                     },
                 } as any),
-            actionableButton(
+            actionableButton<any>(
                 { text: "Set New Target" },
                 params.mutateTarget,
                 {
@@ -206,26 +215,25 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote) {
                 },
             ),
         ],
-        footer: footer(),
     };
 }
 
-export function applyAll(params: MessageMakerParams) {
+export function applyAll(params: MessageMakerParams): Attachment {
     return {
         title: "Apply all Changes",
-        text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => vote.name).join(",")}`,
+        text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => vote.name).join(", ")}`,
         color: "warning",
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
         actions: [
-            actionableButton(
+            actionableButton<any>(
                 { text: "Apply All" },
                 params.editAllProjects,
                 {
                     msgId: params.msgId,
                     fingerprints: params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(","),
-                    title: `Apply all of \`${params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(",")}\` to project`,
-                    body: params.voteResults.failedVotes.map(vote => prBody(vote)).join("\n"),
+                    title: `Apply all of \`${params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(", ")}\``,
+                    body: params.voteResults.failedVotes.map(prBody).join("\n"),
                     targets: {
                         owner: params.coord.owner,
                         repo: params.coord.repo,
@@ -243,10 +251,10 @@ export const messageMaker: MessageMaker = async params => {
     const message: SlackMessage = {
         attachments: [
             {
-                text: `fingerprint diffs detected on branch ${params.coord.branch}`,
-                fallback: "fingerprint diffs",
+                text: `Fingerprint differences detected on ${bold(`${params.coord.owner}/${params.coord.repo}/${params.coord.branch}`)}`,
+                fallback: "Fingerprint diffs",
             },
-            ...params.voteResults.failedVotes.map( vote => oneFingerprint(params, vote) ),
+            ...params.voteResults.failedVotes.map(vote => oneFingerprint(params, vote)),
         ],
     };
 
@@ -254,16 +262,24 @@ export const messageMaker: MessageMaker = async params => {
         message.attachments.push(applyAll(params));
     }
 
+    message.attachments[message.attachments.length - 1].footer = slackFooter();
+
     return params.ctx.messageClient.send(
         message,
         await addressSlackChannelsFromContext(params.ctx, params.channel),
         // {id: params.msgId} if you want to update messages if the target goal has not changed
-        {id: undefined},
+        { id: undefined },
     );
 };
 
-export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig ): RegisterFingerprintImpactHandler {
-    return  (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => {
+function checkScope( fp: FP, registrations: FingerprintRegistration[]): boolean {
+    const inScope: boolean = _.some(registrations, reg => reg.selector(fp));
+    logger.info(`checked scope for ${fp.name} => ${inScope}`);
+    return inScope;
+}
+
+export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig): RegisterFingerprintImpactHandler {
+    return (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => {
         // set goal Fingerprints
         //   - first can be added as an option when difference is noticed (uses our api to update the fingerprint)
         //   - second is a default intent
@@ -287,7 +303,7 @@ export function fingerprintImpactHandler( config: FingerprintImpactHandlerConfig
         sdm.addCommand(compileApplyAllFingerprintsCommand(registrations, config.transformPresentation, sdm));
 
         return {
-            selector: fp => true,
+            selector: fp => checkScope( fp, registrations),
             handler: async (ctx, diff) => {
                 const v: Vote = await checkFingerprintTarget(ctx, diff, config, registrations);
                 return v;
@@ -339,7 +355,7 @@ export function simpleImpactHandler(
 }
 
 // TODO error handling goes here
-function fingerprintRunner(fingerprinters: FingerprintRegistration[]): FingerprintRunner {
+export function fingerprintRunner(fingerprinters: FingerprintRegistration[]): FingerprintRunner {
     return async (p: GitProject) => {
 
         let fps: FP[] = new Array<FP>();
@@ -363,31 +379,52 @@ function fingerprintRunner(fingerprinters: FingerprintRegistration[]): Fingerpri
 }
 
 /**
- *
- *
- * @param goal use this Goal to run Fingeprints
- * @param fingerprinters registrations for each class of supported Fingerprints
- * @param handlers different strategies for handling fingeprint push impact events
+ * Options to configure the Fingerprint support
  */
-export function fingerprintSupport(
-    goal: Fingerprint,
-    fingerprinters: FingerprintRegistration[],
-    ...handlers: RegisterFingerprintImpactHandler[]): ExtensionPack {
+export interface FingerprintOptions {
+    /**
+     * Optional Fingerprint goal that will get configured.
+     * If not provided fingerprints need to be registered manually with the goal.
+     */
+    fingerprintGoal?: Fingerprint;
 
-    goal.with({
-        name: "fingerprinter",
-        action: runFingerprints(fingerprintRunner(fingerprinters)),
-    });
+    /**
+     * Registrations for desired fingerprints
+     */
+    fingerprints: FingerprintRegistration | FingerprintRegistration[];
 
+    /**
+     * Register FingerprintHandler factories to handle fingerprint impacts
+     */
+    handlers: RegisterFingerprintImpactHandler | RegisterFingerprintImpactHandler[];
+}
+
+/**
+ * Install and configure the fingerprint support in this SDM
+ */
+export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
     return {
         ...metadata(),
         configure: (sdm: SoftwareDeliveryMachine) => {
-            configure( sdm, handlers, fingerprinters);
+
+            const fingerprints = Array.isArray(options.fingerprints) ? options.fingerprints : [options.fingerprints];
+            const handlers = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
+
+            if (!!options.fingerprintGoal) {
+                options.fingerprintGoal.with({
+                    name: `${options.fingerprintGoal.uniqueName}-fingerprinter`,
+                    action: runFingerprints(fingerprintRunner(fingerprints)),
+                });
+            }
+
+            configure(sdm, handlers, fingerprints);
         },
     };
 }
 
-function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintImpactHandler[], fpRegistraitons: FingerprintRegistration[]): void {
+function configure(sdm: SoftwareDeliveryMachine,
+                   handlers: RegisterFingerprintImpactHandler[],
+                   fpRegistraitons: FingerprintRegistration[]): void {
 
     // Fired on every Push after Fingerprints are uploaded
     sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm, fpRegistraitons))));
@@ -397,6 +434,6 @@ function configure(sdm: SoftwareDeliveryMachine, handlers: RegisterFingerprintIm
 
     sdm.addCommand(SetTargetFingerprint);
     sdm.addCommand(DumpLibraryPreferences);
-    sdm.addCommand(ListFingerprintTargets);
-    sdm.addCommand(ListOneFingerprintTarget);
+    sdm.addCommand(listFingerprintTargets(sdm));
+    sdm.addCommand(listOneFingerprintTarget(sdm));
 }

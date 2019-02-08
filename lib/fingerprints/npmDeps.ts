@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Atomist, Inc.
+ * Copyright © 2019 Atomist, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-import { ChildProcessResult, logger, SuccessIsReturn0ErrorFinder } from "@atomist/automation-client";
 import {
     LoggingProgressLog,
-    spawnAndWatch,
+    spawnLog,
 } from "@atomist/sdm";
-import { ApplyFingerprint, ExtractFingerprint, FP, sha256 } from "../..";
-import { renderData } from "../../fingerprints";
-import { DiffSummaryFingerprint } from "../machine/FingerprintSupport";
+import {
+    ApplyFingerprint,
+    ExtractFingerprint,
+    FP,
+    sha256,
+} from "../..";
+import { DiffSummaryFingerprint } from "../machine/fingerprintSupport";
 
 export function getNpmDepFingerprint(lib: string, version: string): FP {
 
@@ -52,7 +55,7 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
             fingerprints.push(getNpmDepFingerprint(lib, version));
         }
 
-        const coords = JSON.stringify({name: jsonData.name, version: jsonData.version});
+        const coords = JSON.stringify({ name: jsonData.name, version: jsonData.version });
         fingerprints.push(
             {
                 name: "npm-project-coordinates",
@@ -72,24 +75,15 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
 export const applyNpmDepsFingerprint: ApplyFingerprint = async (p, fp) => {
     const file = await p.getFile("package.json");
     if (file) {
-
-        logger.info(`use npm to install exact version of ${fp.data[0]}@${fp.data[1]}`);
         const log = new LoggingProgressLog("npm install");
-        const result: ChildProcessResult =  await spawnAndWatch(
-            {
-                command: "npm",
-                args: ["install", `${fp.data[0]}@${fp.data[1]}`, "--save-exact"],
-            },
+        const result = await spawnLog(
+            "npm",
+            ["install", `${fp.data[0]}@${fp.data[1]}`, "--save-exact"],
             {
                 cwd: p.baseDir,
-            },
-            log,
-            {
-                errorFinder: SuccessIsReturn0ErrorFinder,
+                log,
                 logCommand: false,
             });
-        logger.info(`${renderData(result)}`);
-
         return result.code === 0;
     } else {
         return false;
@@ -101,6 +95,6 @@ export const diffNpmDepsFingerprints: DiffSummaryFingerprint = (diff, target) =>
     return {
         title: "New Library Target",
         description:
-        `Target version for library *${diff.from.data[0]}* is *${target.data[1]}*.\nCurrently *${diff.from.data[1]}* in *${diff.owner}/${diff.repo}*`,
+            `Target version for library *${diff.from.data[0]}* is *${target.data[1]}*.\nCurrently *${diff.from.data[1]}* in *${diff.owner}/${diff.repo}*`,
     };
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Atomist, Inc.
+ * Copyright © 2019 Atomist, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import {
 } from "@atomist/automation-client";
 import {
     CommandHandlerRegistration,
+    slackFooter,
+    SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 
 import { SlackMessage } from "@atomist/slack-messages";
@@ -32,9 +34,7 @@ import {
     fpPreferences,
     renderData,
 } from "../../../fingerprints/index";
-import {
-    queryPreferences,
-} from "../../adhoc/preferences";
+import { queryPreferences } from "../../adhoc/preferences";
 import { comparator } from "../../support/util";
 import { ChatTeamPreferences } from "../../typings/types";
 
@@ -45,87 +45,93 @@ export const DumpLibraryPreferences: CommandHandlerRegistration = {
     listener: async cli => {
         const query = queryPreferences(cli.context.graphClient);
         return query()
-        .then(
-            result => {
-                const message: SlackFileMessage = {
-                    title: "library prefs",
-                    content: renderData(result),
-                    fileType: "text",
-                };
-                return cli.addressChannels(message);
-            },
-        ).catch(
-            error => {
-                return cli.addressChannels(`unable to fetch preferences ${error}`);
-            },
-        );
+            .then(
+                result => {
+                    const message: SlackFileMessage = {
+                        title: "library prefs",
+                        content: renderData(result),
+                        fileType: "text",
+                    };
+                    return cli.addressChannels(message);
+                },
+            ).catch(
+                error => {
+                    return cli.addressChannels(`unable to fetch preferences ${error}`);
+                },
+            );
     },
 };
 
 @Parameters()
 export class ListOneFingerprintTargetParameters {
-    @Parameter({required: true, description: "fingerprint to display"})
+    @Parameter({ required: true, description: "fingerprint to display" })
     public fingerprint: string;
 }
 
-export const ListOneFingerprintTarget: CommandHandlerRegistration<ListOneFingerprintTargetParameters> = {
-    name: "ListOneFingerprintTarget",
-    description: "list a single fingerprint target",
-    paramsMaker: ListOneFingerprintTargetParameters,
-    intent: "listOneFingerprintTarget",
-    listener: async cli => {
-        const query: ChatTeamPreferences.Query = await (queryPreferences(cli.context.graphClient))();
+export function listOneFingerprintTarget(sdm: SoftwareDeliveryMachine): CommandHandlerRegistration<ListOneFingerprintTargetParameters> {
+    return {
+        name: "ListOneFingerprintTarget",
+        description: "list a single fingerprint target",
+        paramsMaker: ListOneFingerprintTargetParameters,
+        intent: [`list fingerprint target ${sdm.configuration.name.replace("@", "")}`],
+        listener: async cli => {
+            const query: ChatTeamPreferences.Query = await (queryPreferences(cli.context.graphClient))();
 
-        const fp: FP = fpPreference(query, cli.parameters.fingerprint);
-        logger.info(`fps ${renderData(fp)}`);
+            const fp: FP = fpPreference(query, cli.parameters.fingerprint);
+            logger.info(`fps ${renderData(fp)}`);
 
-        const message: SlackFileMessage = {
-            title: `current target for ${cli.parameters.fingerprint}`,
-            content: renderData(fp),
-            fileType: "text",
-        };
+            const message: SlackFileMessage = {
+                title: `current target for ${cli.parameters.fingerprint}`,
+                content: renderData(fp),
+                fileType: "text",
+            };
 
-        return cli.addressChannels(message);
-    },
-};
+            return cli.addressChannels(message);
+        },
+    };
+}
 
-export const ListFingerprintTargets: CommandHandlerRegistration = {
-    name: "ListFingerprintTargets",
-    description: "list all current fingerprint targets",
-    intent: "listFingerprintTargets",
-    listener: async cli => {
+export function listFingerprintTargets(sdm: SoftwareDeliveryMachine): CommandHandlerRegistration {
+    return {
+        name: "ListFingerprintTargets",
+        description: "list all current fingerprint targets",
+        intent: [`list all fingerprint targets ${sdm.configuration.name.replace("@", "")}`],
+        listener: async cli => {
 
-        const query: ChatTeamPreferences.Query = await (queryPreferences(cli.context.graphClient))();
+            const query: ChatTeamPreferences.Query = await (queryPreferences(cli.context.graphClient))();
 
-        const fps: FP[] = fpPreferences(query).sort(comparator("name"));
+            const fps: FP[] = fpPreferences(query).sort(comparator("name"));
 
-        const message: SlackMessage = {
-            attachments: [
-                {
-                    text: "Choose one of the current fingerprints",
-                    fallback: "select fingerprint",
-                    actions: [
-                        menuForCommand(
-                            {
-                                text: "select fingerprint",
-                                options: [
-                                    ...fps.map(x => {
-                                        return {
-                                            value: x.name,
-                                            text: x.name,
-                                        };
-                                    }),
-                                ],
-                            },
-                            ListOneFingerprintTarget.name,
-                            "fingerprint",
-                            {},
-                        ),
-                    ],
-                },
-            ],
-        };
+            const message: SlackMessage = {
+                attachments: [
+                    {
+                        title: "Select Fingerprint",
+                        text: "Choose one of the current fingerprints to list",
+                        fallback: "Select Fingerprint",
+                        actions: [
+                            menuForCommand(
+                                {
+                                    text: "select fingerprint",
+                                    options: [
+                                        ...fps.map(x => {
+                                            return {
+                                                value: x.name,
+                                                text: x.name,
+                                            };
+                                        }),
+                                    ],
+                                },
+                                listOneFingerprintTarget(sdm).name,
+                                "fingerprint",
+                                {},
+                            ),
+                        ],
+                        footer: slackFooter(),
+                    },
+                ],
+            };
 
-        return cli.addressChannels(message);
-    },
-};
+            return cli.addressChannels(message);
+        },
+    };
+}

@@ -1,8 +1,8 @@
 query Email($login: String!) {
-  GitHubId(login: $login){
-    name
-    emails {
-      address
+    GitHubId(login: $login){
+        name
+        emails {
+            address
+        }
     }
-  }
 }
