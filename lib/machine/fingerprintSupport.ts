@@ -62,6 +62,9 @@ import {
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
+    FingerprintEverything,
+} from "../handlers/commands/fingerprint";
+import {
     ListFingerprint,
     ListFingerprints,
 } from "../handlers/commands/list";
@@ -436,4 +439,5 @@ function configure(sdm: SoftwareDeliveryMachine,
     sdm.addCommand(DumpLibraryPreferences);
     sdm.addCommand(listFingerprintTargets(sdm));
     sdm.addCommand(listOneFingerprintTarget(sdm));
+    sdm.addCommand(FingerprintEverything);
 }
