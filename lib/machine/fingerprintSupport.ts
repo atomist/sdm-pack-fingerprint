@@ -40,6 +40,7 @@ import {
     bold,
     SlackMessage,
 } from "@atomist/slack-messages";
+import _ = require("lodash");
 import {
     Diff,
     FP,
@@ -82,7 +83,6 @@ import {
     forFingerprints,
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
-import _ = require("lodash");
 
 export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
     return async (i: PushImpactListenerInvocation) => {

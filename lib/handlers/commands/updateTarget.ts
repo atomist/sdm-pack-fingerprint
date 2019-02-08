@@ -186,8 +186,8 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
 };
 
 export async function setNewTargetFingerprint(ctx: HandlerContext,
-                                        fp: FP,
-                                        channel: string): Promise<Vote> {
+                                              fp: FP,
+                                              channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {
@@ -211,7 +211,7 @@ export async function setNewTargetFingerprint(ctx: HandlerContext,
         ],
     };
     await ctx.messageClient.addressChannels(message, channel);
-    
+
     return {abstain: true};
 }
 
