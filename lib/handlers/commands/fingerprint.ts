@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FailurePromise, ParameterType, logger } from "@atomist/automation-client";
+import { FailurePromise, logger, ParameterType } from "@atomist/automation-client";
 import { Options } from "@atomist/automation-client/lib/metadata/automationMetadata";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 
