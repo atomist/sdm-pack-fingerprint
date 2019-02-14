@@ -15,29 +15,84 @@
  */
 
 import {
-    FailurePromise,
     logger,
     ParameterType,
+    SuccessPromise,
+    menuForCommand,
 } from "@atomist/automation-client";
 import { Options } from "@atomist/automation-client/lib/metadata/automationMetadata";
 import { CommandHandlerRegistration } from "@atomist/sdm";
+import { SlackMessage } from "@atomist/slack-messages";
+
+interface FingerprintOption {
+    value: string,
+    description: string,
+}
+
+const options: FingerprintOption[] = [
+    {
+        value: "fingerprints",
+        description: "list fingerprints",
+    },
+    {
+        value: "targets",
+        description: "list targets",
+    },
+];
+
+const fingerprintOptions: FingerprintOption[] = [
+    {
+        value: "fingeprint1",
+        description: "aslfjal;sdjf;as"
+    },
+    {
+        value: "fingerprint2",
+        description: "al;sdjflkajklasdf"
+    }
+];
+
+const targetOptions: FingerprintOption[] = [
+    {
+        value: "target1",
+        description: "aslfjal;sdjf;as"
+    },
+    {
+        value: "target2",
+        description: "al;sdjflkajklasdf"
+    }
+]
 
 const Subcommand: Options = {
     kind: "single",
-    options: [
-        {
-            value: "fingerprints",
-            description: "list fingerprints",
-        },
-        {
-            value: "targets",
-            description: "list targets",
-        },
-    ],
+    options,
 };
 
 export interface FingerprintParameters extends ParameterType {
     subcommand: string;
+    next: string;
+}
+
+function nextParameter(options: FingerprintOption[], parameter: string, partials: any): SlackMessage {
+    return {
+        attachments:
+            [{
+                text: `Choose an Option`,
+                fallback: `Require Option choice`,
+                color: "#ffcc00",
+                mrkdwn_in: ["text"],
+                actions: [
+                    menuForCommand(
+                        {
+                            text: "choose",
+                            options: [...options.map(o => {return {value: o.value, text: o.description}})],
+                        },
+                        FingerprintEverything.name,
+                        parameter,
+                        partials,
+                    )
+                ],
+            }],
+    };
 }
 
 export const FingerprintEverything: CommandHandlerRegistration<FingerprintParameters> = {
@@ -46,23 +101,37 @@ export const FingerprintEverything: CommandHandlerRegistration<FingerprintParame
     intent: "fingerprints",
     parameters: {
         subcommand: {
-            required: true,
+            required: false,
             type: Subcommand,
         },
+        next: {
+            required: false,
+        }
     },
     listener: i => {
-        logger.info(`choose ${i.parameters.subcommand}`);
-        switch (i.parameters.subcommand) {
-            case "fingerprints": {
-                return i.addressChannels("list fingerprints");
-            }
-            case "targets": {
-                return i.addressChannels("list targets");
-            }
-            default: {
-                return FailurePromise;
+        logger.info(`choose ${i.parameters.subcommand} and ${i.parameters.next}`);
+        if (i.parameters.subcommand === undefined) {
+            return i.addressChannels(nextParameter(options, "subcommand", {}));
+        } else if (i.parameters.next === undefined) {
+            switch (i.parameters.subcommand) {
+                case "fingerprints": {
+                    return i.addressChannels(nextParameter( fingerprintOptions, "next", {subcommand: i.parameters.subcommand}));
+                }
+                case "targets": {
+                    return i.addressChannels(nextParameter( targetOptions, "next", {subcommand: i.parameters.subcommand}));
+                }
+            }   
+        } else {
+            switch (i.parameters.subcommand) {
+                case "fingerprints": {
+                    return i.addressChannels(`show fingerprint ${i.parameters.next}`);
+                }
+                case "targets": {
+                    return i.addressChannels(`show thing ${i.parameters.next}`);
+                }
             }
         }
+        return SuccessPromise;
     },
     autoSubmit: true,
 };
