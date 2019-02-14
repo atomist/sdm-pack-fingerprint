@@ -16,9 +16,9 @@
 
 import {
     logger,
+    menuForCommand,
     ParameterType,
     SuccessPromise,
-    menuForCommand,
 } from "@atomist/automation-client";
 import { Options } from "@atomist/automation-client/lib/metadata/automationMetadata";
 import { CommandHandlerRegistration } from "@atomist/sdm";
