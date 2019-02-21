@@ -154,7 +154,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                         {
                             extract: createNpmDepsFingerprints,
                             apply: applyNpmDepsFingerprint,
-                            selector: fp => fp.name.startsWith("npm-project-dep"),
+                            selector: fp => fp.name.startsWith("test-npm-project-dep"),
                             summary: diffNpmDepsFingerprints,
                         },
                         {
