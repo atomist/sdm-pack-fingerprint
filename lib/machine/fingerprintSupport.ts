@@ -335,7 +335,7 @@ export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHan
     return (sdm: SoftwareDeliveryMachine) => {
 
         return {
-            selector: forFingerprints("npm-project-coordinates"),
+            selector: forFingerprints("test-npm-project-coordinates"),
             diffHandler: (ctx, diff) => {
                 return setNewTargetFingerprint(
                     ctx,
