@@ -23,12 +23,12 @@ import {
     SuccessPromise,
 } from "@atomist/automation-client";
 import {
+    CodeTransformRegistration,
     CommandHandlerRegistration,
     findSdmGoalOnCommit,
     Goal,
     updateGoal,
     UpdateSdmGoalParams,
-    CodeTransformRegistration,
 } from "@atomist/sdm";
 import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 import {
