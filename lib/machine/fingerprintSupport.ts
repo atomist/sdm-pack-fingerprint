@@ -57,8 +57,8 @@ import {
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     ApplyTargetParameters,
-    compileApplyAllFingerprintsCommand,
-    compileApplyFingerprintCommand,
+    compileApplyTarget,
+    compileApplyTargets,
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
@@ -81,12 +81,16 @@ import {
     SetTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
-import { PullRequestImpactHandlerRegistration } from "../handlers/events/prImpactHandler";
 import {
     forFingerprints,
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
 
+/**
+ * Wrap a FingerprintRunner in a PushImpactListener so we can embed this in an  SDMGoal
+ * 
+ * @param fingerprinter
+ */
 export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
     return async (i: PushImpactListenerInvocation) => {
         return fingerprinter(i.project);
@@ -141,12 +145,13 @@ export interface FingerprintRegistration {
 }
 
 /**
- * all strategies for handler FingerprintImpact Events can configure themselves when this pack starts up
+ * Setting up a PushImpactHandler to handle different strategies (FingerprintHandlers) involves giving them the opportunity
+ * to configure the sdm, and they'll need all of the current active FingerprintRegistrations.
  */
 export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => FingerprintHandler;
 
 /**
- * register a new Fingeprint
+ * convenient function to register a create a FingerprintRegistration
  *
  * @param name name of the new Fingerprint
  * @param extract function to extract the Fingerprint from a cloned code base
@@ -186,6 +191,13 @@ function prBody(vote: Vote): string {
 //     return orDefault( () => (vote.fpTarget as any).user.id, "unknown");
 // }
 
+/**
+ * Message for one case where a Fingerprint target is different from what's in the latest Push.
+ * Offer two choices:  'apply' or 'change target'
+ * 
+ * @param params 
+ * @param vote 
+ */
 export function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
     return {
         title: orDefault(() => vote.summary.title, "New Target"),
@@ -221,6 +233,10 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachme
     };
 }
 
+/**
+ * 
+ * @param params 
+ */
 export function applyAll(params: MessageMakerParams): Attachment {
     return {
         title: "Apply all Changes",
@@ -248,7 +264,11 @@ export function applyAll(params: MessageMakerParams): Attachment {
     };
 }
 
-// default implementation
+/**
+ * Default Message Maker for target fingerprint impact handler
+ * 
+ * @param params 
+ */
 export const messageMaker: MessageMaker = async params => {
 
     const message: SlackMessage = {
@@ -281,6 +301,13 @@ function checkScope( fp: FP, registrations: FingerprintRegistration[]): boolean 
     return inScope;
 }
 
+/**
+ * This configures the registration function for the "target fingerprint" FingerprintHandler.  It's an important one
+ * because it's the one that generates messages when fingerprints don't line up with their "target" values.  It does
+ * nothing when there's no target set for a workspace.
+ * 
+ * @param config
+ */
 export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig): RegisterFingerprintImpactHandler {
     return (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => {
         // set goal Fingerprints
@@ -295,16 +322,13 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
         // standard actionable message embedding ApplyTargetFingerprint
         sdm.addCommand(BroadcastFingerprintNudge);
 
-        // this is the fingerprint editor
-        // sdm.addCodeTransformCommand(applyTargetFingerprint(registrations, config.transformPresentation));
-
         sdm.addCommand(ListFingerprints);
         sdm.addCommand(ListFingerprint);
         sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
 
-        sdm.addCommand(compileApplyFingerprintCommand(registrations, config.transformPresentation, sdm));
-        sdm.addCommand(compileApplyAllFingerprintsCommand(registrations, config.transformPresentation, sdm));
-
+        compileApplyTarget(sdm, registrations, config.transformPresentation);
+        compileApplyTargets(sdm, registrations, config.transformPresentation);
+        
         return {
             selector: fp => checkScope( fp, registrations),
             handler: async (ctx, diff) => {
@@ -316,6 +340,10 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
     };
 }
 
+/**
+ * This creates the registration function for a handler that notices that a project.clj file version
+ * has been updated.
+ */
 export function checkCljCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
     return (sdm: SoftwareDeliveryMachine) => {
 
@@ -331,6 +359,10 @@ export function checkCljCoordinatesImpactHandler(): RegisterFingerprintImpactHan
     };
 }
 
+/**
+ * This creates the registration function for a handler that notices that a package.json version
+ * has been updated.
+ */
 export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
     return (sdm: SoftwareDeliveryMachine) => {
 
@@ -346,6 +378,13 @@ export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHan
     };
 }
 
+/**
+ * Utility for creating a registration function for a handler that will just invoke the supplied callback
+ * if one of the suppled fingerprints changes
+ * 
+ * @param handler callback
+ * @param names set of fingerprint names that should trigger the callback
+ */
 export function simpleImpactHandler(
     handler: (context: HandlerContext, diff: Diff) => Promise<any>,
     ...names: string[]): RegisterFingerprintImpactHandler {
@@ -357,7 +396,11 @@ export function simpleImpactHandler(
     };
 }
 
-// TODO error handling goes here
+/**
+ * Construct our FingerprintRunner for the current registrations
+ * 
+ * @param fingerprinters
+ */
 export function fingerprintRunner(fingerprinters: FingerprintRegistration[]): FingerprintRunner {
     return async (p: GitProject) => {
 
@@ -431,9 +474,6 @@ function configure(sdm: SoftwareDeliveryMachine,
 
     // Fired on every Push after Fingerprints are uploaded
     sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm, fpRegistraitons))));
-
-    // Fired on each PR after Fingerprints are uploaded
-    sdm.addEvent(PullRequestImpactHandlerRegistration);
 
     sdm.addCommand(SetTargetFingerprint);
     sdm.addCommand(DumpLibraryPreferences);

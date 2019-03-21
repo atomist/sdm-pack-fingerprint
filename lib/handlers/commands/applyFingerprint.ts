@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-import {
+import {    
     GitProject,
     guid,
     logger,
     ParameterType,
 } from "@atomist/automation-client";
 import {
-    branchAwareCodeTransform,
     CodeTransform,
     CodeTransformRegistration,
-    CommandHandlerRegistration,
-    RepoTargetingParameters,
     slackFooter,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
@@ -41,6 +38,15 @@ import {
     FingerprintRegistration,
 } from "../../machine/fingerprintSupport";
 
+/**
+ * Call relevant apply functions from Registrations for a Fingerprint
+ * This happens in the context of an an editable Project
+ * 
+ * @param message a callback function if you would like notify about an error
+ * @param p the Project
+ * @param registrations all of the current Registrations containing apply functions 
+ * @param fp the fingerprint to apply
+ */
 async function pushFingerprint(message: (s: string) => Promise<any>,
                                p: GitProject,
                                registrations: FingerprintRegistration[], fp: FP): Promise<GitProject> {
@@ -61,6 +67,12 @@ async function pushFingerprint(message: (s: string) => Promise<any>,
     return p;
 }
 
+/**
+ * Create a CodeTransform that can be used to apply a Fingerprint to a Project
+ * This CodeTransform is takes one target Fingerprint in it's set of parameters.
+ * 
+ * @param registrations
+ */
 function runAllFingerprintAppliers(registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
@@ -91,6 +103,12 @@ function runAllFingerprintAppliers(registrations: FingerprintRegistration[]): Co
     };
 }
 
+/**
+ * Create a CodeTransform that can be used to apply a Fingerprint to a Project
+ * This CodeTransform takes a set of Fingerprints in it's set of parameters
+ * 
+ * @param registrations 
+ */
 function runEveryFingerprintApplication(registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintsParameters> {
     return async (p, cli) => {
 
@@ -129,8 +147,6 @@ function runEveryFingerprintApplication(registrations: FingerprintRegistration[]
 }
 
 export interface ApplyTargetParameters extends ParameterType {
-    title: string;
-    body: string;
     msgId?: string;
 }
 
@@ -138,9 +154,13 @@ export interface ApplyTargetFingerprintParameters extends ApplyTargetParameters 
     fingerprint: string;
 }
 
+/**
+ * embedd in an action when we broadcast this CodeTransform into other channels
+ */
 export let ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
 
-function createApplyTargetFingerprintRegistration(
+export function compileApplyTarget(
+    sdm: SoftwareDeliveryMachine,
     registrations: FingerprintRegistration[],
     presentation: EditModeMaker): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
 
@@ -150,14 +170,15 @@ function createApplyTargetFingerprintRegistration(
         description: "choose to raise a PR on the current project to apply a target fingerprint",
         parameters: {
             msgId: { required: false, displayable: false },
-            title: { required: true, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
-            body: { required: true, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
             fingerprint: { required: true },
         },
         transformPresentation: presentation,
         transform: runAllFingerprintAppliers(registrations),
         autoSubmit: true,
     };
+    
+    sdm.addCodeTransformCommand(ApplyTargetFingerprint);
+
     return ApplyTargetFingerprint;
 }
 
@@ -165,39 +186,27 @@ export interface ApplyTargetFingerprintsParameters extends ApplyTargetParameters
     fingerprints: string;
 }
 
-function createApplyTargetFingerprintsRegistration(
+export let ApplyTargetFingerprints: CodeTransformRegistration<ApplyTargetFingerprintsParameters>
+
+export function compileApplyTargets(
+    sdm: SoftwareDeliveryMachine,
     registrations: FingerprintRegistration[],
     presentation: EditModeMaker,
 ): CodeTransformRegistration<ApplyTargetFingerprintsParameters> {
 
-    return {
+    ApplyTargetFingerprints = {
         name: "ApplyAllFingerprints",
         description: "apply a bunch of fingerprints",
         transform: runEveryFingerprintApplication(registrations),
         transformPresentation: presentation,
         parameters: {
             msgId: { required: false, displayable: false },
-            title: { required: true, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
-            body: { required: true, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
             fingerprints: { required: true },
         },
         autoSubmit: true,
     };
-}
 
-export let FingerprintApplicationCommandRegistration: CommandHandlerRegistration<RepoTargetingParameters>;
-export let ApplyAllFingerprintsCommandRegistration: CommandHandlerRegistration<RepoTargetingParameters>;
+    sdm.addCodeTransformCommand(ApplyTargetFingerprints);
 
-export function compileApplyFingerprintCommand(registrations: FingerprintRegistration[],
-                                               presentation: EditModeMaker,
-                                               sdm: SoftwareDeliveryMachine): CommandHandlerRegistration<RepoTargetingParameters> {
-    FingerprintApplicationCommandRegistration = branchAwareCodeTransform(createApplyTargetFingerprintRegistration(registrations, presentation), sdm);
-    return FingerprintApplicationCommandRegistration;
-}
-
-export function compileApplyAllFingerprintsCommand(registrations: FingerprintRegistration[],
-                                                   presentation: EditModeMaker,
-                                                   sdm: SoftwareDeliveryMachine): CommandHandlerRegistration<RepoTargetingParameters> {
-    ApplyAllFingerprintsCommandRegistration = branchAwareCodeTransform(createApplyTargetFingerprintsRegistration(registrations, presentation), sdm);
-    return ApplyAllFingerprintsCommandRegistration;
+    return ApplyTargetFingerprints
 }
