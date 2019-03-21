@@ -53,7 +53,7 @@ import {
     MessageMaker,
     MessageMakerParams,
     votes,
-} from "../fingerprints/impact";
+} from "../checktarget/callbacks";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     ApplyTargetParameters,

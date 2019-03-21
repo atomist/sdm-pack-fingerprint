@@ -26,9 +26,9 @@ import {
     CommandHandlerRegistration,
     findSdmGoalOnCommit,
     Goal,
-    RepoTargetingParameters,
     updateGoal,
     UpdateSdmGoalParams,
+    CodeTransformRegistration,
 } from "@atomist/sdm";
 import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 import {
@@ -63,8 +63,8 @@ export interface MessageMakerParams {
     msgId: string;
     channel: string;
     coord: GitCoordinate;
-    editProject: CommandHandlerRegistration<RepoTargetingParameters>;
-    editAllProjects: CommandHandlerRegistration<RepoTargetingParameters>;
+    editProject: CodeTransformRegistration<any>;
+    editAllProjects: CodeTransformRegistration<any>;
     mutateTarget: CommandHandlerRegistration<UpdateTargetFingerprintParameters>;
 }
 
