@@ -25,8 +25,8 @@ import { CommandHandlerRegistration } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 
 interface FingerprintOption {
-    value: string,
-    description: string,
+    value: string;
+    description: string;
 }
 
 const options: FingerprintOption[] = [
@@ -43,24 +43,24 @@ const options: FingerprintOption[] = [
 const fingerprintOptions: FingerprintOption[] = [
     {
         value: "fingeprint1",
-        description: "aslfjal;sdjf;as"
+        description: "aslfjal;sdjf;as",
     },
     {
         value: "fingerprint2",
-        description: "al;sdjflkajklasdf"
-    }
+        description: "al;sdjflkajklasdf",
+    },
 ];
 
 const targetOptions: FingerprintOption[] = [
     {
         value: "target1",
-        description: "aslfjal;sdjf;as"
+        description: "aslfjal;sdjf;as",
     },
     {
         value: "target2",
-        description: "al;sdjflkajklasdf"
-    }
-]
+        description: "al;sdjflkajklasdf",
+    },
+];
 
 const Subcommand: Options = {
     kind: "single",
@@ -72,7 +72,7 @@ export interface FingerprintParameters extends ParameterType {
     next: string;
 }
 
-function nextParameter(options: FingerprintOption[], parameter: string, partials: any): SlackMessage {
+function nextParameter(fpOptions: FingerprintOption[], parameter: string, partials: any): SlackMessage {
     return {
         attachments:
             [{
@@ -84,12 +84,12 @@ function nextParameter(options: FingerprintOption[], parameter: string, partials
                     menuForCommand(
                         {
                             text: "choose",
-                            options: [...options.map(o => {return {value: o.value, text: o.description}})],
+                            options: [...fpOptions.map(o => ({value: o.value, text: o.description}))],
                         },
                         FingerprintEverything.name,
                         parameter,
                         partials,
-                    )
+                    ),
                 ],
             }],
     };
@@ -106,7 +106,7 @@ export const FingerprintEverything: CommandHandlerRegistration<FingerprintParame
         },
         next: {
             required: false,
-        }
+        },
     },
     listener: i => {
         logger.info(`choose ${i.parameters.subcommand} and ${i.parameters.next}`);
@@ -120,7 +120,7 @@ export const FingerprintEverything: CommandHandlerRegistration<FingerprintParame
                 case "targets": {
                     return i.addressChannels(nextParameter( targetOptions, "next", {subcommand: i.parameters.subcommand}));
                 }
-            }   
+            }
         } else {
             switch (i.parameters.subcommand) {
                 case "fingerprints": {

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { logger } from "@atomist/automation-client";
 import {
     LoggingProgressLog,
     spawnLog,
@@ -25,7 +26,6 @@ import {
     sha256,
 } from "../..";
 import { DiffSummaryFingerprint } from "../machine/fingerprintSupport";
-import { logger } from "@atomist/automation-client";
 
 export function getNpmDepFingerprint(lib: string, version: string): FP {
 
@@ -86,7 +86,7 @@ export const applyNpmDepsFingerprint: ApplyFingerprint = async (p, fp) => {
                 logCommand: false,
             });
         logger.info("finished npm instsall");
-        log.flush();
+        await log.flush();
         logger.info(log.log);
         return result.code === 0;
     } else {

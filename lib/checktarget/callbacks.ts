@@ -18,13 +18,10 @@ import {
     FailurePromise,
     GitHubRepoRef,
     HandlerContext,
-    HandlerResult,
     logger,
     SuccessPromise,
 } from "@atomist/automation-client";
 import {
-    CodeTransformRegistration,
-    CommandHandlerRegistration,
     findSdmGoalOnCommit,
     Goal,
     updateGoal,
@@ -34,7 +31,6 @@ import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 import {
     checkFingerprintTargets,
     commaSeparatedList,
-    consistentHash,
     Diff,
     FP,
     renderData,
@@ -49,60 +45,14 @@ import {
 } from "../handlers/commands/applyFingerprint";
 import {
     UpdateTargetFingerprint,
-    UpdateTargetFingerprintParameters,
 } from "../handlers/commands/updateTarget";
 import {
-    DiffSummary,
     FingerprintImpactHandlerConfig,
     FingerprintRegistration,
 } from "../machine/fingerprintSupport";
-
-export interface MessageMakerParams {
-    ctx: HandlerContext;
-    voteResults: VoteResults;
-    msgId: string;
-    channel: string;
-    coord: GitCoordinate;
-    editProject: CodeTransformRegistration<any>;
-    editAllProjects: CodeTransformRegistration<any>;
-    mutateTarget: CommandHandlerRegistration<UpdateTargetFingerprintParameters>;
-}
-
-export interface GitCoordinate {
-    owner: string;
-    repo: string;
-    sha: string;
-    providerId: string;
-    branch?: string;
-}
-
-export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult>;
-
-type MessageIdMaker = (fingerprint: FP, coordinate: GitCoordinate, channel: string) => string;
-
-const updateableMessage: MessageIdMaker = (fingerprint, coordinate: GitCoordinate, channel: string) => {
-    return consistentHash([fingerprint.sha, channel, coordinate.owner, coordinate.repo]);
-};
+import { getDiffSummary, GitCoordinate, updateableMessage } from "./messageMaker";
 
 /**
- * get a diff summary if any registrations support one for this Fingerprint type
- */
-function getDiffSummary(diff: Diff, target: FP, registrations: FingerprintRegistration[]): undefined | DiffSummary {
-
-    try {
-        for (const registration of registrations) {
-            if (registration.summary && registration.selector(diff.to)) {
-                return registration.summary(diff, target);
-            }
-        }
-    } catch (e) {
-        logger.warn(`failed to create summary: ${e}`);
-    }
-
-    return undefined;
-}
-
-/**  
  * create callback to be used when fingerprint and target are out of sync
  */
 function fingerprintOutOfSyncCallback(
@@ -129,10 +79,10 @@ function fingerprintOutOfSyncCallback(
 
 /**
  * create callback to be used when fingerprint and target is in sync
- * 
+ *
  * @param ctx
- * @param diff 
- * @param goal 
+ * @param diff
+ * @param goal
  */
 function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff, goal?: Goal):
     (fingerprint: FP) => Promise<Vote> {
@@ -148,11 +98,11 @@ function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff, goal?: Goal)
 
 /**
  * just trying to capture how we update Goals
- * 
- * @param ctx 
- * @param diff 
- * @param goal 
- * @param params 
+ *
+ * @param ctx
+ * @param diff
+ * @param goal
+ * @param params
  */
 async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, params: UpdateSdmGoalParams): Promise<any> {
     logger.info(`edit goal ${goal.name} to be in state ${params.state} for ${diff.owner}, ${diff.repo}, ${diff.sha}, ${diff.providerId}`);
@@ -172,9 +122,9 @@ async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, pa
 }
 
 /**
- * for target fingerprints, wait until we've seen all of Votes so we can expose both apply and 
+ * for target fingerprints, wait until we've seen all of Votes so we can expose both apply and
  * apply all choices
- * 
+ *
  * @param config
  */
 export function votes(config: FingerprintImpactHandlerConfig):
@@ -228,11 +178,11 @@ export function votes(config: FingerprintImpactHandlerConfig):
 
 /**
  * check whether the fingerprint in this diff is the same as the target value
- * 
- * @param ctx 
- * @param diff 
- * @param config 
- * @param registrations 
+ *
+ * @param ctx
+ * @param diff
+ * @param config
+ * @param registrations
  */
 export async function checkFingerprintTarget(
     ctx: HandlerContext,

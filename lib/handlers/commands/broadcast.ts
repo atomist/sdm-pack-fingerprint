@@ -126,6 +126,8 @@ ${italic(cli.parameters.reason)}`,
                                 {
                                     msgId,
                                     fingerprint: cli.parameters.name,
+                                    title: `Updated target for ${cli.parameters.name} to ${cli.parameters.version}`,
+                                    body: cli.parameters.reason
                                 },
                             ),
                         ],

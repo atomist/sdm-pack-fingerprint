@@ -41,10 +41,10 @@ import {
 /**
  * Call relevant apply functions from Registrations for a Fingerprint
  * This happens in the context of an an editable Project
- * 
+ *
  * @param message a callback function if you would like notify about an error
  * @param p the Project
- * @param registrations all of the current Registrations containing apply functions 
+ * @param registrations all of the current Registrations containing apply functions
  * @param fp the fingerprint to apply
  */
 async function pushFingerprint(message: (s: string) => Promise<any>,
@@ -70,7 +70,7 @@ async function pushFingerprint(message: (s: string) => Promise<any>,
 /**
  * Create a CodeTransform that can be used to apply a Fingerprint to a Project
  * This CodeTransform is takes one target Fingerprint in it's set of parameters.
- * 
+ *
  * @param registrations
  */
 function runAllFingerprintAppliers(registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
@@ -106,8 +106,8 @@ function runAllFingerprintAppliers(registrations: FingerprintRegistration[]): Co
 /**
  * Create a CodeTransform that can be used to apply a Fingerprint to a Project
  * This CodeTransform takes a set of Fingerprints in it's set of parameters
- * 
- * @param registrations 
+ *
+ * @param registrations
  */
 function runEveryFingerprintApplication(registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintsParameters> {
     return async (p, cli) => {
@@ -148,6 +148,8 @@ function runEveryFingerprintApplication(registrations: FingerprintRegistration[]
 
 export interface ApplyTargetParameters extends ParameterType {
     msgId?: string;
+    body: string;
+    title: string;
 }
 
 export interface ApplyTargetFingerprintParameters extends ApplyTargetParameters {
@@ -171,12 +173,14 @@ export function compileApplyTarget(
         parameters: {
             msgId: { required: false, displayable: false },
             fingerprint: { required: true },
+            body: { required: false, displayable: false },
+            title: { required: false, displayable: false }
         },
         transformPresentation: presentation,
         transform: runAllFingerprintAppliers(registrations),
         autoSubmit: true,
     };
-    
+
     sdm.addCodeTransformCommand(ApplyTargetFingerprint);
 
     return ApplyTargetFingerprint;
@@ -186,7 +190,7 @@ export interface ApplyTargetFingerprintsParameters extends ApplyTargetParameters
     fingerprints: string;
 }
 
-export let ApplyTargetFingerprints: CodeTransformRegistration<ApplyTargetFingerprintsParameters>
+export let ApplyTargetFingerprints: CodeTransformRegistration<ApplyTargetFingerprintsParameters>;
 
 export function compileApplyTargets(
     sdm: SoftwareDeliveryMachine,
@@ -202,11 +206,13 @@ export function compileApplyTargets(
         parameters: {
             msgId: { required: false, displayable: false },
             fingerprints: { required: true },
+            body: { required: false, displayable: false },
+            title: { required: false, displayable: false }
         },
         autoSubmit: true,
     };
 
     sdm.addCodeTransformCommand(ApplyTargetFingerprints);
 
-    return ApplyTargetFingerprints
+    return ApplyTargetFingerprints;
 }
