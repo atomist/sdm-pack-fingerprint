@@ -126,6 +126,8 @@ ${italic(cli.parameters.reason)}`,
                                 {
                                     msgId,
                                     fingerprint: cli.parameters.name,
+                                    title: `Updated target for ${cli.parameters.name} to ${cli.parameters.version}`,
+                                    body: cli.parameters.reason,
                                 },
                             ),
                         ],
@@ -139,30 +141,6 @@ ${italic(cli.parameters.reason)}`,
         },
     );
 }
-
-export const BroadcastFingerprintMandate: CommandHandlerRegistration<BroadcastFingerprintNudgeParameters> = {
-    name: "BroadcastFingerprintNudge",
-    description: "message all Channels linked to Repos that contain a particular fingerprint",
-    parameters: {
-        name: { required: true },
-        version: { required: true },
-        sha: {
-            required: true,
-            description: "sha of fingerprint to broadcast",
-        },
-        reason: {
-            required: false,
-            control: "textarea",
-            description: "always give a reason why we're releasing the nudge",
-        },
-        author: {
-            required: false,
-            description: "author of the Nudge",
-        },
-    },
-    listener: broadcastMandate,
-    autoSubmit: true,
-};
 
 export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFingerprintNudgeParameters> = {
     name: "BroadcastFingerprintNudge",
@@ -186,4 +164,10 @@ export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFing
     },
     listener: broadcastNudge,
     autoSubmit: true,
+};
+
+export const BroadcastFingerprintMandate: CommandHandlerRegistration<BroadcastFingerprintNudgeParameters> = {
+    ...BroadcastFingerprintNudge,
+    name: "BroadcastFingerprintMandate",
+    listener: broadcastMandate,
 };

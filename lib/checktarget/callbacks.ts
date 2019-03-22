@@ -18,15 +18,12 @@ import {
     FailurePromise,
     GitHubRepoRef,
     HandlerContext,
-    HandlerResult,
     logger,
     SuccessPromise,
 } from "@atomist/automation-client";
 import {
-    CommandHandlerRegistration,
     findSdmGoalOnCommit,
     Goal,
-    RepoTargetingParameters,
     updateGoal,
     UpdateSdmGoalParams,
 } from "@atomist/sdm";
@@ -34,7 +31,6 @@ import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 import {
     checkFingerprintTargets,
     commaSeparatedList,
-    consistentHash,
     Diff,
     FP,
     renderData,
@@ -44,65 +40,26 @@ import {
 } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import {
-    ApplyAllFingerprintsCommandRegistration,
-    FingerprintApplicationCommandRegistration,
+    ApplyTargetFingerprint,
+    ApplyTargetFingerprints,
 } from "../handlers/commands/applyFingerprint";
 import {
     UpdateTargetFingerprint,
-    UpdateTargetFingerprintParameters,
 } from "../handlers/commands/updateTarget";
 import {
-    DiffSummary,
     FingerprintImpactHandlerConfig,
     FingerprintRegistration,
 } from "../machine/fingerprintSupport";
+import {
+    getDiffSummary,
+    GitCoordinate,
+    updateableMessage,
+} from "./messageMaker";
 
-export interface MessageMakerParams {
-    ctx: HandlerContext;
-    voteResults: VoteResults;
-    msgId: string;
-    channel: string;
-    coord: GitCoordinate;
-    editProject: CommandHandlerRegistration<RepoTargetingParameters>;
-    editAllProjects: CommandHandlerRegistration<RepoTargetingParameters>;
-    mutateTarget: CommandHandlerRegistration<UpdateTargetFingerprintParameters>;
-}
-
-export interface GitCoordinate {
-    owner: string;
-    repo: string;
-    sha: string;
-    providerId: string;
-    branch?: string;
-}
-
-export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult>;
-
-type MessageIdMaker = (fingerprint: FP, coordinate: GitCoordinate, channel: string) => string;
-
-const updateableMessage: MessageIdMaker = (fingerprint, coordinate: GitCoordinate, channel: string) => {
-    return consistentHash([fingerprint.sha, channel, coordinate.owner, coordinate.repo]);
-};
-
-function getDiffSummary(diff: Diff, target: FP, registrations: FingerprintRegistration[]): undefined | DiffSummary {
-
-    try {
-        for (const registration of registrations) {
-            if (registration.summary && registration.selector(diff.to)) {
-                return registration.summary(diff, target);
-            }
-        }
-    } catch (e) {
-        logger.warn(`failed to create summary: ${e}`);
-    }
-
-    return undefined;
-}
-
-// when we discover a backpack dependency that is not the target state
-// then we ask the user whether they want to update to the new target version
-// or maybe they want this backpack version to become the new target version
-function callback(
+/**
+ * create callback to be used when fingerprint and target are out of sync
+ */
+function fingerprintOutOfSyncCallback(
     ctx: HandlerContext,
     diff: Diff,
     config: FingerprintImpactHandlerConfig,
@@ -124,6 +81,13 @@ function callback(
     };
 }
 
+/**
+ * create callback to be used when fingerprint and target is in sync
+ *
+ * @param ctx
+ * @param diff
+ * @param goal
+ */
 function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff, goal?: Goal):
     (fingerprint: FP) => Promise<Vote> {
     return async fingerprint => {
@@ -136,6 +100,14 @@ function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff, goal?: Goal)
     };
 }
 
+/**
+ * just trying to capture how we update Goals
+ *
+ * @param ctx
+ * @param diff
+ * @param goal
+ * @param params
+ */
 async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, params: UpdateSdmGoalParams): Promise<any> {
     logger.info(`edit goal ${goal.name} to be in state ${params.state} for ${diff.owner}, ${diff.repo}, ${diff.sha}, ${diff.providerId}`);
     try {
@@ -153,6 +125,12 @@ async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, pa
     }
 }
 
+/**
+ * for target fingerprints, wait until we've seen all of Votes so we can expose both apply and
+ * apply all choices
+ *
+ * @param config
+ */
 export function votes(config: FingerprintImpactHandlerConfig):
     (ctx: HandlerContext, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any> {
 
@@ -171,8 +149,8 @@ export function votes(config: FingerprintImpactHandlerConfig):
                 channel,
                 voteResults: result,
                 coord,
-                editProject: FingerprintApplicationCommandRegistration,
-                editAllProjects: ApplyAllFingerprintsCommandRegistration,
+                editProject: ApplyTargetFingerprint,
+                editAllProjects: ApplyTargetFingerprints,
                 mutateTarget: UpdateTargetFingerprint,
             });
 
@@ -202,6 +180,14 @@ export function votes(config: FingerprintImpactHandlerConfig):
     };
 }
 
+/**
+ * check whether the fingerprint in this diff is the same as the target value
+ *
+ * @param ctx
+ * @param diff
+ * @param config
+ * @param registrations
+ */
 export async function checkFingerprintTarget(
     ctx: HandlerContext,
     diff: Diff,
@@ -210,7 +196,7 @@ export async function checkFingerprintTarget(
 
     return checkFingerprintTargets(
         queryPreferences(ctx.graphClient),
-        callback(ctx, diff, config, registrations),
+        fingerprintOutOfSyncCallback(ctx, diff, config, registrations),
         fingerprintInSyncCallback(ctx, diff, config.complianceGoal),
         diff,
     );

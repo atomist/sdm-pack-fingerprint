@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { logger } from "@atomist/automation-client";
 import {
     LoggingProgressLog,
     spawnLog,
@@ -31,7 +32,7 @@ export function getNpmDepFingerprint(lib: string, version: string): FP {
     const data = [lib, version];
 
     return {
-        name: `npm-project-dep::${lib.replace("@", "").replace("/", "::")}`,
+        name: `test-npm-project-dep::${lib.replace("@", "").replace("/", "::")}`,
         abbreviation: "npmdeps",
         version: "0.0.1",
         data,
@@ -58,7 +59,7 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
         const coords = JSON.stringify({ name: jsonData.name, version: jsonData.version });
         fingerprints.push(
             {
-                name: "npm-project-coordinates",
+                name: "test-npm-project-coordinates",
                 abbreviation: "npm-project-coords",
                 version: "0.0.1",
                 data: coords,
@@ -84,6 +85,9 @@ export const applyNpmDepsFingerprint: ApplyFingerprint = async (p, fp) => {
                 log,
                 logCommand: false,
             });
+        logger.info("finished npm instsall");
+        await log.flush();
+        logger.info(log.log);
         return result.code === 0;
     } else {
         return false;

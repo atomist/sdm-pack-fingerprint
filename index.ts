@@ -19,7 +19,6 @@ export {
     simpleImpactHandler,
     fingerprintImpactHandler,
     FingerprintImpactHandlerConfig,
-    messageMaker,
     ApplyFingerprint,
     ExtractFingerprint,
     register,
@@ -35,7 +34,8 @@ export {
 } from "./lib/handlers/events/pushImpactHandler";
 export {
     MessageMaker,
-} from "./lib/fingerprints/impact";
+    messageMaker,
+} from "./lib/checktarget/messageMaker";
 export {
     Diff,
     FP,
