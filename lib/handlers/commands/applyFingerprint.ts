@@ -174,7 +174,7 @@ export function compileApplyTarget(
             msgId: { required: false, displayable: false },
             fingerprint: { required: true },
             body: { required: false, displayable: false },
-            title: { required: false, displayable: false }
+            title: { required: false, displayable: false },
         },
         transformPresentation: presentation,
         transform: runAllFingerprintAppliers(registrations),
@@ -207,7 +207,7 @@ export function compileApplyTargets(
             msgId: { required: false, displayable: false },
             fingerprints: { required: true },
             body: { required: false, displayable: false },
-            title: { required: false, displayable: false }
+            title: { required: false, displayable: false },
         },
         autoSubmit: true,
     };
