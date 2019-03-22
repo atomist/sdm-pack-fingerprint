@@ -43,7 +43,10 @@ import {
     checkFingerprintTarget,
     votes,
 } from "../checktarget/callbacks";
-import { GitCoordinate, MessageMaker } from "../checktarget/messageMaker";
+import {
+    GitCoordinate,
+    MessageMaker,
+} from "../checktarget/messageMaker";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     ApplyTargetParameters,

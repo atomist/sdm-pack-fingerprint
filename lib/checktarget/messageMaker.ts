@@ -14,11 +14,31 @@
  * limitations under the License.
  */
 
-import { addressSlackChannelsFromContext, HandlerContext, HandlerResult, logger } from "@atomist/automation-client";
-import { actionableButton, CodeTransformRegistration, CommandHandlerRegistration, slackFooter } from "@atomist/sdm";
-import { Attachment, bold, SlackMessage } from "@atomist/slack-messages";
+import {
+    addressSlackChannelsFromContext,
+    HandlerContext,
+    HandlerResult,
+    logger,
+} from "@atomist/automation-client";
+import {
+    actionableButton,
+    CodeTransformRegistration,
+    CommandHandlerRegistration,
+    slackFooter,
+} from "@atomist/sdm";
+import {
+    Attachment,
+    bold,
+    SlackMessage,
+} from "@atomist/slack-messages";
 import { FingerprintRegistration } from "../..";
-import { consistentHash, Diff, FP, Vote, VoteResults } from "../../fingerprints";
+import {
+    consistentHash,
+    Diff,
+    FP,
+    Vote,
+    VoteResults,
+} from "../../fingerprints";
 import { UpdateTargetFingerprintParameters } from "../handlers/commands/updateTarget";
 import { DiffSummary } from "../machine/fingerprintSupport";
 

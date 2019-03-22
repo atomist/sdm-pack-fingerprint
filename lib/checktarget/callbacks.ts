@@ -50,7 +50,11 @@ import {
     FingerprintImpactHandlerConfig,
     FingerprintRegistration,
 } from "../machine/fingerprintSupport";
-import { getDiffSummary, GitCoordinate, updateableMessage } from "./messageMaker";
+import {
+    getDiffSummary,
+    GitCoordinate,
+    updateableMessage,
+} from "./messageMaker";
 
 /**
  * create callback to be used when fingerprint and target are out of sync
