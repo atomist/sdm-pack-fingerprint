@@ -48,8 +48,8 @@ import {
  * @param fp the fingerprint to apply
  */
 async function pushFingerprint(message: (s: string) => Promise<any>,
-                               p: GitProject,
-                               registrations: FingerprintRegistration[], fp: FP): Promise<GitProject> {
+    p: GitProject,
+    registrations: FingerprintRegistration[], fp: FP): Promise<GitProject> {
 
     logger.info(`transform running -- ${fp.name}/${fp.sha} --`);
 
@@ -173,8 +173,8 @@ export function compileApplyTarget(
         parameters: {
             msgId: { required: false, displayable: false },
             fingerprint: { required: true },
-            body: { required: false, displayable: false },
-            title: { required: false, displayable: false },
+            body: { required: false, displayable: true, control: "textarea" },
+            title: { required: false, displayable: true, control: "textarea" },
         },
         transformPresentation: presentation,
         transform: runAllFingerprintAppliers(registrations),
@@ -206,8 +206,8 @@ export function compileApplyTargets(
         parameters: {
             msgId: { required: false, displayable: false },
             fingerprints: { required: true },
-            body: { required: false, displayable: false },
-            title: { required: false, displayable: false },
+            body: { required: false, displayable: true, control: "textarea" },
+            title: { required: false, displayable: true, control: "textarea" },
         },
         autoSubmit: true,
     };
