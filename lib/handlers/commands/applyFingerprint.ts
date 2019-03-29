@@ -173,8 +173,8 @@ export function compileApplyTarget(
         parameters: {
             msgId: { required: false, displayable: false },
             fingerprint: { required: true },
-            body: { required: false, displayable: true, control: "textarea" },
-            title: { required: false, displayable: true, control: "textarea" },
+            body: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
+            title: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
         },
         transformPresentation: presentation,
         transform: runAllFingerprintAppliers(registrations),
@@ -206,8 +206,8 @@ export function compileApplyTargets(
         parameters: {
             msgId: { required: false, displayable: false },
             fingerprints: { required: true },
-            body: { required: false, displayable: true, control: "textarea" },
-            title: { required: false, displayable: true, control: "textarea" },
+            body: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
+            title: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
         },
         autoSubmit: true,
     };
