@@ -48,8 +48,8 @@ import {
  * @param fp the fingerprint to apply
  */
 async function pushFingerprint(message: (s: string) => Promise<any>,
-    p: GitProject,
-    registrations: FingerprintRegistration[], fp: FP): Promise<GitProject> {
+                               p: GitProject,
+                               registrations: FingerprintRegistration[], fp: FP): Promise<GitProject> {
 
     logger.info(`transform running -- ${fp.name}/${fp.sha} --`);
 
