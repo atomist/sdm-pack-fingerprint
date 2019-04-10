@@ -25,7 +25,10 @@ import {
 } from "@atomist/automation-client";
 import { TargetsParams } from "@atomist/automation-client/lib/operations/common/params/TargetsParams";
 import { editAll } from "@atomist/automation-client/lib/operations/edit/editAll";
-import { AutoMergeMethod, AutoMergeMode } from "@atomist/automation-client/lib/operations/edit/editModes";
+import {
+    AutoMergeMethod,
+    AutoMergeMode,
+} from "@atomist/automation-client/lib/operations/edit/editModes";
 import { EditResult } from "@atomist/automation-client/lib/operations/edit/projectEditor";
 import {
     CodeTransform,

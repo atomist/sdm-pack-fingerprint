@@ -32,7 +32,10 @@ import {
 import _ = require("lodash");
 import { broadcastFingerprint } from "../../../fingerprints";
 import { queryFingerprints } from "../../adhoc/fingerprints";
-import { ApplyTargetFingerprint, BroadcastFingerprintMandate } from "./applyFingerprint";
+import {
+    ApplyTargetFingerprint,
+    BroadcastFingerprintMandate,
+} from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
                                   name: string,
