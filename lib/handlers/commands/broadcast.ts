@@ -29,6 +29,7 @@ import {
     SlackMessage,
     user,
 } from "@atomist/slack-messages";
+import _ = require("lodash");
 import { broadcastFingerprint } from "../../../fingerprints";
 import { queryFingerprints } from "../../adhoc/fingerprints";
 import { ApplyTargetFingerprint, BroadcastFingerprintMandate } from "./applyFingerprint";
@@ -38,6 +39,7 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
                                   version: string,
                                   sha: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
+    const msgId: string = _.times(20, () => _.random(35).toString(36)).join("");
     return cli.addressChannels(
         {
             attachments:
@@ -54,7 +56,7 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
                                 text: "Broadcast Nudge",
                             },
                             BroadcastFingerprintNudge,
-                            { name, version, author, sha },
+                            { name, version, author, sha, msgId },
                         ),
                         actionableButton(
                             {
@@ -66,12 +68,14 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
                                 title: "Broadcasting PRs",
                                 branch: "master",
                                 fingerprint: name,
+                                msgId,
                             },
                         ),
                     ],
                     footer: slackFooter(),
                 }],
         },
+        { id: msgId },
     );
 }
 

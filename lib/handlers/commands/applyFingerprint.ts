@@ -274,10 +274,7 @@ export function compileBroadcastFingerprintMandate(
                 };
             }));
 
-            logger.info(`refs:  ${refs.length}`);
-
             const editor: (p: Project) => Promise<EditResult> = async p => {
-                logger.info(`running broadcast editor for ${(p as GitProject).remote}`);
                 await pushFingerprint(
                     async s => i.addressChannels(s),
                     (p as GitProject),
@@ -289,7 +286,11 @@ export function compileBroadcastFingerprintMandate(
                     target: p,
                 };
             };
-            editAll(
+
+            // tslint:disable-next-line
+            const targets: TargetsParams = ({} as TargetsParams);
+
+            const result: EditResult[] = await editAll(
                 i.context,
                 i.credentials,
                 editor,
@@ -306,12 +307,36 @@ export function compileBroadcastFingerprintMandate(
                 ),
                 {
                     ...i.parameters,
-                    targets: {} as TargetsParams,
+                    targets,
                 },
                 async () => {
                     logger.info(`calling repo finder:  ${refs.length}`);
                     return refs;
                 },
+            );
+
+            await i.addressChannels(
+                {
+                    attachments: [
+                        {
+                            author_name: "Broadcast Fingerprint Target",
+                            author_icon: `https://images.atomist.com/rug/check-circle.png`,
+                            text: `We have sent a fingerprint PR (${i.parameters.fingerprint}) to all impacted Repos`,
+                            fallback: `Boardcast PR`,
+                            color: "#00cc00",
+                            mrkdwn_in: ["text"],
+                            footer: slackFooter(),
+                        },
+                        {
+                            text: result.map(x => `${x.target.name} (${x.success})`).join(", "),
+                            fallback: `Boardcast PR`,
+                            color: "#00cc00",
+                            mrkdwn_in: ["text"],
+                            footer: slackFooter(),
+                        },
+                    ],
+                },
+                { id: i.parameters.msgId },
             );
         },
         parameters: {

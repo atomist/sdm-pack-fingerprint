@@ -162,7 +162,7 @@ export const IgnoreCommandRegistration: CommandHandlerRegistration<IgnoreParamet
     listener: async (i: CommandListenerInvocation<IgnoreParameters>) => {
         // TODO - this is an opportunity to provide feedback that the project does not intend to merge this
         // collapse the message
-        i.addressChannels(
+        await i.addressChannels(
             {
                 attachments: [
                     {
