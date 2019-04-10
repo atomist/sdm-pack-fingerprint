@@ -15,14 +15,22 @@
  */
 
 import {
+    editModes,
     GitProject,
     guid,
     logger,
     ParameterType,
+    Project,
+    RepoRef,
 } from "@atomist/automation-client";
+import { TargetsParams } from "@atomist/automation-client/lib/operations/common/params/TargetsParams";
+import { editAll } from "@atomist/automation-client/lib/operations/edit/editAll";
+import { AutoMergeMethod, AutoMergeMode } from "@atomist/automation-client/lib/operations/edit/editModes";
+import { EditResult } from "@atomist/automation-client/lib/operations/edit/projectEditor";
 import {
     CodeTransform,
     CodeTransformRegistration,
+    CommandHandlerRegistration,
     slackFooter,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
@@ -32,11 +40,13 @@ import {
     FP,
     getFingerprintPreference,
 } from "../../../fingerprints/index";
+import { queryFingerprints } from "../../adhoc/fingerprints";
 import { queryPreferences } from "../../adhoc/preferences";
 import {
     EditModeMaker,
     FingerprintRegistration,
 } from "../../machine/fingerprintSupport";
+import { FindLinkedReposWithFingerprint } from "../../typings/types";
 
 /**
  * Call relevant apply functions from Registrations for a Fingerprint
@@ -47,9 +57,12 @@ import {
  * @param registrations all of the current Registrations containing apply functions
  * @param fp the fingerprint to apply
  */
-async function pushFingerprint(message: (s: string) => Promise<any>,
-                               p: GitProject,
-                               registrations: FingerprintRegistration[], fp: FP): Promise<GitProject> {
+
+async function pushFingerprint(
+    message: (s: string) => Promise<any>,
+    p: GitProject,
+    registrations: FingerprintRegistration[],
+    fp: FP): Promise<GitProject> {
 
     logger.info(`transform running -- ${fp.name}/${fp.sha} --`);
 
@@ -73,7 +86,7 @@ async function pushFingerprint(message: (s: string) => Promise<any>,
  *
  * @param registrations
  */
-function runAllFingerprintAppliers(registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
+export function runAllFingerprintAppliers(registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
         const message: SlackMessage = {
@@ -150,6 +163,7 @@ export interface ApplyTargetParameters extends ParameterType {
     msgId?: string;
     body: string;
     title: string;
+    branch?: string;
 }
 
 export interface ApplyTargetFingerprintParameters extends ApplyTargetParameters {
@@ -175,6 +189,7 @@ export function compileApplyTarget(
             fingerprint: { required: true },
             body: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
             title: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
+            branch: { required: false, displayable: false },
         },
         transformPresentation: presentation,
         transform: runAllFingerprintAppliers(registrations),
@@ -208,6 +223,7 @@ export function compileApplyTargets(
             fingerprints: { required: true },
             body: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
             title: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
+            branch: { required: false, displayable: false },
         },
         autoSubmit: true,
     };
@@ -215,4 +231,100 @@ export function compileApplyTargets(
     sdm.addCodeTransformCommand(ApplyTargetFingerprints);
 
     return ApplyTargetFingerprints;
+}
+
+export interface BroadcastFingerprintMandateParameters extends ParameterType {
+    fingerprint: string;
+    title: string;
+    body: string;
+    msgId?: string;
+    branch?: string;
+}
+
+export let BroadcastFingerprintMandate: CommandHandlerRegistration<BroadcastFingerprintMandateParameters>;
+
+export function compileBroadcastFingerprintMandate(
+    sdm: SoftwareDeliveryMachine,
+    registrations: FingerprintRegistration[],
+): CommandHandlerRegistration<BroadcastFingerprintMandateParameters> {
+    BroadcastFingerprintMandate = {
+        name: "BroadcastFingerprintMandate",
+        description: "create a PR in many Repos",
+        listener: async i => {
+
+            const refs: RepoRef[] = [];
+
+            const fp = await getFingerprintPreference(
+                queryPreferences(i.context.graphClient),
+                i.parameters.fingerprint);
+
+            // start by running
+            logger.info(`run all fingerprint transforms for ${i.parameters.fingerprint}: ${fp.name}/${fp.sha}`);
+
+            const data: FindLinkedReposWithFingerprint.Query = await (queryFingerprints(i.context.graphClient))(i.parameters.fingerprint);
+
+            logger.info(`FindLinkedReposWithFingerprint ${JSON.stringify(data)}`);
+
+            refs.push(...data.Repo.map(repo => {
+                return {
+                    owner: repo.owner,
+                    repo: repo.name,
+                    url: "url",
+                    branch: "master",
+                };
+            }));
+
+            logger.info(`refs:  ${refs.length}`);
+
+            const editor: (p: Project) => Promise<EditResult> = async p => {
+                logger.info(`running broadcast editor for ${(p as GitProject).remote}`);
+                await pushFingerprint(
+                    async s => i.addressChannels(s),
+                    (p as GitProject),
+                    registrations,
+                    fp,
+                );
+                return {
+                    success: true,
+                    target: p,
+                };
+            };
+            editAll(
+                i.context,
+                i.credentials,
+                editor,
+                new editModes.PullRequest(
+                    `apply-target-fingerprint-${Date.now()}`,
+                    `${i.parameters.title}`,
+                    `> generated by Atomist \n ${i.parameters.body}`,
+                    undefined,
+                    "master",
+                    {
+                        method: AutoMergeMethod.Squash,
+                        mode: AutoMergeMode.SuccessfulCheck,
+                    },
+                ),
+                {
+                    ...i.parameters,
+                    targets: {} as TargetsParams,
+                },
+                async () => {
+                    logger.info(`calling repo finder:  ${refs.length}`);
+                    return refs;
+                },
+            );
+        },
+        parameters: {
+            msgId: { required: false, displayable: false },
+            fingerprint: { required: true },
+            body: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
+            title: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
+            branch: { required: false, displayable: false },
+        },
+        autoSubmit: true,
+    };
+
+    sdm.addCommand(BroadcastFingerprintMandate);
+
+    return BroadcastFingerprintMandate;
 }

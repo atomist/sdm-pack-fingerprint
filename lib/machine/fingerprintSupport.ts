@@ -45,6 +45,7 @@ import {
 } from "../checktarget/callbacks";
 import {
     GitCoordinate,
+    IgnoreCommandRegistration,
     MessageMaker,
 } from "../checktarget/messageMaker";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
@@ -52,6 +53,7 @@ import {
     ApplyTargetParameters,
     compileApplyTarget,
     compileApplyTargets,
+    compileBroadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
@@ -158,7 +160,7 @@ export function register(name: string, extract: ExtractFingerprint, apply?: Appl
     };
 }
 
-function checkScope( fp: FP, registrations: FingerprintRegistration[]): boolean {
+function checkScope(fp: FP, registrations: FingerprintRegistration[]): boolean {
     const inScope: boolean = _.some(registrations, reg => reg.selector(fp));
     logger.info(`checked scope for ${fp.name} => ${inScope}`);
     return inScope;
@@ -188,12 +190,14 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
         sdm.addCommand(ListFingerprints);
         sdm.addCommand(ListFingerprint);
         sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
+        sdm.addCommand(IgnoreCommandRegistration);
 
         compileApplyTarget(sdm, registrations, config.transformPresentation);
         compileApplyTargets(sdm, registrations, config.transformPresentation);
+        compileBroadcastFingerprintMandate(sdm, registrations);
 
         return {
-            selector: fp => checkScope( fp, registrations),
+            selector: fp => checkScope(fp, registrations),
             handler: async (ctx, diff) => {
                 const v: Vote = await checkFingerprintTarget(ctx, diff, config, registrations);
                 return v;

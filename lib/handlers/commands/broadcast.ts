@@ -16,7 +16,6 @@
 
 import {
     ParameterType,
-    SuccessPromise,
 } from "@atomist/automation-client";
 import {
     actionableButton,
@@ -32,7 +31,7 @@ import {
 } from "@atomist/slack-messages";
 import { broadcastFingerprint } from "../../../fingerprints";
 import { queryFingerprints } from "../../adhoc/fingerprints";
-import { ApplyTargetFingerprint } from "./applyFingerprint";
+import { ApplyTargetFingerprint, BroadcastFingerprintMandate } from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
                                   name: string,
@@ -57,6 +56,18 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
                             BroadcastFingerprintNudge,
                             { name, version, author, sha },
                         ),
+                        actionableButton(
+                            {
+                                text: "Broadcast PRs",
+                            },
+                            BroadcastFingerprintMandate,
+                            {
+                                body: "broadcase PR everywhere",
+                                title: "Broadcasting PRs",
+                                branch: "master",
+                                fingerprint: name,
+                            },
+                        ),
                     ],
                     footer: slackFooter(),
                 }],
@@ -74,20 +85,6 @@ export interface BroadcastFingerprintNudgeParameters extends ParameterType {
     sha: string;
     reason: string;
     author: string;
-}
-
-function broadcastMandate(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>): Promise<any> {
-    return broadcastFingerprint(
-        queryFingerprints(cli.context.graphClient),
-        {
-            name: cli.parameters.name,
-            version: cli.parameters.version,
-            sha: cli.parameters.sha,
-        },
-        (owner: string, repo: string, channel: string) => {
-            return SuccessPromise;
-        },
-    );
 }
 
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>): Promise<any> {
@@ -164,10 +161,4 @@ export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFing
     },
     listener: broadcastNudge,
     autoSubmit: true,
-};
-
-export const BroadcastFingerprintMandate: CommandHandlerRegistration<BroadcastFingerprintNudgeParameters> = {
-    ...BroadcastFingerprintNudge,
-    name: "BroadcastFingerprintMandate",
-    listener: broadcastMandate,
 };

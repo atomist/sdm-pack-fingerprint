@@ -19,21 +19,24 @@ import {
     HandlerContext,
     HandlerResult,
     logger,
+    ParameterType,
 } from "@atomist/automation-client";
 import {
     actionableButton,
     CodeTransformRegistration,
     CommandHandlerRegistration,
+    CommandListenerInvocation,
     slackFooter,
 } from "@atomist/sdm";
 import {
+    Action,
     Attachment,
     bold,
     SlackMessage,
 } from "@atomist/slack-messages";
+import _ = require("lodash");
 import { FingerprintRegistration } from "../..";
 import {
-    consistentHash,
     Diff,
     FP,
     Vote,
@@ -66,7 +69,8 @@ export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult
 type MessageIdMaker = (fingerprint: FP, coordinate: GitCoordinate, channel: string) => string;
 
 export const updateableMessage: MessageIdMaker = (fingerprint, coordinate: GitCoordinate, channel: string) => {
-    return consistentHash([fingerprint.sha, channel, coordinate.owner, coordinate.repo]);
+    // return consistentHash([fingerprint.sha, channel, coordinate.owner, coordinate.repo]);
+    return _.times(20, () => _.random(35).toString(36)).join("");
 };
 
 /**
@@ -150,6 +154,40 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachme
     };
 }
 
+interface IgnoreParameters extends ParameterType { msgId: string; fingerprints: string; }
+
+export const IgnoreCommandRegistration: CommandHandlerRegistration<IgnoreParameters> = {
+    name: "IgnoreFingerprintDiff",
+    parameters: { msgId: { required: false }, fingerprints: { required: false } },
+    listener: async (i: CommandListenerInvocation<IgnoreParameters>) => {
+        // TODO - this is an opportunity to provide feedback that the project does not intend to merge this
+        // collapse the message
+        i.addressChannels(
+            {
+                attachments: [
+                    {
+                        title: "Fingerprints Ignored",
+                        fallback: "Fingerprints Ignored",
+                        text: `Ignoring ${i.parameters.fingerprints}`,
+                    },
+                ],
+            },
+            { id: i.parameters.msgId },
+        );
+    },
+};
+
+function ignoreButton(params: MessageMakerParams): Action {
+    return actionableButton<IgnoreParameters>(
+        { text: "Ignore" },
+        IgnoreCommandRegistration,
+        {
+            msgId: params.msgId,
+            fingerprints: params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(","),
+        },
+    );
+}
+
 /**
  *
  * @param params
@@ -177,6 +215,7 @@ export function applyAll(params: MessageMakerParams): Attachment {
                     },
                 } as any,
             ),
+            ignoreButton(params),
         ],
     };
 }
@@ -200,6 +239,16 @@ export const messageMaker: MessageMaker = async params => {
 
     if (params.voteResults.failedVotes.length > 1) {
         message.attachments.push(applyAll(params));
+    } else {
+        message.attachments.push(
+            {
+                text: "Ignore this change",
+                fallback: "Ignore this change",
+                actions: [
+                    ignoreButton(params),
+                ],
+            },
+        );
     }
 
     message.attachments[message.attachments.length - 1].footer = slackFooter();
@@ -208,6 +257,6 @@ export const messageMaker: MessageMaker = async params => {
         message,
         await addressSlackChannelsFromContext(params.ctx, params.channel),
         // {id: params.msgId} if you want to update messages if the target goal has not changed
-        { id: undefined },
+        { id: params.msgId },
     );
 };
