@@ -53,7 +53,7 @@ import {
 import {
     getDiffSummary,
     GitCoordinate,
-        updateableMessage,
+    updateableMessage,
 } from "./messageMaker";
 
 /**
