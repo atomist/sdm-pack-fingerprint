@@ -30,13 +30,13 @@ import {
     SlackMessage,
     user,
 } from "@atomist/slack-messages";
+import _ = require("lodash");
 import { broadcastFingerprint } from "../../../fingerprints";
 import { queryFingerprints } from "../../adhoc/fingerprints";
 import {
     ApplyTargetFingerprint,
     BroadcastFingerprintMandateName,
 } from "./applyFingerprint";
-import _ = require("lodash");
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
                                   name: string,

@@ -51,9 +51,9 @@ import {
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     ApplyTargetParameters,
+    broadcastFingerprintMandate,
     compileApplyTarget,
     compileApplyTargets,
-    broadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
