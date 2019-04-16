@@ -244,14 +244,14 @@ export interface BroadcastFingerprintMandateParameters extends ParameterType {
     branch?: string;
 }
 
-export let BroadcastFingerprintMandate: CommandHandlerRegistration<BroadcastFingerprintMandateParameters>;
+export const BroadcastFingerprintMandateName = "BroadcastFingerprintMandate";
 
-export function compileBroadcastFingerprintMandate(
+export function broadcastFingerprintMandate(
     sdm: SoftwareDeliveryMachine,
     registrations: FingerprintRegistration[],
 ): CommandHandlerRegistration<BroadcastFingerprintMandateParameters> {
-    BroadcastFingerprintMandate = {
-        name: "BroadcastFingerprintMandate",
+    return {
+        name: BroadcastFingerprintMandateName,
         description: "create a PR in many Repos",
         listener: async i => {
 
@@ -351,8 +351,4 @@ export function compileBroadcastFingerprintMandate(
         },
         autoSubmit: true,
     };
-
-    sdm.addCommand(BroadcastFingerprintMandate);
-
-    return BroadcastFingerprintMandate;
 }

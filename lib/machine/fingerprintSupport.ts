@@ -53,7 +53,7 @@ import {
     ApplyTargetParameters,
     compileApplyTarget,
     compileApplyTargets,
-    compileBroadcastFingerprintMandate,
+    broadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
@@ -194,7 +194,8 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
 
         compileApplyTarget(sdm, registrations, config.transformPresentation);
         compileApplyTargets(sdm, registrations, config.transformPresentation);
-        compileBroadcastFingerprintMandate(sdm, registrations);
+
+        sdm.addCommand(broadcastFingerprintMandate(sdm, registrations));
 
         return {
             selector: fp => checkScope(fp, registrations),

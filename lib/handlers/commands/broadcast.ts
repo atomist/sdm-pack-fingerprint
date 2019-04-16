@@ -15,6 +15,7 @@
  */
 
 import {
+    buttonForCommand,
     ParameterType,
 } from "@atomist/automation-client";
 import {
@@ -29,13 +30,13 @@ import {
     SlackMessage,
     user,
 } from "@atomist/slack-messages";
-import _ = require("lodash");
 import { broadcastFingerprint } from "../../../fingerprints";
 import { queryFingerprints } from "../../adhoc/fingerprints";
 import {
     ApplyTargetFingerprint,
-    BroadcastFingerprintMandate,
+    BroadcastFingerprintMandateName,
 } from "./applyFingerprint";
+import _ = require("lodash");
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
                                   name: string,
@@ -61,13 +62,13 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
                             BroadcastFingerprintNudge,
                             { name, version, author, sha, msgId },
                         ),
-                        actionableButton(
+                        buttonForCommand(
                             {
                                 text: "Broadcast PRs",
                             },
-                            BroadcastFingerprintMandate,
+                            BroadcastFingerprintMandateName,
                             {
-                                body: "broadcase PR everywhere",
+                                body: "broadcast PR everywhere",
                                 title: "Broadcasting PRs",
                                 branch: "master",
                                 fingerprint: name,
