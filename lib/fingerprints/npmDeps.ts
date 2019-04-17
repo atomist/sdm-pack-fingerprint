@@ -32,7 +32,7 @@ export function getNpmDepFingerprint(lib: string, version: string): FP {
     const data = [lib, version];
 
     return {
-        name: `test-npm-project-dep::${lib.replace("@", "").replace("/", "::")}`,
+        name: `npm-project-dep::${lib.replace("@", "").replace("/", "::")}`,
         abbreviation: "npmdeps",
         version: "0.0.1",
         data,
@@ -59,7 +59,7 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
         const coords = JSON.stringify({ name: jsonData.name, version: jsonData.version });
         fingerprints.push(
             {
-                name: "test-npm-project-coordinates",
+                name: "npm-project-coordinates",
                 abbreviation: "npm-project-coords",
                 version: "0.0.1",
                 data: coords,
