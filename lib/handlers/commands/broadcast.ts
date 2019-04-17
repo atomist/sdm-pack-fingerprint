@@ -34,14 +34,13 @@ import _ = require("lodash");
 import { broadcastFingerprint } from "../../../fingerprints";
 import { queryFingerprints } from "../../adhoc/fingerprints";
 import {
-    ApplyTargetFingerprint,
-    BroadcastFingerprintMandateName,
+    BroadcastFingerprintMandateName, ApplyTargetFingerprintName,
 } from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
-                                  name: string,
-                                  version: string,
-                                  sha: string): Promise<void> {
+    name: string,
+    version: string,
+    sha: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
     const msgId: string = _.times(20, () => _.random(35).toString(36)).join("");
     return cli.addressChannels(
@@ -123,11 +122,11 @@ ${italic(cli.parameters.reason)}`,
                         text: `Shall we update project to use the new \`${cli.parameters.name}\` target?`,
                         fallback: "none",
                         actions: [
-                            actionableButton(
+                            buttonForCommand(
                                 {
                                     text: "Update project",
                                 },
-                                ApplyTargetFingerprint,
+                                ApplyTargetFingerprintName,
                                 {
                                     msgId,
                                     fingerprint: cli.parameters.name,

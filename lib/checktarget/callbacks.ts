@@ -40,13 +40,6 @@ import {
 } from "../../fingerprints/index";
 import { queryPreferences } from "../adhoc/preferences";
 import {
-    ApplyTargetFingerprint,
-    ApplyTargetFingerprints,
-} from "../handlers/commands/applyFingerprint";
-import {
-    UpdateTargetFingerprint,
-} from "../handlers/commands/updateTarget";
-import {
     FingerprintImpactHandlerConfig,
     FingerprintRegistration,
 } from "../machine/fingerprintSupport";
@@ -149,9 +142,6 @@ export function votes(config: FingerprintImpactHandlerConfig):
                 channel,
                 voteResults: result,
                 coord,
-                editProject: ApplyTargetFingerprint,
-                editAllProjects: ApplyTargetFingerprints,
-                mutateTarget: UpdateTargetFingerprint,
             });
 
             goalState = {

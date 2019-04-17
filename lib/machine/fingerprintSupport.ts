@@ -52,8 +52,8 @@ import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     ApplyTargetParameters,
     broadcastFingerprintMandate,
-    compileApplyTarget,
-    compileApplyTargets,
+    applyTarget,
+    applyTargets,
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
@@ -192,8 +192,8 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
         sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
         sdm.addCommand(IgnoreCommandRegistration);
 
-        compileApplyTarget(sdm, registrations, config.transformPresentation);
-        compileApplyTargets(sdm, registrations, config.transformPresentation);
+        sdm.addCodeTransformCommand(applyTarget(sdm, registrations, config.transformPresentation));
+        sdm.addCodeTransformCommand(applyTargets(sdm, registrations, config.transformPresentation));
 
         sdm.addCommand(broadcastFingerprintMandate(sdm, registrations));
 
@@ -337,8 +337,8 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
-                   handlers: RegisterFingerprintImpactHandler[],
-                   fpRegistraitons: FingerprintRegistration[]): void {
+    handlers: RegisterFingerprintImpactHandler[],
+    fpRegistraitons: FingerprintRegistration[]): void {
 
     // Fired on every Push after Fingerprints are uploaded
     sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm, fpRegistraitons))));
