@@ -173,18 +173,16 @@ export interface ApplyTargetFingerprintParameters extends ApplyTargetParameters 
     fingerprint: string;
 }
 
-/**
- * embedd in an action when we broadcast this CodeTransform into other channels
- */
-export let ApplyTargetFingerprint: CodeTransformRegistration<ApplyTargetFingerprintParameters>;
+// use where ApplyTargetFingerprint was used
+export const ApplyTargetFingerprintName = "ApplyTargetFingerprint";
 
-export function compileApplyTarget(
+export function applyTarget(
     sdm: SoftwareDeliveryMachine,
     registrations: FingerprintRegistration[],
     presentation: EditModeMaker): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
 
-    ApplyTargetFingerprint = {
-        name: "ApplyTargetFingerprint",
+    return {
+        name: ApplyTargetFingerprintName,
         intent: "applyFingerprint",
         description: "choose to raise a PR on the current project to apply a target fingerprint",
         parameters: {
@@ -198,26 +196,22 @@ export function compileApplyTarget(
         transform: runAllFingerprintAppliers(registrations),
         autoSubmit: true,
     };
-
-    sdm.addCodeTransformCommand(ApplyTargetFingerprint);
-
-    return ApplyTargetFingerprint;
 }
 
 export interface ApplyTargetFingerprintsParameters extends ApplyTargetParameters {
     fingerprints: string;
 }
 
-export let ApplyTargetFingerprints: CodeTransformRegistration<ApplyTargetFingerprintsParameters>;
+// use where ApplyTargetFingerprints was used
+export const ApplyAllFingerprintsName = "ApplyAllFingerprints";
 
-export function compileApplyTargets(
+export function applyTargets(
     sdm: SoftwareDeliveryMachine,
     registrations: FingerprintRegistration[],
     presentation: EditModeMaker,
 ): CodeTransformRegistration<ApplyTargetFingerprintsParameters> {
-
-    ApplyTargetFingerprints = {
-        name: "ApplyAllFingerprints",
+    return {
+        name: ApplyAllFingerprintsName,
         description: "apply a bunch of fingerprints",
         transform: runEveryFingerprintApplication(registrations),
         transformPresentation: presentation,
@@ -230,10 +224,6 @@ export function compileApplyTargets(
         },
         autoSubmit: true,
     };
-
-    sdm.addCodeTransformCommand(ApplyTargetFingerprints);
-
-    return ApplyTargetFingerprints;
 }
 
 export interface BroadcastFingerprintMandateParameters extends ParameterType {
@@ -244,14 +234,14 @@ export interface BroadcastFingerprintMandateParameters extends ParameterType {
     branch?: string;
 }
 
-export let BroadcastFingerprintMandate: CommandHandlerRegistration<BroadcastFingerprintMandateParameters>;
+export const BroadcastFingerprintMandateName = "BroadcastFingerprintMandate";
 
-export function compileBroadcastFingerprintMandate(
+export function broadcastFingerprintMandate(
     sdm: SoftwareDeliveryMachine,
     registrations: FingerprintRegistration[],
 ): CommandHandlerRegistration<BroadcastFingerprintMandateParameters> {
-    BroadcastFingerprintMandate = {
-        name: "BroadcastFingerprintMandate",
+    return {
+        name: BroadcastFingerprintMandateName,
         description: "create a PR in many Repos",
         listener: async i => {
 
@@ -351,8 +341,4 @@ export function compileBroadcastFingerprintMandate(
         },
         autoSubmit: true,
     };
-
-    sdm.addCommand(BroadcastFingerprintMandate);
-
-    return BroadcastFingerprintMandate;
 }

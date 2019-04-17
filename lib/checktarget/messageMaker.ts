@@ -16,6 +16,7 @@
 
 import {
     addressSlackChannelsFromContext,
+    buttonForCommand,
     HandlerContext,
     HandlerResult,
     logger,
@@ -23,7 +24,6 @@ import {
 } from "@atomist/automation-client";
 import {
     actionableButton,
-    CodeTransformRegistration,
     CommandHandlerRegistration,
     CommandListenerInvocation,
     slackFooter,
@@ -42,7 +42,11 @@ import {
     Vote,
     VoteResults,
 } from "../../fingerprints";
-import { UpdateTargetFingerprintParameters } from "../handlers/commands/updateTarget";
+import {
+    ApplyAllFingerprintsName,
+    ApplyTargetFingerprintName,
+} from "../handlers/commands/applyFingerprint";
+import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
 import { DiffSummary } from "../machine/fingerprintSupport";
 
 export interface MessageMakerParams {
@@ -51,9 +55,6 @@ export interface MessageMakerParams {
     msgId: string;
     channel: string;
     coord: GitCoordinate;
-    editProject: CodeTransformRegistration<any>;
-    editAllProjects: CodeTransformRegistration<any>;
-    mutateTarget: CommandHandlerRegistration<UpdateTargetFingerprintParameters>;
 }
 
 export interface GitCoordinate {
@@ -119,7 +120,7 @@ function prBody(vote: Vote): string {
  * @param params
  * @param vote
  */
-export function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
+function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
     return {
         title: orDefault(() => vote.summary.title, "New Target"),
         text: orDefault(() => vote.summary.description, vote.text),
@@ -127,23 +128,22 @@ export function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachme
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
         actions: [
-            actionableButton<any>(
+            buttonForCommand(
                 { text: "Apply" },
-                params.editProject,
+                ApplyTargetFingerprintName,
                 {
                     msgId: params.msgId,
                     fingerprint: vote.fpTarget.name,
                     title: `Apply ${vote.fpTarget.name}`,
-                    body: prBody(vote),
                     targets: {
                         owner: vote.diff.owner,
                         repo: vote.diff.repo,
                         branch: vote.diff.branch,
                     },
-                } as any),
-            actionableButton<any>(
+                }),
+            buttonForCommand(
                 { text: "Set New Target" },
-                params.mutateTarget,
+                UpdateTargetFingerprintName,
                 {
                     msgId: params.msgId,
                     name: vote.fingerprint.name,
@@ -192,7 +192,7 @@ function ignoreButton(params: MessageMakerParams): Action {
  *
  * @param params
  */
-export function applyAll(params: MessageMakerParams): Attachment {
+function applyAll(params: MessageMakerParams): Attachment {
     return {
         title: "Apply all Changes",
         text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => vote.name).join(", ")}`,
@@ -200,9 +200,9 @@ export function applyAll(params: MessageMakerParams): Attachment {
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
         actions: [
-            actionableButton<any>(
+            buttonForCommand(
                 { text: "Apply All" },
-                params.editAllProjects,
+                ApplyAllFingerprintsName,
                 {
                     msgId: params.msgId,
                     fingerprints: params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(","),
