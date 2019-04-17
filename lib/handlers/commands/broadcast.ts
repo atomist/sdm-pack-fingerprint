@@ -34,13 +34,13 @@ import _ = require("lodash");
 import { broadcastFingerprint } from "../../../fingerprints";
 import { queryFingerprints } from "../../adhoc/fingerprints";
 import {
-    BroadcastFingerprintMandateName, ApplyTargetFingerprintName,
+    ApplyTargetFingerprintName, BroadcastFingerprintMandateName,
 } from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
-    name: string,
-    version: string,
-    sha: string): Promise<void> {
+                                  name: string,
+                                  version: string,
+                                  sha: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
     const msgId: string = _.times(20, () => _.random(35).toString(36)).join("");
     return cli.addressChannels(

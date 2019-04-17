@@ -16,11 +16,11 @@
 
 import {
     addressSlackChannelsFromContext,
+    buttonForCommand,
     HandlerContext,
     HandlerResult,
     logger,
     ParameterType,
-    buttonForCommand,
 } from "@atomist/automation-client";
 import {
     actionableButton,
@@ -42,9 +42,9 @@ import {
     Vote,
     VoteResults,
 } from "../../fingerprints";
+import { ApplyAllFingerprintsName, ApplyTargetFingerprintName } from "../handlers/commands/applyFingerprint";
 import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
 import { DiffSummary } from "../machine/fingerprintSupport";
-import { ApplyTargetFingerprintName, ApplyAllFingerprintsName } from "../handlers/commands/applyFingerprint";
 
 export interface MessageMakerParams {
     ctx: HandlerContext;
