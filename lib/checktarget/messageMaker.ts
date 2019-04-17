@@ -42,7 +42,10 @@ import {
     Vote,
     VoteResults,
 } from "../../fingerprints";
-import { ApplyAllFingerprintsName, ApplyTargetFingerprintName } from "../handlers/commands/applyFingerprint";
+import {
+    ApplyAllFingerprintsName,
+    ApplyTargetFingerprintName,
+} from "../handlers/commands/applyFingerprint";
 import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
 import { DiffSummary } from "../machine/fingerprintSupport";
 
