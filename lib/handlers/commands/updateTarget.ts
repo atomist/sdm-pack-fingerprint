@@ -117,9 +117,11 @@ export class UpdateTargetFingerprintParameters {
     public name: string;
 }
 
+export const UpdateTargetFingerprintName = "RegisterTargetFingerprint";
+
 // set target fingerprint using name an sha of existing fingerprint
 export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFingerprintParameters> = {
-    name: "RegisterTargetFingerprint",
+    name: UpdateTargetFingerprintName,
     description: "set a new target for a team to consume a particular version",
     paramsMaker: UpdateTargetFingerprintParameters,
     listener: async cli => {
@@ -212,7 +214,7 @@ export async function setNewTargetFingerprint(ctx: HandlerContext,
     };
     await ctx.messageClient.addressChannels(message, channel);
 
-    return {abstain: true};
+    return { abstain: true };
 }
 
 @Parameters()

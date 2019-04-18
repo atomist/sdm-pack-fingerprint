@@ -50,10 +50,10 @@ import {
 } from "../checktarget/messageMaker";
 import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
+    applyTarget,
     ApplyTargetParameters,
-    compileApplyTarget,
-    compileApplyTargets,
-    compileBroadcastFingerprintMandate,
+    applyTargets,
+    broadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
@@ -192,9 +192,10 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
         sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
         sdm.addCommand(IgnoreCommandRegistration);
 
-        compileApplyTarget(sdm, registrations, config.transformPresentation);
-        compileApplyTargets(sdm, registrations, config.transformPresentation);
-        compileBroadcastFingerprintMandate(sdm, registrations);
+        sdm.addCodeTransformCommand(applyTarget(sdm, registrations, config.transformPresentation));
+        sdm.addCodeTransformCommand(applyTargets(sdm, registrations, config.transformPresentation));
+
+        sdm.addCommand(broadcastFingerprintMandate(sdm, registrations));
 
         return {
             selector: fp => checkScope(fp, registrations),
@@ -234,7 +235,7 @@ export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHan
     return (sdm: SoftwareDeliveryMachine) => {
 
         return {
-            selector: forFingerprints("test-npm-project-coordinates"),
+            selector: forFingerprints("npm-project-coordinates"),
             diffHandler: (ctx, diff) => {
                 return setNewTargetFingerprint(
                     ctx,
