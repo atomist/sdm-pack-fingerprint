@@ -186,8 +186,8 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
 };
 
 export async function setNewTargetFingerprint(ctx: HandlerContext,
-                                              fp: FP,
-                                              channel: string): Promise<Vote> {
+    fp: FP,
+    channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {
@@ -230,6 +230,14 @@ export class SelectTargetFingerprintFromCurrentProjectParameters {
     public branch: string;
 }
 
+function shortenName(s: string): string {
+    if (s.length >= 30) {
+        return "..." + s.substring(s.length - 27);
+    } else {
+        return s;
+    }
+}
+
 export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistration<SelectTargetFingerprintFromCurrentProjectParameters> = {
     name: "SelectTargetFingerprintFromCurrentProject",
     intent: "setFingerprintTarget",
@@ -259,7 +267,7 @@ export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistrati
                                     ...fps.map(x => {
                                         return {
                                             value: x.name,
-                                            text: x.name,
+                                            text: shortenName(x.name),
                                         };
                                     }),
                                 ],
