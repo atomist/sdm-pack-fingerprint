@@ -176,7 +176,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                         extract: p => depsFingerprints(p.baseDir),
                         apply: (p, fp) => applyFingerprint(p.baseDir, fp),
                         selector: fp => {
-                            return fp.name.startsWith("maven-project")||fp.name.startsWith("clojure-project");
+                            return fp.name.startsWith("maven-project") || fp.name.startsWith("clojure-project");
                         },
                         summary: renderClojureProjectDiff,
                     },
