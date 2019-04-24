@@ -17,6 +17,7 @@
             [hasch.core :as hasch]
             [atomist.logback :as logback]
             [atomist.public-defns :as public-defns]
+            [atomist.maven :as maven]
             [atomist.json :as json]))
 
 (defn ^:export voteResults
@@ -65,7 +66,11 @@
 (defn ^:export sha256 [s]
   (clj->js (lein/sha-256 (js->clj s))))
 
-(defn ^:export depsFingerprints [s]
+;; ------------------------------
+
+(defn ^:export depsFingerprints
+  "maven and leiningen dependencies"
+  [s]
   (fingerprints/fingerprint s))
 
 (defn ^:export logbackFingerprints [s]
@@ -78,7 +83,7 @@
   (promise/chan->promise (goals/get-fingerprint-preference query-fn fp-name)))
 
 (defn ^:export applyFingerprint
-  "send fingerprint to all of our fingerprinting modules
+  "apply maven, leiningen dep fingerprints, public defn bodies, and logback fingerprints
    returns Promise<boolean>"
   [basedir fp]
   (log/info "apply fingerprint " fp " to basedir " basedir)
@@ -90,6 +95,8 @@
       (fingerprints/apply-fingerprint basedir clj-fp)
       (logback/apply-fingerprint basedir clj-fp))
     true)))
+
+;; ------------------------------
 
 (defn ^:export fpPreferences
   ""

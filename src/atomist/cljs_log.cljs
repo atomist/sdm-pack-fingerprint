@@ -1,6 +1,7 @@
 (ns atomist.cljs-log
   (:require [goog.string :as gstring]
-            [goog.string.format]))
+            [goog.string.format]
+            [cljs.pprint]))
 
 (defn- log [& args]
   (.info js/console (apply str args)))

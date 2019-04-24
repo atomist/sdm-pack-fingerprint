@@ -8,7 +8,8 @@
             [atomist.cljs-log :as log]
             [cljs.test :refer-macros [deftest testing is run-tests async are] :refer [report testing-vars-str empty-env get-current-env]]
             [cljs.spec.alpha :as spec]
-            [atomist.specs :as schema]))
+            [atomist.specs :as schema]
+            [atomist.lein :as fingerprint]))
 
 (defn xml->clj [f]
   (-> (.xml2json xml-js (slurp f))
@@ -126,65 +127,65 @@
 (comment
 
  ;; test-resources/logback has a good stable fingerprint in it
- (cljs.pprint/pprint (fingerprint "test-resources/logback"))
- (.then (fingerprint "test-resources/logback") (fn [x]
-                                                 (cljs.pprint/pprint (js->clj x))))
+  (cljs.pprint/pprint (fingerprint "test-resources/logback"))
+  (.then (fingerprint "test-resources/logback") (fn [x]
+                                                  (cljs.pprint/pprint (js->clj x))))
 
  ;; test has no fingerprint so should just return []
- (.catch
-  (.then (fingerprint "test")
-         (fn [x]
-           (println "ACCEPT")
-           (cljs.pprint/pprint (js->clj x))))
-  (fn [x] (println "ERROR " x)))
+  (.catch
+   (.then (fingerprint "test")
+          (fn [x]
+            (println "ACCEPT")
+            (cljs.pprint/pprint (js->clj x))))
+   (fn [x] (println "ERROR " x)))
 
  ;; should return real thing
- (.catch
-  (.then (fingerprint "test-resources/logback")
-         (fn [x]
-           (println "ACCEPT")
-           (println (-> (js->clj x :keywordize-keys true)
-                        first
-                        :data))
-           (cljs.pprint/pprint (js->clj x))))
-  (fn [x] (println "ERROR " x)))
+  (.catch
+   (.then (fingerprint "test-resources/logback")
+          (fn [x]
+            (println "ACCEPT")
+            (println (-> (js->clj x :keywordize-keys true)
+                         first
+                         :data))
+            (cljs.pprint/pprint (js->clj x))))
+   (fn [x] (println "ERROR " x)))
 
  ;; should return real thing
- (.catch
-  (.then (fingerprint "test-resources/logback1")
-         (fn [x]
-           (println "ACCEPT")
-           (println (-> (js->clj x :keywordize-keys true)
-                        first
-                        :data))
-           (cljs.pprint/pprint (js->clj x))))
-  (fn [x] (println "ERROR " x)))
+  (.catch
+   (.then (fingerprint "test-resources/logback1")
+          (fn [x]
+            (println "ACCEPT")
+            (println (-> (js->clj x :keywordize-keys true)
+                         first
+                         :data))
+            (cljs.pprint/pprint (js->clj x))))
+   (fn [x] (println "ERROR " x)))
 
- (.catch
-  (.then (fingerprint "test-resources/logback2")
-         (fn [x]
-           (println "ACCEPT")
-           (println (-> (js->clj x :keywordize-keys true)
-                        first
-                        :data))
-           (cljs.pprint/pprint (js->clj x))))
-  (fn [x] (println "ERROR " x)))
+  (.catch
+   (.then (fingerprint "test-resources/logback2")
+          (fn [x]
+            (println "ACCEPT")
+            (println (-> (js->clj x :keywordize-keys true)
+                         first
+                         :data))
+            (cljs.pprint/pprint (js->clj x))))
+   (fn [x] (println "ERROR " x)))
 
- (.catch
-  (.then (fingerprint "test-resources/logback3")
-         (fn [x]
-           (println "ACCEPT")
-           (println (-> (js->clj x :keywordize-keys true)
-                        first
-                        :data))
-           (cljs.pprint/pprint (js->clj x))))
-  (fn [x] (println "ERROR " x)))
+  (.catch
+   (.then (fingerprint "test-resources/logback3")
+          (fn [x]
+            (println "ACCEPT")
+            (println (-> (js->clj x :keywordize-keys true)
+                         first
+                         :data))
+            (cljs.pprint/pprint (js->clj x))))
+   (fn [x] (println "ERROR " x)))
 
- (pprint (xml->clj (logback-file-in-root "test-resources/logback")))
+  (pprint (xml->clj (logback-file-in-root "test-resources/logback")))
 
  ;; APPLY fingerprint
- (.then
-  (fingerprint "test-resources/logback")
-  (fn [x]
-    (apply-fingerprint "tmp/logback" (let [x (first (js->clj x :keywordize-keys true))]
-                                       (assoc x :data (json/json->clj (:data x) :keywordize-keys true)))))))
+  (.then
+   (fingerprint "test-resources/logback")
+   (fn [x]
+     (apply-fingerprint "tmp/logback" (let [x (first (js->clj x :keywordize-keys true))]
+                                        (assoc x :data (json/json->clj (:data x) :keywordize-keys true)))))))

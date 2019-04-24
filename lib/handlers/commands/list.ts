@@ -95,6 +95,14 @@ export const ListFingerprint: CommandHandlerRegistration<ListOneFingerprintParam
     },
 };
 
+function shortenName(s: string): string {
+    if (s.length >= 30) {
+        return "..." + s.substring(s.length - 27);
+    } else {
+        return s;
+    }
+}
+
 export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParameters> = {
     name: "ListFingerprints",
     intent: "listFingerprints",
@@ -124,7 +132,7 @@ export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParamet
                                     ...fps.sort(comparator("name")).map(x => {
                                         return {
                                             value: x.name,
-                                            text: x.name,
+                                            text: shortenName(x.name),
                                         };
                                     }),
                                 ],

@@ -20,6 +20,8 @@
             [clojure.string :as s]
             [cljs.spec.alpha :as spec]))
 
+(+ 2 2)
+
 (defn- generate-sig
   "  params
         clj-path relative-path (string)
@@ -135,7 +137,7 @@
    (fn [x] (or (map? x) (sequential? x)))
    seq
    (fn [p xs]
-     (if (isa? (type p) clojure.lang.MapEntry)
+     (if (vector? (type p))
        (into [] xs)
        (into (empty p) xs)))
    m))
@@ -224,30 +226,30 @@
 
 (comment
 
- (cljs.pprint/pprint (->> (all-defns "/Users/slim/repo/clj1")
-                          (map #(dissoc % :zloc))))
+  (cljs.pprint/pprint (->> (all-defns "/Users/slim/repo/clj1")
+                           (map #(dissoc % :zloc))))
 
- (apply-fingerprint "/Users/slim/repo/clj1" {:data {:filename "src/shared.clj"
-                                                    :fn-name "great"
-                                                    :bodies "(defn ^:fingerprint great [] \"thing6\")"
-                                                    :ns-name "shared"}})
+  (apply-fingerprint "/Users/slim/repo/clj1" {:data {:filename "src/shared.clj"
+                                                     :fn-name "great"
+                                                     :bodies "(defn ^:fingerprint great [] \"thing6\")"
+                                                     :ns-name "shared"}})
 
- (def f "/Users/slim/atomist/atomisthq/bot-service")
- (def f "/Users/slim/repo/clj1")
+  (def f "/Users/slim/atomist/atomisthq/bot-service")
+  (def f "/Users/slim/repo/clj1")
 
- (for [dufn (all-defns f) :when (:fn-name dufn)]
-   (try
-     (cljs.pprint/pprint dufn)
-     (catch :default t
-       (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
+  (for [dufn (all-defns f) :when (:fn-name dufn)]
+    (try
+      (cljs.pprint/pprint dufn)
+      (catch :default t
+        (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
 
- (-> (z/of-string "(defn hey [] (#(println %) \"x\"))")
-     (z/root)
-     (protocols/sexpr))
+  (-> (z/of-string "(defn hey [] (#(println %) \"x\"))")
+      (z/root)
+      (protocols/sexpr))
 
- (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/thing.clj")
- (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/handler.clj")
+  (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/thing.clj")
+  (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/handler.clj")
 
- (cljs.pprint/pprint (fingerprints "/Users/slim/repo/clj1")))
+  (cljs.pprint/pprint (fingerprints "/Users/slim/repo/clj1")))
 
 
