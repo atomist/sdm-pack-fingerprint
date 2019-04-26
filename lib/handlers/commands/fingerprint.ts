@@ -31,16 +31,16 @@ export const FingerprintEverything: CommandHandlerRegistration = {
                 required: true, type: {
                     kind: "single", options: [
                         { value: "a", description: "b" },
-                        { value: "b", description: "b" }]
-                }
-            }
+                        { value: "b", description: "b" }],
+                },
+            },
         }).then(result => {
             logger.info("okay");
             return i.context.messageClient.respond(`this worked ${result.operation}`);
-        }
+        },
         ).catch(error => {
             logger.info(`error ${error}`);
-        }
+        },
         );
         return SuccessPromise;
     },
