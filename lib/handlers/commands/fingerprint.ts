@@ -16,121 +16,32 @@
 
 import {
     logger,
-    menuForCommand,
-    ParameterType,
     SuccessPromise,
 } from "@atomist/automation-client";
-import { Options } from "@atomist/automation-client/lib/metadata/automationMetadata";
 import { CommandHandlerRegistration } from "@atomist/sdm";
-import { SlackMessage } from "@atomist/slack-messages";
 
-interface FingerprintOption {
-    value: string;
-    description: string;
-}
-
-const options: FingerprintOption[] = [
-    {
-        value: "fingerprints",
-        description: "list fingerprints",
-    },
-    {
-        value: "targets",
-        description: "list targets",
-    },
-];
-
-const fingerprintOptions: FingerprintOption[] = [
-    {
-        value: "fingeprint1",
-        description: "aslfjal;sdjf;as",
-    },
-    {
-        value: "fingerprint2",
-        description: "al;sdjflkajklasdf",
-    },
-];
-
-const targetOptions: FingerprintOption[] = [
-    {
-        value: "target1",
-        description: "aslfjal;sdjf;as",
-    },
-    {
-        value: "target2",
-        description: "al;sdjflkajklasdf",
-    },
-];
-
-const Subcommand: Options = {
-    kind: "single",
-    options,
-};
-
-export interface FingerprintParameters extends ParameterType {
-    subcommand: string;
-    next: string;
-}
-
-function nextParameter(fpOptions: FingerprintOption[], parameter: string, partials: any): SlackMessage {
-    return {
-        attachments:
-            [{
-                text: `Choose an Option`,
-                fallback: `Require Option choice`,
-                color: "#ffcc00",
-                mrkdwn_in: ["text"],
-                actions: [
-                    menuForCommand(
-                        {
-                            text: "choose",
-                            options: [...fpOptions.map(o => ({value: o.value, text: o.description}))],
-                        },
-                        FingerprintEverything.name,
-                        parameter,
-                        partials,
-                    ),
-                ],
-            }],
-    };
-}
-
-export const FingerprintEverything: CommandHandlerRegistration<FingerprintParameters> = {
+export const FingerprintEverything: CommandHandlerRegistration = {
     name: "FingerprintEverything",
     description: "query fingerprints",
     intent: "fingerprints",
-    parameters: {
-        subcommand: {
-            required: false,
-            type: Subcommand,
-        },
-        next: {
-            required: false,
-        },
-    },
     listener: i => {
-        logger.info(`choose ${i.parameters.subcommand} and ${i.parameters.next}`);
-        if (i.parameters.subcommand === undefined) {
-            return i.addressChannels(nextParameter(options, "subcommand", {}));
-        } else if (i.parameters.next === undefined) {
-            switch (i.parameters.subcommand) {
-                case "fingerprints": {
-                    return i.addressChannels(nextParameter( fingerprintOptions, "next", {subcommand: i.parameters.subcommand}));
-                }
-                case "targets": {
-                    return i.addressChannels(nextParameter( targetOptions, "next", {subcommand: i.parameters.subcommand}));
+
+        i.promptFor({
+            operation: {
+                required: true, type: {
+                    kind: "single", options: [
+                        { value: "a", description: "b" },
+                        { value: "b", description: "b" }]
                 }
             }
-        } else {
-            switch (i.parameters.subcommand) {
-                case "fingerprints": {
-                    return i.addressChannels(`show fingerprint ${i.parameters.next}`);
-                }
-                case "targets": {
-                    return i.addressChannels(`show thing ${i.parameters.next}`);
-                }
-            }
+        }).then(result => {
+            logger.info("okay");
+            return i.context.messageClient.respond(`this worked ${result.operation}`);
         }
+        ).catch(error => {
+            logger.info(`error ${error}`);
+        }
+        );
         return SuccessPromise;
     },
     autoSubmit: true,

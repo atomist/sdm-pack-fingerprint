@@ -191,6 +191,7 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
         sdm.addCommand(ListFingerprint);
         sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
         sdm.addCommand(IgnoreCommandRegistration);
+        sdm.addCommand(FingerprintEverything);
 
         sdm.addCodeTransformCommand(applyTarget(sdm, registrations, config.transformPresentation));
         sdm.addCodeTransformCommand(applyTargets(sdm, registrations, config.transformPresentation));
@@ -337,8 +338,8 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
-                   handlers: RegisterFingerprintImpactHandler[],
-                   fpRegistraitons: FingerprintRegistration[]): void {
+    handlers: RegisterFingerprintImpactHandler[],
+    fpRegistraitons: FingerprintRegistration[]): void {
 
     // Fired on every Push after Fingerprints are uploaded
     sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm, fpRegistraitons))));

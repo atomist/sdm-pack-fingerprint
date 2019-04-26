@@ -1,0 +1,19 @@
+type AtomistFingerprint @rootType {
+  commit: String! @compositeId
+  branch: String! @compositeId
+  name: String! @compositeId
+
+  sha: String!
+  data: String
+  version: String
+  abbreviation: String
+
+  push: Push
+    @linkTo(
+      queryName: "pushBySha"
+      variables: [
+        { name: "afterSha", path: "$.commit" }
+        { name: "branchName", path: "$.branch" }
+      ]
+    )
+}
