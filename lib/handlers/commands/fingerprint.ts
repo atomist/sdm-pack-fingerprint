@@ -41,12 +41,12 @@ export const FingerprintEverything: CommandHandlerRegistration<{ optional?: stri
                 }
             }
         }).then(result => {
-            logger.info("okay");
+            logger.info(`result ${result.operation} ${i.parameters.optional} ${i.parameters.required}`);
             return i.context.messageClient.respond(`this worked ${result.operation} ${i.parameters.optional} ${i.parameters.required}`);
         }
         ).catch(error => {
             logger.info(`error ${error}`);
-        }
+        },
         );
         return SuccessPromise;
     },

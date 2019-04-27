@@ -337,8 +337,8 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
-    handlers: RegisterFingerprintImpactHandler[],
-    fpRegistraitons: FingerprintRegistration[]): void {
+                   handlers: RegisterFingerprintImpactHandler[],
+                   fpRegistraitons: FingerprintRegistration[]): void {
 
     // Fired on every Push after Fingerprints are uploaded
     sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm, fpRegistraitons))));
