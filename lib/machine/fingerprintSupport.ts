@@ -191,7 +191,6 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
         sdm.addCommand(ListFingerprint);
         sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
         sdm.addCommand(IgnoreCommandRegistration);
-        sdm.addCommand(FingerprintEverything);
 
         sdm.addCodeTransformCommand(applyTarget(sdm, registrations, config.transformPresentation));
         sdm.addCodeTransformCommand(applyTargets(sdm, registrations, config.transformPresentation));

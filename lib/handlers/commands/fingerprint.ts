@@ -20,23 +20,29 @@ import {
 } from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 
-export const FingerprintEverything: CommandHandlerRegistration = {
+export const FingerprintEverything: CommandHandlerRegistration<{ optional?: string, required: string }> = {
     name: "FingerprintEverything",
     description: "query fingerprints",
     intent: "fingerprints",
+    parameters: {
+        optional: { required: false },
+        required: { required: true }
+    },
     listener: i => {
 
         i.promptFor({
             operation: {
-                required: true, type: {
-                    kind: "single", options: [
-                        { value: "a", description: "b" },
-                        { value: "b", description: "b" }]
+                required: true,
+                type: {
+                    kind: "single",
+                    options: [
+                        { value: "list", description: "li`st" },
+                        { value: "set", description: "set" }]
                 }
             }
         }).then(result => {
             logger.info("okay");
-            return i.context.messageClient.respond(`this worked ${result.operation}`);
+            return i.context.messageClient.respond(`this worked ${result.operation} ${i.parameters.optional} ${i.parameters.required}`);
         }
         ).catch(error => {
             logger.info(`error ${error}`);
