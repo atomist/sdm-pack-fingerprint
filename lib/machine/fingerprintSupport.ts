@@ -20,6 +20,9 @@ import {
     HandlerContext,
     logger,
     Project,
+    GraphQL,
+    addressEvent,
+    MessageClient,
 } from "@atomist/automation-client";
 import {
     CommandListenerInvocation,
@@ -80,6 +83,7 @@ import {
     forFingerprints,
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
+import { PushFields } from "@atomist/sdm-core/lib/typings/types";
 
 /**
  * Wrap a FingerprintRunner in a PushImpactListener so we can embed this in an  SDMGoal
@@ -88,11 +92,11 @@ import {
  */
 export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
     return async (i: PushImpactListenerInvocation) => {
-        return fingerprinter(i.project);
+        return fingerprinter(i);
     };
 }
 
-type FingerprintRunner = (p: GitProject) => Promise<FP[]>;
+type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
 export type ExtractFingerprint = (p: GitProject) => Promise<FP | FP[]>;
 export type ApplyFingerprint = (p: GitProject, fp: FP) => Promise<boolean>;
 
@@ -264,13 +268,34 @@ export function simpleImpactHandler(
     };
 }
 
+function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, fingerprint: any): void {
+
+    const customFPEvent = addressEvent("AtomistFingerprint");
+
+    const event: any = {
+        ...fingerprint,
+        branch: push.branch,
+        commit: push.after.sha,
+    }
+
+    logger.info(`AtomistFingerprint ${JSON.stringify(event)}`);
+
+    try {
+        client.send(event, customFPEvent);
+    } catch (e) {
+        logger.error(`unable to send AtomistFingerprint ${JSON.stringify(fingerprint)}`);
+    }
+}
+
 /**
  * Construct our FingerprintRunner for the current registrations
  *
  * @param fingerprinters
  */
 export function fingerprintRunner(fingerprinters: FingerprintRegistration[]): FingerprintRunner {
-    return async (p: GitProject) => {
+    return async (i: PushImpactListenerInvocation) => {
+
+        const p: GitProject = i.project;
 
         let fps: FP[] = new Array<FP>();
 
@@ -279,8 +304,10 @@ export function fingerprintRunner(fingerprinters: FingerprintRegistration[]): Fi
                 const fp = await fingerprinter.extract(p);
                 if (fp && !(fp instanceof Array)) {
                     fps.push(fp);
+                    sendCustomEvent(i.context.messageClient, i.push, fp)
                 } else if (fp) {
                     fps = fps.concat(fp);
+                    (fp as FP[]).forEach(fingerprint => sendCustomEvent(i.context.messageClient, i.push, fingerprint));
                 }
             } catch (e) {
                 logger.error(e);
@@ -337,11 +364,12 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
-                   handlers: RegisterFingerprintImpactHandler[],
-                   fpRegistraitons: FingerprintRegistration[]): void {
+    handlers: RegisterFingerprintImpactHandler[],
+    fpRegistraitons: FingerprintRegistration[]): void {
 
     // Fired on every Push after Fingerprints are uploaded
     sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm, fpRegistraitons))));
+    sdm.addIngester(GraphQL.ingester("AtomistFingerprint"));
 
     sdm.addCommand(SetTargetFingerprint);
     sdm.addCommand(DumpLibraryPreferences);
