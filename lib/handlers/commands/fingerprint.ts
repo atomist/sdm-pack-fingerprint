@@ -26,7 +26,7 @@ export const FingerprintEverything: CommandHandlerRegistration<{ optional?: stri
     intent: "fingerprints",
     parameters: {
         optional: { required: false },
-        required: { required: true }
+        required: { required: true },
     },
     listener: i => {
 
@@ -37,13 +37,13 @@ export const FingerprintEverything: CommandHandlerRegistration<{ optional?: stri
                     kind: "single",
                     options: [
                         { value: "list", description: "li`st" },
-                        { value: "set", description: "set" }]
-                }
-            }
+                        { value: "set", description: "set" }],
+                },
+            },
         }).then(result => {
             logger.info(`result ${result.operation} ${i.parameters.optional} ${i.parameters.required}`);
             return i.context.messageClient.respond(`this worked ${result.operation} ${i.parameters.optional} ${i.parameters.required}`);
-        }
+        },
         ).catch(error => {
             logger.info(`error ${error}`);
         },
