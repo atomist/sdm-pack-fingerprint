@@ -287,27 +287,68 @@ function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, finge
     }
 }
 
+async function handleDiffs(fp: FP, previous: FP, handlers: FingerprintHandler[], i: PushImpactListenerInvocation): Promise<Vote[]> {
+    const diff: Diff = {
+        from: previous,
+        to: fp,
+        branch: i.push.branch,
+        channel: "",
+        owner: i.push.repo.owner,
+        repo: i.push.repo.name,
+        providerId: "",
+        sha: i.push.after.sha,
+        data: {
+            from: [],
+            to: []
+        }
+    };
+    let diffVotes: Vote[] = new Array<Vote>();
+    if (previous && fp.sha != previous.sha) {
+        diffVotes = await Promise.all(
+            handlers
+                .filter(h => h.diffHandler)
+                .filter(h => h.selector(fp))
+                .map(h => h.diffHandler(i.context, diff)));
+    }
+    const votes: Vote[] = await Promise.all(
+        handlers
+            .filter(h => h.handler)
+            .filter(h => h.selector(fp))
+            .map(h => h.handler(i.context, diff)));
+
+    return [].concat(
+        diffVotes,
+        votes
+    );
+}
+
 /**
  * Construct our FingerprintRunner for the current registrations
  *
  * @param fingerprinters
  */
-export function fingerprintRunner(fingerprinters: FingerprintRegistration[]): FingerprintRunner {
+export function fingerprintRunner(fingerprinters: FingerprintRegistration[], handlers: FingerprintHandler[]): FingerprintRunner {
     return async (i: PushImpactListenerInvocation) => {
 
         const p: GitProject = i.project;
 
         let fps: FP[] = new Array<FP>();
 
+        const previous: Record<string, FP> = lastFingerprints(i.push.before.sha);
+
         for (const fingerprinter of fingerprinters) {
             try {
                 const fp = await fingerprinter.extract(p);
                 if (fp && !(fp instanceof Array)) {
                     fps.push(fp);
-                    sendCustomEvent(i.context.messageClient, i.push, fp)
+                    sendCustomEvent(i.context.messageClient, i.push, fp);
+                    handleDiffs(fp, previous[fp.name], handlers, i);
                 } else if (fp) {
                     fps = fps.concat(fp);
-                    (fp as FP[]).forEach(fingerprint => sendCustomEvent(i.context.messageClient, i.push, fingerprint));
+                    (fp as FP[]).forEach(fingerprint => {
+                        sendCustomEvent(i.context.messageClient, i.push, fingerprint);
+                        handleDiffs(fingerprint, previous[fingerprint.name], handlers, i);
+                    });
                 }
             } catch (e) {
                 logger.error(e);
@@ -354,7 +395,7 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
             if (!!options.fingerprintGoal) {
                 options.fingerprintGoal.with({
                     name: `${options.fingerprintGoal.uniqueName}-fingerprinter`,
-                    action: runFingerprints(fingerprintRunner(fingerprints)),
+                    action: runFingerprints(fingerprintRunner(fingerprints, handlers.map(h => h(sdm, fingerprints)))),
                 });
             }
 

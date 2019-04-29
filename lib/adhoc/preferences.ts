@@ -61,3 +61,24 @@ export function mutatePreference(graphClient: GraphClient): (prefName: string, c
         );
     };
 }
+
+/**
+ * create a function that can query for a fingerprint target by name (team specific)
+ * 
+ * @param graphClient 
+ */
+export function getFPTarget(graphClient: GraphClient): (name: string) => Promise<GetFpTarget.Query> {
+    return (name) => {
+        return graphClient.query<GetFpTarget.Query, GetFpTarget.Variables>(
+            { name: "GetFpTarget", options: QueryNoCacheOptions, variables: { name } }
+        );
+    }
+}
+
+export function setFPTarget(graphClient: GraphClient): (name: string, value: string) => Promise<SetFpTarget.Query> {
+    return (name, value) => {
+        return graphClient.query<SetFpTarget.Query, SetFpTarget.Variables>(
+            { name: "SetFpTarget", options: QueryNoCacheOptions, variables: { name, value } }
+        );
+    }
+}
