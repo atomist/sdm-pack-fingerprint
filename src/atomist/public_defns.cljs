@@ -20,8 +20,6 @@
             [clojure.string :as s]
             [cljs.spec.alpha :as spec]))
 
-(+ 2 2)
-
 (defn- generate-sig
   "  params
         clj-path relative-path (string)

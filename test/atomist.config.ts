@@ -29,7 +29,7 @@ import {
     GeneratorRegistration,
     goals,
     Goals,
-    GoalWithFulfillment,
+    //    GoalWithFulfillment,
     pushTest,
     PushTest,
     SoftwareDeliveryMachine,
@@ -87,16 +87,16 @@ const IsTest: PushTest = pushTest(`contains touch.txt file`, async pci =>
     !!(await pci.project.getFile("touch.txt")),
 );
 
-const complianceGoal = new GoalWithFulfillment(
-    {
-        uniqueName: "backpack-react-script-compliance",
-        displayName: "backpack-compliance",
-    },
-).with(
-    {
-        name: "backpack-react-waiting",
-    },
-);
+// const complianceGoal = new GoalWithFulfillment(
+//     {
+//         uniqueName: "backpack-react-script-compliance",
+//         displayName: "backpack-compliance",
+//     },
+// ).with(
+//     {
+//         name: "backpack-react-waiting",
+//     },
+// );
 
 const CljFingerprintTargets: CodeTransform = async (p, papi, params) => {
 
@@ -123,7 +123,8 @@ const CljServiceGenerator: GeneratorRegistration = {
 
 export const FingerprintGoal = new Fingerprint();
 const FingerprintingGoals: Goals = goals("check fingerprints")
-    .plan(FingerprintGoal, complianceGoal);
+    .plan(FingerprintGoal, //complianceGoal
+    );
 
 export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
 
@@ -198,7 +199,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 checkCljCoordinatesImpactHandler(),
                 fingerprintImpactHandler(
                     {
-                        complianceGoal,
+                        //complianceGoal,
                         transformPresentation: (ci, p) => {
                             // name the branch apply-target-fingerprint with a Date
                             // title can be derived from ApplyTargetParameters
