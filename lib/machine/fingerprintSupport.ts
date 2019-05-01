@@ -18,12 +18,12 @@ import {
     addressEvent,
     editModes,
     GitProject,
+    GraphClient,
     GraphQL,
     HandlerContext,
     logger,
     MessageClient,
     Project,
-    GraphClient,
 } from "@atomist/automation-client";
 import {
     CommandListenerInvocation,
