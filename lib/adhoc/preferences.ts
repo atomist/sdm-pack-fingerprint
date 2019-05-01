@@ -20,9 +20,9 @@ import {
 } from "@atomist/automation-client";
 import {
     ChatTeamPreferences,
-    SetTeamPreference,
-    SetFpTarget,
     GetFpTargets,
+    SetFpTarget,
+    SetTeamPreference,
 } from "../typings/types";
 
 // TODO this assumes one ChatTeam per graphql endpoint - the whole preference model will move to a custom type
