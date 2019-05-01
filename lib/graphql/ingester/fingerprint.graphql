@@ -16,4 +16,12 @@ type AtomistFingerprint @rootType {
         { name: "branchName", path: "$.branch" }
       ]
     )
+    @linkFrom(
+      field: { kind: LIST, name: "fingerprints" }
+      query: "query fingerprints($sha: String!, $branch: String!) {AtomistFingerprint(commit: $sha, branch: $branch, _first: 1000){id}}"
+      variables: [
+        { name: "sha", path: "$.after.sha" }
+        { name: "branch", path: "$.branch" }
+      ]
+    )
 }

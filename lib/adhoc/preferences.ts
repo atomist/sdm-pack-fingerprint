@@ -69,11 +69,12 @@ export function mutatePreference(graphClient: GraphClient): (prefName: string, c
  * 
  * @param graphClient 
  */
-export function getFPTarget(graphClient: GraphClient): (name: string) => Promise<GetFpTargets.Query> {
-    return (name) => {
-        return graphClient.query<GetFpTargets.Query, GetFpTargets.Variables>(
-            { name: "GetFpTarget", options: QueryNoCacheOptions, variables: { name } }
+export function getFPTargets(graphClient: GraphClient): () => Promise<GetFpTargets.Query> {
+    return async () => {
+        const query: GetFpTargets.Query = await graphClient.query<GetFpTargets.Query, GetFpTargets.Variables>(
+            { name: "GetFpTarget", options: QueryNoCacheOptions }
         );
+        return query;
     }
 }
 

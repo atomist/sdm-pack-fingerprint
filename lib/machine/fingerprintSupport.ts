@@ -23,6 +23,7 @@ import {
     logger,
     MessageClient,
     Project,
+    GraphClient,
 } from "@atomist/automation-client";
 import {
     CommandListenerInvocation,
@@ -84,6 +85,7 @@ import {
     pushImpactHandler,
 } from "../handlers/events/pushImpactHandler";
 import { PushFields } from "@atomist/sdm-core/lib/typings/types";
+import { GetAllFpsOnSha } from "../typings/types";
 
 /**
  * Wrap a FingerprintRunner in a PushImpactListener so we can embed this in an  SDMGoal
@@ -322,7 +324,10 @@ async function handleDiffs(fp: FP, previous: FP, handlers: FingerprintHandler[],
     );
 }
 
-function lastFingerprints(sha: string): Record<string, FP> {
+async function lastFingerprints(sha: string, graphClient: GraphClient): Record<string, FP> {
+    const results: GetAllFpsOnSha.Query = await graphClient.query<GetAllFpsOnSha.Query, GetAllFpsOnSha.Variables>({});
+    const fps: GetAllFpsOnSha.Fingerprints[] = results.Repo[0].branches[0].commit.pushes[0].fingerprints;
+
     return {};
 }
 
@@ -338,7 +343,7 @@ export function fingerprintRunner(fingerprinters: FingerprintRegistration[], han
 
         let fps: FP[] = new Array<FP>();
 
-        const previous: Record<string, FP> = lastFingerprints(i.push.before.sha);
+        const previous: Record<string, FP> = lastFingerprints(i.push.before.sha, i.context.graphClient);
 
         for (const fingerprinter of fingerprinters) {
             try {
