@@ -322,6 +322,10 @@ async function handleDiffs(fp: FP, previous: FP, handlers: FingerprintHandler[],
     );
 }
 
+function lastFingerprints(sha: string): Record<string, FP> {
+    return {};
+}
+
 /**
  * Construct our FingerprintRunner for the current registrations
  *

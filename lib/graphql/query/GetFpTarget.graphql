@@ -1,6 +1,5 @@
-query GetFpTarget($name: String!) {
-    TeamConfiguration(name: $name, namespace: "fpTarget") {
-        id
+query GetFpTargets {
+    TeamConfiguration(namespace: "fpTarget") {
         name
         value
         namespace

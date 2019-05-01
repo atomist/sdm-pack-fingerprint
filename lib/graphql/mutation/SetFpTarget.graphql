@@ -1,6 +1,7 @@
 mutation SetFpTarget($name: String!, $value: String!) {
-    setConfiguration(name: $name, value: $value, namespace: "fptarget") {
-        name
-        value
-    }
+	setTeamConfiguration(name: $name, value: $value, namespace: "fptarget") {
+    name
+    value
+    namespace
+  }
 }

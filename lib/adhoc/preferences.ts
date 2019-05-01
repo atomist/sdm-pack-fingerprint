@@ -21,6 +21,8 @@ import {
 import {
     ChatTeamPreferences,
     SetTeamPreference,
+    SetFpTarget,
+    GetFpTargets,
 } from "../typings/types";
 
 // TODO this assumes one ChatTeam per graphql endpoint - the whole preference model will move to a custom type
@@ -67,17 +69,17 @@ export function mutatePreference(graphClient: GraphClient): (prefName: string, c
  * 
  * @param graphClient 
  */
-export function getFPTarget(graphClient: GraphClient): (name: string) => Promise<GetFpTarget.Query> {
+export function getFPTarget(graphClient: GraphClient): (name: string) => Promise<GetFpTargets.Query> {
     return (name) => {
-        return graphClient.query<GetFpTarget.Query, GetFpTarget.Variables>(
+        return graphClient.query<GetFpTargets.Query, GetFpTargets.Variables>(
             { name: "GetFpTarget", options: QueryNoCacheOptions, variables: { name } }
         );
     }
 }
 
-export function setFPTarget(graphClient: GraphClient): (name: string, value: string) => Promise<SetFpTarget.Query> {
+export function setFPTarget(graphClient: GraphClient): (name: string, value: string) => Promise<SetFpTarget.Mutation> {
     return (name, value) => {
-        return graphClient.query<SetFpTarget.Query, SetFpTarget.Variables>(
+        return graphClient.query<SetFpTarget.Mutation, SetFpTarget.Variables>(
             { name: "SetFpTarget", options: QueryNoCacheOptions, variables: { name, value } }
         );
     }
