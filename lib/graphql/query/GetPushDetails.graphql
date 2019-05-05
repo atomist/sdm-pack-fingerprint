@@ -1,0 +1,17 @@
+query GetPushDetails($id: ID!) {
+  Push(id: $id) {
+    repo {
+      channels {
+        name
+        id
+      }
+	  org {
+        scmProvider {
+          providerId
+          id
+        }
+      }    
+      name
+    }
+  }
+}

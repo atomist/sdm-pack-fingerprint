@@ -1,15 +1,11 @@
-query GetAllFpsOnSha($repo: String!, $owner: String!, $branch: String!){
-  Repo(name: $repo, owner: $owner) {
-        branches(name: $branch) {
-            commit {
-               pushes {
-                fingerprints {
-                  name
-                  sha
-                  data
-                }
-              }
-            }
-        }
+query GetAllFpsOnSha($sha: String!){
+	Commit(sha: $sha) {
+    pushes {
+      fingerprints {
+        name
+        sha
+        data
+      }
     }
+  }
 }

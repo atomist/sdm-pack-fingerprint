@@ -42,7 +42,8 @@ export declare function processPushImpact(event: any,
     handlers: Handler[]): Promise<any>
 
 // send a message if any project fingerprints are out of sync with the target state
-export declare function checkFingerprintTargets(queryPreferences: () => Promise<any>,
+export declare function checkFingerprintTargets(
+    queryPreferences: () => Promise<any>,
     sendMessage: (s: string, targetFP: FP, fingerprint: FP) => Promise<Vote>,
     inSync: (fingerprint: FP) => Promise<Vote>,
     diff: Diff
