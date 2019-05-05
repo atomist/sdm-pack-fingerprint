@@ -18,12 +18,12 @@ import {
     addressEvent,
     editModes,
     GitProject,
+    GraphClient,
     GraphQL,
     HandlerContext,
     logger,
     MessageClient,
     Project,
-    GraphClient,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
@@ -81,7 +81,10 @@ import {
     UpdateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
 import { PushFields } from "@atomist/sdm-core/lib/typings/types";
-import { GetAllFpsOnSha, GetPushDetails } from "../typings/types";
+import {
+    GetAllFpsOnSha,
+    GetPushDetails,
+} from "../typings/types";
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
