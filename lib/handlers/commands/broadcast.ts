@@ -39,11 +39,13 @@ import {
 } from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
-                                  name: string,
-                                  version: string,
-                                  sha: string): Promise<void> {
+    name: string,
+    version: string,
+    sha: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
     const msgId: string = _.times(20, () => _.random(35).toString(36)).join("");
+
+    // always create a new message
     return cli.addressChannels(
         {
             attachments:
@@ -142,6 +144,8 @@ ${italic(cli.parameters.reason)}`,
                     },
                 ],
             };
+            // each channel with a repo containing this fingerprint gets a message 
+            // use the msgId passed in so all the msgIds across the different channels are the same
             return cli.context.messageClient.addressChannels(message, channel, { id: msgId });
         },
     );

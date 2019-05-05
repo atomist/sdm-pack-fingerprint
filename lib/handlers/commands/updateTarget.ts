@@ -70,6 +70,10 @@ export class SetTargetFingerprintFromLatestMasterParameters {
     public branch: string;
 }
 
+/**
+ * bootstraps a Fingerprint from a project
+ * looks up the fingerprint before setting it but name of fingerprint is in the parameter list
+ */
 export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<SetTargetFingerprintFromLatestMasterParameters> = {
     name: "SetTargetFingerprintFromLatestMaster",
     intent: "setFingerprintGoal",
@@ -119,7 +123,10 @@ export class UpdateTargetFingerprintParameters {
 
 export const UpdateTargetFingerprintName = "RegisterTargetFingerprint";
 
-// set target fingerprint using name an sha of existing fingerprint
+/**
+ * Used by MessageMaker to implement SetNewTarget
+ * (knows the name and sha of the target fingerprint)
+ */
 export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFingerprintParameters> = {
     name: UpdateTargetFingerprintName,
     description: "set a new target for a team to consume a particular version",
@@ -146,7 +153,10 @@ export class SetTargetFingerprintParameters {
     public fp: string;
 }
 
-// set target fingerprint to a new non-existing Fingerprint
+/**
+ * Used by other diff handlers to change or bootstrap a target because coordinates have changed
+ * (knows the whole json structure of the fingerprint)
+ */
 export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerprintParameters> = {
     name: "SetTargetFingerprint",
     description: "set a target fingerprint",
@@ -187,9 +197,17 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
     },
 };
 
+/**
+ * Used in other diff handlers to maybe choose to set a new target because one of them has changed
+ * (assumed to be a new message - not updating anything)
+ * 
+ * @param ctx 
+ * @param fp 
+ * @param channel 
+ */
 export async function setNewTargetFingerprint(ctx: HandlerContext,
-                                              fp: FP,
-                                              channel: string): Promise<Vote> {
+    fp: FP,
+    channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {
@@ -240,9 +258,12 @@ function shortenName(s: string): string {
     }
 }
 
+/**
+ * Bootstrap a fingerprint target by selecting one out of the current set
+ */
 export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistration<SelectTargetFingerprintFromCurrentProjectParameters> = {
     name: "SelectTargetFingerprintFromCurrentProject",
-    intent: "setFingerprintTarget",
+    intent: ["setFingerprintTarget", "setTargetFingerprint"],
     description: "select a fingerprint in this project to become a target fingerprint",
     paramsMaker: SelectTargetFingerprintFromCurrentProjectParameters,
     listener: async cli => {

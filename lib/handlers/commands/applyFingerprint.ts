@@ -60,7 +60,6 @@ import { FindLinkedReposWithFingerprint } from "../../typings/types";
  * @param registrations all of the current Registrations containing apply functions
  * @param fp the fingerprint to apply
  */
-
 async function pushFingerprint(
     message: (s: string) => Promise<any>,
     p: GitProject,
@@ -107,8 +106,9 @@ export function runAllFingerprintAppliers(registrations: FingerprintRegistration
             ],
         };
 
-        await cli.addressChannels(message);
+        await cli.addressChannels(message, { id: cli.parameters.msgId });
 
+        // TODO replace the function to fetch the current FP target by name
         return pushFingerprint(
             async (s: string) => cli.addressChannels(s),
             (p as GitProject),
@@ -143,7 +143,7 @@ function runEveryFingerprintApplication(registrations: FingerprintRegistration[]
             ],
         };
 
-        await cli.addressChannels(message);
+        await cli.addressChannels(message, { id: cli.parameters.msgId });
 
         await Promise.all(
             cli.parameters.fingerprints.split(",").map(
@@ -308,6 +308,7 @@ export function broadcastFingerprintMandate(
                 },
             );
 
+            // replace the previous message where we chose this action
             await i.addressChannels(
                 {
                     attachments: [

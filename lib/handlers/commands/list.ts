@@ -72,7 +72,6 @@ export const ListFingerprint: CommandHandlerRegistration<ListOneFingerprintParam
     name: "ListFingerprint",
     description: "list one fingerprint",
     paramsMaker: ListOneFingerprintParameters,
-    intent: "listFingerprint",
     listener: async cli => {
 
         const query: GetFingerprintOnShaByName.Query = await queryFingerprintOnShaByName(cli.context.graphClient)(

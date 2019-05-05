@@ -69,7 +69,6 @@ import {
     ListFingerprints,
 } from "../handlers/commands/list";
 import {
-    DumpLibraryPreferences,
     listFingerprintTargets,
     listOneFingerprintTarget,
 } from "../handlers/commands/showTargets";
@@ -191,17 +190,24 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
         //   - second is a default intent
         //   - TODO:  third is just for resetting
         //   - both use askAboutBroadcast to generate an actionable message pointing at BroadcastFingerprintNudge
+
+        // set a target given using the entire JSON fingerprint payload in a parameter
+        sdm.addCommand(SetTargetFingerprint);
+        // set a different target after noticing that a fingerprint is different from current target
         sdm.addCommand(UpdateTargetFingerprint);
+        // Bootstrap a fingerprint target by selecting one from current project
+        sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
+        // Bootstrap a fingerprint target from project by name
         sdm.addCommand(SetTargetFingerprintFromLatestMaster);
         sdm.addCommand(DeleteTargetFingerprint);
 
         // standard actionable message embedding ApplyTargetFingerprint
         sdm.addCommand(BroadcastFingerprintNudge);
 
-        sdm.addCommand(ListFingerprints);
-        sdm.addCommand(ListFingerprint);
-        sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
         sdm.addCommand(IgnoreCommandRegistration);
+
+        sdm.addCommand(listFingerprintTargets(sdm));
+        sdm.addCommand(listOneFingerprintTarget(sdm));
 
         sdm.addCodeTransformCommand(applyTarget(sdm, registrations, config.transformPresentation));
         sdm.addCodeTransformCommand(applyTargets(sdm, registrations, config.transformPresentation));
@@ -446,7 +452,7 @@ export function fingerprintRunner(fingerprinters: FingerprintRegistration[], han
             (acc, votes) => { return acc.concat(votes); },
             []
         );
-        logger.info(`Votes:  ${JSON.stringify(votes)}`)
+        logger.info(`Votes:  ${renderData(votes)}`)
         tallyVotes(votes, handlers, i, info);
 
         return fps;
@@ -505,9 +511,7 @@ function configure(sdm: SoftwareDeliveryMachine,
     // sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm, fpRegistraitons))));
     sdm.addIngester(GraphQL.ingester("AtomistFingerprint"));
 
-    sdm.addCommand(SetTargetFingerprint);
-    sdm.addCommand(DumpLibraryPreferences);
-    sdm.addCommand(listFingerprintTargets(sdm));
-    sdm.addCommand(listOneFingerprintTarget(sdm));
+    sdm.addCommand(ListFingerprints);
+    sdm.addCommand(ListFingerprint);
     sdm.addCommand(FingerprintEverything);
 }

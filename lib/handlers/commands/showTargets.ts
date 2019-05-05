@@ -38,30 +38,6 @@ import { queryPreferences } from "../../adhoc/preferences";
 import { comparator } from "../../support/util";
 import { ChatTeamPreferences } from "../../typings/types";
 
-export const DumpLibraryPreferences: CommandHandlerRegistration = {
-    name: "DumpLibraryPreferences",
-    description: "dump current prefs into a JSON file",
-    intent: "dump preferences",
-    listener: async cli => {
-        const query = queryPreferences(cli.context.graphClient);
-        return query()
-            .then(
-                result => {
-                    const message: SlackFileMessage = {
-                        title: "library prefs",
-                        content: renderData(result),
-                        fileType: "text",
-                    };
-                    return cli.addressChannels(message);
-                },
-            ).catch(
-                error => {
-                    return cli.addressChannels(`unable to fetch preferences ${error}`);
-                },
-            );
-    },
-};
-
 @Parameters()
 export class ListOneFingerprintTargetParameters {
     @Parameter({ required: true, description: "fingerprint to display" })
