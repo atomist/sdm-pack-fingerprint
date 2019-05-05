@@ -21,31 +21,19 @@ import {
     NoParameters,
     OnEvent,
     QueryNoCacheOptions,
-    SlackFileMessage,
     SuccessPromise,
 } from "@atomist/automation-client";
 import { EventHandlerRegistration } from "@atomist/sdm";
-import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
 import {
     Diff,
-    FP,
     processPushImpact,
-    renderDiff,
 } from "../../../fingerprints";
 import { FingerprintHandler } from "../../machine/fingerprintSupport";
 import {
     GetFingerprintData,
     PushImpactEvent,
 } from "../../typings/types";
-
-export function forFingerprints(...s: string[]): (fp: FP) => boolean {
-    return fp => {
-        const m = s.map((n: string) => (fp.name === n))
-            .reduce((acc, v) => acc || v);
-        return m;
-    };
-}
 
 function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: string) => Promise<string> {
     return (sha, name) => {
@@ -71,15 +59,6 @@ function getFingerprintDataCallback(ctx: HandlerContext): (sha: string, name: st
                 return "{}";
             });
     };
-}
-
-export async function renderDiffSnippet(ctx: HandlerContext, diff: Diff): Promise<void> {
-    const message: SlackFileMessage = {
-        content: renderDiff(diff),
-        fileType: "text",
-        title: `${diff.owner}/${diff.repo}`,
-    };
-    return ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }
 
 /**
@@ -119,21 +98,21 @@ function pushImpactHandle(handlers: FingerprintHandler[]): OnEvent<PushImpactEve
 
         await Promise.all(
             handlers.map(async h => {
-                    if (h.ballot) {
-                        await h.ballot(
-                            ctx,
-                            filteredVotes,
-                            {
-                                owner: event.data.PushImpact[0].push.after.repo.org.owner,
-                                repo: event.data.PushImpact[0].push.after.repo.name,
-                                sha: event.data.PushImpact[0].push.after.sha,
-                                providerId: event.data.PushImpact[0].push.after.repo.org.provider.providerId,
-                                branch: event.data.PushImpact[0].push.branch,
-                            },
-                            event.data.PushImpact[0].push.after.repo.channels[0].name,
-                        );
-                    }
-                },
+                if (h.ballot) {
+                    await h.ballot(
+                        ctx,
+                        filteredVotes,
+                        {
+                            owner: event.data.PushImpact[0].push.after.repo.org.owner,
+                            repo: event.data.PushImpact[0].push.after.repo.name,
+                            sha: event.data.PushImpact[0].push.after.sha,
+                            providerId: event.data.PushImpact[0].push.after.repo.org.provider.providerId,
+                            branch: event.data.PushImpact[0].push.branch,
+                        },
+                        event.data.PushImpact[0].push.after.repo.channels[0].name,
+                    );
+                }
+            },
             ));
 
         return SuccessPromise;

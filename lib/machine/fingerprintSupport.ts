@@ -81,11 +81,16 @@ import {
     SetTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
-import {
-    forFingerprints,
-} from "../handlers/events/pushImpactHandler";
 import { PushFields } from "@atomist/sdm-core/lib/typings/types";
 import { GetAllFpsOnSha, GetPushDetails } from "../typings/types";
+
+export function forFingerprints(...s: string[]): (fp: FP) => boolean {
+    return fp => {
+        const m = s.map((n: string) => (fp.name === n))
+            .reduce((acc, v) => acc || v);
+        return m;
+    };
+}
 
 /**
  * Wrap a FingerprintRunner in a PushImpactListener so we can embed this in an  SDMGoal

@@ -15,6 +15,9 @@
  */
 
 import * as _ from "lodash";
+import { HandlerContext, SlackFileMessage } from "@atomist/automation-client";
+import { Diff, renderDiff } from "../../fingerprints";
+import { SlackMessage } from "@atomist/slack-messages";
 
 export function comparator(path: string): (a: any, b: any) => number {
     return (a, b) => {
@@ -22,4 +25,13 @@ export function comparator(path: string): (a: any, b: any) => number {
         const y = _.get(b, path);
         return x < y ? -1 : x > y ? 1 : 0;
     };
+}
+
+export async function renderDiffSnippet(ctx: HandlerContext, diff: Diff): Promise<void> {
+    const message: SlackFileMessage = {
+        content: renderDiff(diff),
+        fileType: "text",
+        title: `${diff.owner}/${diff.repo}`,
+    };
+    return ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }

@@ -16,6 +16,7 @@
 
 export {
     fingerprintSupport,
+    forFingerprints,
     simpleImpactHandler,
     fingerprintImpactHandler,
     FingerprintImpactHandlerConfig,
@@ -29,9 +30,8 @@ export {
     FingerprintRegistration,
 } from "./lib/machine/fingerprintSupport";
 export {
-    forFingerprints,
     renderDiffSnippet,
-} from "./lib/handlers/events/pushImpactHandler";
+} from "./lib/support/util";
 export {
     MessageMaker,
     messageMaker,
