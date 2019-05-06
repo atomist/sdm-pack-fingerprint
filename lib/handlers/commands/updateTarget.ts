@@ -68,6 +68,9 @@ export class SetTargetFingerprintFromLatestMasterParameters {
 
     @Parameter({ required: false })
     public branch: string;
+
+    @Parameter({ required: false, displayable: false, })
+    public msgId?: string;
 }
 
 /**
@@ -101,7 +104,7 @@ export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<Se
                 sha,
                 cli.context.source.slack.user.id,
             );
-            return askAboutBroadcast(cli, cli.parameters.fingerprint, "version", sha);
+            return askAboutBroadcast(cli, cli.parameters.fingerprint, "version", sha, cli.parameters.msgId);
         } else {
             return FailurePromise;
         }
@@ -132,8 +135,6 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
     description: "set a new target for a team to consume a particular version",
     paramsMaker: UpdateTargetFingerprintParameters,
     listener: async cli => {
-        await cli.context.messageClient.respond(
-            `updating the goal state for all ${cli.parameters.name} fingerprints (initiated by user <@${cli.context.source.slack.user.id}> )`);
         await setGoalFingerprint(
             queryPreferences(cli.context.graphClient),
             queryFingerprintBySha(cli.context.graphClient),
@@ -142,7 +143,7 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
             cli.parameters.sha,
             cli.context.source.slack.user.id,
         );
-        return askAboutBroadcast(cli, cli.parameters.name, "version", cli.parameters.sha);
+        return askAboutBroadcast(cli, cli.parameters.name, "version", cli.parameters.sha, cli.parameters.msgId);
     },
 };
 
@@ -151,6 +152,9 @@ export class SetTargetFingerprintParameters {
 
     @Parameter({ required: true, displayable: false, control: "textarea", pattern: /.*/ })
     public fp: string;
+
+    @Parameter({ required: false, displayable: false, })
+    public msgId?: string;
 }
 
 /**
@@ -172,7 +176,7 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
             mutatePreference(cli.context.graphClient),
             JSON.stringify(fp));
 
-        return askAboutBroadcast(cli, fp.name, fp.data[1], fp.sha);
+        return askAboutBroadcast(cli, fp.name, fp.data[1], fp.sha, cli.parameters.msgId);
     },
 };
 
@@ -180,6 +184,8 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
 export class DeleteTargetFingerprintParameters {
     @Parameter({ required: true })
     public name: string;
+    @Parameter({ required: false, displayable: false, })
+    public msgId: string;
 }
 
 export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFingerprintParameters> = {
@@ -188,7 +194,6 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
     description: "remove the team target for a particular fingerprint",
     paramsMaker: DeleteTargetFingerprintParameters,
     listener: async cli => {
-        await cli.context.messageClient.respond(`updating the goal state for all ${cli.parameters.name} fingerprints`);
         await deleteGoalFingerprint(
             queryPreferences(cli.context.graphClient),
             mutatePreference(cli.context.graphClient),
@@ -248,6 +253,9 @@ export class SelectTargetFingerprintFromCurrentProjectParameters {
 
     @Parameter({ required: false, description: "pull fingerprints from a branch ref" })
     public branch: string;
+
+    @Parameter({ required: false, displayable: false, })
+    public msgId: string;
 }
 
 function shortenName(s: string): string {
