@@ -225,6 +225,18 @@
 
 (comment
 
+ (spit "resources/atomist-fingerprint-automation.edn"
+       (str
+        {:name "@atomist/atomist-fingerprint-automation"
+         :version "1.0.0"
+         :policy {:name "durable"}
+         :groups ["all"]
+         :metadata {:labels {:atomist-static true}}
+         :ingesters [(slurp "lib/graphql/ingester/fingerprint.graphql")]}))
+
+ (cljs.pprint/pprint (cljs.reader/read-string (slurp "resources/atomist-fingerprint-automation.edn")))
+ (println (:ingesters (cljs.reader/read-string (slurp "resources/atomist-fingerprint-automation.edn"))))
+
  (cljs.pprint/pprint (->> (all-defns "/Users/slim/atomist/slimslender/clj1")
                           (map #(dissoc % :zloc))))
 

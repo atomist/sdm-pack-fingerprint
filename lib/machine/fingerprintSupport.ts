@@ -19,7 +19,6 @@ import {
     editModes,
     GitProject,
     GraphClient,
-    GraphQL,
     HandlerContext,
     logger,
     MessageClient,
@@ -488,8 +487,6 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 function configure(sdm: SoftwareDeliveryMachine,
     handlers: RegisterFingerprintImpactHandler[],
     fpRegistraitons: FingerprintRegistration[]): void {
-
-    sdm.addIngester(GraphQL.ingester("AtomistFingerprint"));
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);
