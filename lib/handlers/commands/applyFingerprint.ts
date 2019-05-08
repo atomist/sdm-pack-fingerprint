@@ -96,8 +96,7 @@ export function runAllFingerprintAppliers(registrations: FingerprintRegistration
                 {
                     author_name: "Apply target fingerprint",
                     author_icon: `https://images.atomist.com/rug/check-circle.gif?gif=${guid()}`,
-                    text: `Applying target fingerprint \`${cli.parameters.fingerprint}\` to <https://github.com/${
-                        p.id.owner}/${p.id.repo}|${p.id.owner}/${p.id.repo}>`,
+                    text: `Applying target fingerprint \`${cli.parameters.fingerprint}\` to ${p.id.owner}/${p.id.repo}`,
                     mrkdwn_in: ["text"],
                     color: "#45B254",
                     fallback: "none",
@@ -133,8 +132,7 @@ function runEveryFingerprintApplication(registrations: FingerprintRegistration[]
                 {
                     author_name: "Apply target fingerprints",
                     author_icon: `https://images.atomist.com/rug/check-circle.gif?gif=${guid()}`,
-                    text: `Applying target fingerprints \`${cli.parameters.fingerprints}\` to <https://github.com/${
-                        p.id.owner}/${p.id.repo}|${p.id.owner}/${p.id.repo}>`,
+                    text: `Applying target fingerprints \`${cli.parameters.fingerprints}\` to ${p.id.owner}/${p.id.repo}`,
                     mrkdwn_in: ["text"],
                     color: "#45B254",
                     fallback: "none",
