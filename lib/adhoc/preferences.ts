@@ -19,9 +19,9 @@ import {
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
+    DeleteFpTarget,
     GetFpTargets,
     SetFpTarget,
-    DeleteFpTarget,
 } from "../typings/types";
 import { FP } from "../../fingerprints";
 

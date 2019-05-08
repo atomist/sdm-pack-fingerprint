@@ -32,7 +32,10 @@ import {
     FP,
     renderData,
 } from "../../../fingerprints/index";
-import { queryPreferences, getFPTargets } from "../../adhoc/preferences";
+import {
+    getFPTargets,
+    queryPreferences,
+} from "../../adhoc/preferences";
 import { comparator } from "../../support/util";
 import { GetFpTargets } from "../../typings/types";
 

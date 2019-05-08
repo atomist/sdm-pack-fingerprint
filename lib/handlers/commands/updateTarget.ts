@@ -39,13 +39,13 @@ import {
     queryFingerprintsByBranchRef,
 } from "../../adhoc/fingerprints";
 import {
-    setFPTarget,
     deleteFPTarget,
+    setFPTarget,
 } from "../../adhoc/preferences";
 import {
+    GetAllFpsOnSha,
     GetFpByBranch,
     GetFpBySha,
-    GetAllFpsOnSha,
 } from "../../typings/types";
 import { askAboutBroadcast } from "./broadcast";
 

@@ -16,8 +16,8 @@
 
 import {
     buttonForCommand,
-    ParameterType,
     logger,
+    ParameterType,
 } from "@atomist/automation-client";
 import {
     actionableButton,
