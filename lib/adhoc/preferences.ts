@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Atomist, Inc.
+ * Copyright © 2019 Atomist, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,45 +19,62 @@ import {
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
-    ChatTeamPreferences,
-    SetTeamPreference,
+    DeleteFpTarget,
+    GetFpTargets,
+    SetFpTarget,
 } from "../typings/types";
+import { FP } from "../../fingerprints";
 
-// TODO this assumes one ChatTeam per graphql endpoint - the whole preference model will move to a custom type
-export function queryPreferences(graphClient: GraphClient): () => Promise<ChatTeamPreferences.Query> {
-    return () => {
-        return graphClient.query<ChatTeamPreferences.Query, ChatTeamPreferences.Variables>(
-            { name: "chatTeamPreferences", options: QueryNoCacheOptions },
-        );
-    };
+/**
+ * create a function that can query for a fingerprint target by name (team specific)
+ * 
+ * @param graphClient
+ */
+export async function getFPTargets(graphClient: GraphClient): Promise<GetFpTargets.Query> {
+    const query: GetFpTargets.Query = await graphClient.query<GetFpTargets.Query, GetFpTargets.Variables>(
+        {
+            name: "GetFpTargets",
+            options: QueryNoCacheOptions
+        }
+    );
+    return query;
 }
 
-export function mutateIgnores(graphClient: GraphClient): (chatTeamId: string, prefsAsJson: string) => Promise<any> {
-    return (chatTeamId, prefsAsJson): Promise<any> => {
-        return graphClient.mutate<SetTeamPreference.Mutation, SetTeamPreference.Variables>(
-            {
-                name: "setTeamPreference",
-                variables: {
-                    name: "fingerprints.deps.ignore",
-                    value: prefsAsJson,
-                    team: chatTeamId,
-                },
-            },
-        );
-    };
+/**
+ * the target fingerprint is stored as a json encoded string in the value of the TeamConfiguration
+ * 
+ * @param graphClient 
+ * @param name 
+ */
+export async function queryPreferences(graphClient: GraphClient, name: string): Promise<FP> {
+    const query: GetFpTargets.Query = await getFPTargets(graphClient);
+    const config: GetFpTargets.TeamConfiguration = query.TeamConfiguration.find(x => x.name === name);
+    return JSON.parse(config.value) as FP;
 }
 
-export function mutatePreference(graphClient: GraphClient): (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any> {
-    return (prefName: string, chatTeamId, prefsAsJson): Promise<any> => {
-        return graphClient.mutate<SetTeamPreference.Mutation, SetTeamPreference.Variables>(
+export function setFPTarget(graphClient: GraphClient): (name: string, value: any) => Promise<SetFpTarget.Mutation> {
+    return (name, value) => {
+        return graphClient.mutate<SetFpTarget.Mutation, SetFpTarget.Variables>(
             {
-                name: "setTeamPreference",
+                name: "SetFpTarget",
                 variables: {
-                    name: prefName,
-                    value: prefsAsJson,
-                    team: chatTeamId,
-                },
-            },
+                    name,
+                    value: JSON.stringify(value),
+                }
+            }
         );
-    };
+    }
+}
+
+export function deleteFPTarget(graphClient: GraphClient): (name: string) => Promise<SetFpTarget.Mutation> {
+    return (name) => {
+        return graphClient.mutate<DeleteFpTarget.Mutation, DeleteFpTarget.Variables>(
+            {
+                name: "DeleteFpTarget",
+                variables: {
+                    name
+                }
+            }
+        );
+    }
 }

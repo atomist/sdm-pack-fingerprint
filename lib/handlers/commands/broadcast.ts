@@ -16,6 +16,7 @@
 
 import {
     buttonForCommand,
+    logger,
     ParameterType,
 } from "@atomist/automation-client";
 import {
@@ -30,20 +31,22 @@ import {
     SlackMessage,
     user,
 } from "@atomist/slack-messages";
-import _ = require("lodash");
 import { broadcastFingerprint } from "../../../fingerprints";
-import { queryFingerprints } from "../../adhoc/fingerprints";
+import { findTaggedRepos } from "../../adhoc/fingerprints";
 import {
     ApplyTargetFingerprintName,
     BroadcastFingerprintMandateName,
 } from "./applyFingerprint";
+import { FindLinkedReposWithFingerprint } from "../../typings/types";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
-                                  name: string,
-                                  version: string,
-                                  sha: string): Promise<void> {
+    name: string,
+    version: string,
+    sha: string,
+    msgId: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
-    const msgId: string = _.times(20, () => _.random(35).toString(36)).join("");
+
+    // always create a new message
     return cli.addressChannels(
         {
             attachments:
@@ -98,7 +101,12 @@ export interface BroadcastFingerprintNudgeParameters extends ParameterType {
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>): Promise<any> {
     const msgId = `broadcastNudge-${cli.parameters.name}-${cli.parameters.sha}`;
     return broadcastFingerprint(
-        queryFingerprints(cli.context.graphClient),
+        async (name: string): Promise<FindLinkedReposWithFingerprint.Repo[]> => {
+            // TODO this in memory filtering should be moved into the query
+            const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(cli.context.graphClient))(name);
+            logger.info(`findTaggedRepos(broadcastNudge) ${JSON.stringify(data.Repo.filter(repo => repo.branches[0].commit.pushes[0].fingerprints.some(x => x.name === name)))}`);
+            return data.Repo.filter(repo => repo.branches[0].commit.pushes[0].fingerprints.some(x => x.name === name));
+        },
         {
             name: cli.parameters.name,
             version: cli.parameters.version,
@@ -142,6 +150,8 @@ ${italic(cli.parameters.reason)}`,
                     },
                 ],
             };
+            // each channel with a repo containing this fingerprint gets a message 
+            // use the msgId passed in so all the msgIds across the different channels are the same
             return cli.context.messageClient.addressChannels(message, channel, { id: msgId });
         },
     );

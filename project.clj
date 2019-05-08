@@ -1,6 +1,6 @@
 (defproject atomist.clj/fingerprints "0.5.7"
   :dependencies [[org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.10.238"]
+                 [org.clojure/clojurescript "1.10.520"]
                  [rewrite-cljs "0.4.4"]
                  [cljs-node-io "0.5.0"]
                  [noencore "0.1.16"]
@@ -42,6 +42,8 @@
                                    :target :nodejs
                                    :output-to "fingerprints/main.js"
                                    :output-dir "out"
+                                   :foreign-libs [{:file "logger.js"
+                                                   :provides ["logger"]}]
                                    :npm-deps {:xml-js "1.6.7"
                                               :semver "5.5.0"}
                                    :install-deps true

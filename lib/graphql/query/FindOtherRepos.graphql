@@ -1,13 +1,8 @@
-query FindLinkedReposWithFingerprint {
+query FindOtherRepos($name: String!, $sha: String!) {
     Repo {
         name
         owner
-        channels {
-            name
-            id
-        }
         branches(name: "master") @required {
-            name
             commit {
                 pushes {
                     fingerprints {
@@ -15,7 +10,7 @@ query FindLinkedReposWithFingerprint {
                         name
                     }
                 }
-            }            
+            }
         }
     }
 }

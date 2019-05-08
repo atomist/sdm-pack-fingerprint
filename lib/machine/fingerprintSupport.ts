@@ -18,11 +18,12 @@ import {
     addressEvent,
     editModes,
     GitProject,
-    GraphQL,
+    GraphClient,
     HandlerContext,
     logger,
     MessageClient,
     Project,
+    QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
     CommandListenerInvocation,
@@ -67,7 +68,6 @@ import {
     ListFingerprints,
 } from "../handlers/commands/list";
 import {
-    DumpLibraryPreferences,
     listFingerprintTargets,
     listOneFingerprintTarget,
 } from "../handlers/commands/showTargets";
@@ -79,11 +79,19 @@ import {
     SetTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
-import {
-    forFingerprints,
-    pushImpactHandler,
-} from "../handlers/events/pushImpactHandler";
 import { PushFields } from "@atomist/sdm-core/lib/typings/types";
+import {
+    GetAllFpsOnSha,
+    GetPushDetails,
+} from "../typings/types";
+
+export function forFingerprints(...s: string[]): (fp: FP) => boolean {
+    return fp => {
+        const m = s.map((n: string) => (fp.name === n))
+            .reduce((acc, v) => acc || v);
+        return m;
+    };
+}
 
 /**
  * Wrap a FingerprintRunner in a PushImpactListener so we can embed this in an  SDMGoal
@@ -166,7 +174,6 @@ export function register(name: string, extract: ExtractFingerprint, apply?: Appl
 
 function checkScope(fp: FP, registrations: FingerprintRegistration[]): boolean {
     const inScope: boolean = _.some(registrations, reg => reg.selector(fp));
-    logger.info(`checked scope for ${fp.name} => ${inScope}`);
     return inScope;
 }
 
@@ -184,17 +191,24 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
         //   - second is a default intent
         //   - TODO:  third is just for resetting
         //   - both use askAboutBroadcast to generate an actionable message pointing at BroadcastFingerprintNudge
+
+        // set a target given using the entire JSON fingerprint payload in a parameter
+        sdm.addCommand(SetTargetFingerprint);
+        // set a different target after noticing that a fingerprint is different from current target
         sdm.addCommand(UpdateTargetFingerprint);
+        // Bootstrap a fingerprint target by selecting one from current project
+        sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
+        // Bootstrap a fingerprint target from project by name
         sdm.addCommand(SetTargetFingerprintFromLatestMaster);
         sdm.addCommand(DeleteTargetFingerprint);
 
         // standard actionable message embedding ApplyTargetFingerprint
         sdm.addCommand(BroadcastFingerprintNudge);
 
-        sdm.addCommand(ListFingerprints);
-        sdm.addCommand(ListFingerprint);
-        sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
         sdm.addCommand(IgnoreCommandRegistration);
+
+        sdm.addCommand(listFingerprintTargets(sdm));
+        sdm.addCommand(listOneFingerprintTarget(sdm));
 
         sdm.addCodeTransformCommand(applyTarget(sdm, registrations, config.transformPresentation));
         sdm.addCodeTransformCommand(applyTargets(sdm, registrations, config.transformPresentation));
@@ -208,25 +222,6 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
                 return v;
             },
             ballot: votes(config),
-        };
-    };
-}
-
-/**
- * This creates the registration function for a handler that notices that a project.clj file version
- * has been updated.
- */
-export function checkCljCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
-    return (sdm: SoftwareDeliveryMachine) => {
-
-        return {
-            selector: forFingerprints("clojure-project-coordinates"),
-            diffHandler: (ctx, diff) => {
-                return setNewTargetFingerprint(
-                    ctx,
-                    getNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
-                    diff.channel);
-            },
         };
     };
 }
@@ -274,11 +269,10 @@ function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, finge
 
     const event: any = {
         ...fingerprint,
+        data: JSON.stringify(fingerprint.data),
         branch: push.branch,
         commit: push.after.sha,
     }
-
-    logger.info(`AtomistFingerprint ${JSON.stringify(event)}`);
 
     try {
         client.send(event, customFPEvent);
@@ -287,34 +281,161 @@ function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, finge
     }
 }
 
+interface MissingInfo { providerId: string, channel: string };
+
+async function handleDiffs(fp: FP, previous: FP, info: MissingInfo, handlers: FingerprintHandler[], i: PushImpactListenerInvocation): Promise<Vote[]> {
+    const diff: Diff = {
+        ...info,
+        from: previous,
+        to: fp,
+        branch: i.push.branch,
+        owner: i.push.repo.owner,
+        repo: i.push.repo.name,
+        sha: i.push.after.sha,
+        data: {
+            from: [],
+            to: []
+        }
+    };
+    let diffVotes: Vote[] = new Array<Vote>();
+    if (previous && fp.sha != previous.sha) {
+        diffVotes = await Promise.all(
+            handlers
+                .filter(h => h.diffHandler)
+                .filter(h => h.selector(fp))
+                .map(h => h.diffHandler(i.context, diff)));
+    }
+    const votes: Vote[] = await Promise.all(
+        handlers
+            .filter(h => h.handler)
+            .filter(h => h.selector(fp))
+            .map(h => h.handler(i.context, diff)));
+
+    return [].concat(
+        diffVotes,
+        votes
+    );
+}
+
+async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<Record<string, FP>> {
+    // TODO what about empty queries, and missing fingerprints on previous commit
+    const results: GetAllFpsOnSha.Query = await graphClient.query<GetAllFpsOnSha.Query, GetAllFpsOnSha.Variables>(
+        {
+            name: "GetAllFpsOnSha",
+            options: QueryNoCacheOptions,
+            variables: {
+                sha,
+            }
+        }
+    );
+    return results.Commit[0].pushes[0].fingerprints.reduce(
+        (record: Record<string, FP>, fp: GetAllFpsOnSha.Fingerprints) => {
+            if (fp.name) {
+                record[fp.name] = {
+                    sha: fp.sha,
+                    data: JSON.parse(fp.data),
+                    name: fp.name,
+                    version: "1.0",
+                    abbreviation: "abbrev"
+                };
+            }
+            return record;
+        },
+        {});
+}
+
+async function tallyVotes(votes: Vote[], handlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo) {
+    await Promise.all(
+        handlers.map(async h => {
+            if (h.ballot) {
+                await h.ballot(
+                    i.context,
+                    votes,
+                    {
+                        owner: i.push.repo.owner,
+                        repo: i.push.repo.name,
+                        sha: i.push.after.sha,
+                        providerId: info.providerId,
+                        branch: i.push.branch,
+                    },
+                    info.channel,
+                );
+            }
+        }
+        )
+    );
+}
+
+async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo> {
+    const results: GetPushDetails.Query = await i.context.graphClient.query<GetPushDetails.Query, GetPushDetails.Variables>(
+        {
+            name: "GetPushDetails",
+            options: QueryNoCacheOptions,
+            variables: {
+                id: i.push.id,
+            }
+        });
+    return {
+        providerId: results.Push[0].repo.org.scmProvider.providerId,
+        channel: results.Push[0].repo.channels[0].name
+    };
+}
+
 /**
  * Construct our FingerprintRunner for the current registrations
  *
  * @param fingerprinters
  */
-export function fingerprintRunner(fingerprinters: FingerprintRegistration[]): FingerprintRunner {
+export function fingerprintRunner(fingerprinters: FingerprintRegistration[], handlers: FingerprintHandler[]): FingerprintRunner {
     return async (i: PushImpactListenerInvocation) => {
 
         const p: GitProject = i.project;
 
-        let fps: FP[] = new Array<FP>();
+        const info: MissingInfo = await missingInfo(i);
+        logger.info(`Missing Info:  ${JSON.stringify(info)}`);
 
-        for (const fingerprinter of fingerprinters) {
-            try {
-                const fp = await fingerprinter.extract(p);
-                if (fp && !(fp instanceof Array)) {
-                    fps.push(fp);
-                    sendCustomEvent(i.context.messageClient, i.push, fp)
-                } else if (fp) {
-                    fps = fps.concat(fp);
-                    (fp as FP[]).forEach(fingerprint => sendCustomEvent(i.context.messageClient, i.push, fingerprint));
+        const previous: Record<string, FP> = await lastFingerprints(
+            i.push.before.sha,
+            i.context.graphClient);
+        logger.info(`Found ${Object.keys(previous).length} fingerprints`);
+
+        const fps: FP[] = (await Promise.all(
+            fingerprinters.map(
+                x => x.extract(p)
+            )
+        )).reduce<FP[]>(
+            (acc, fps) => {
+                if (fps && !(fps instanceof Array)) {
+                    acc.push(fps);
+                    return acc;
+                } else if (fps) {
+                    // TODO does concat return the larger array?
+                    return acc.concat(fps);
+                } else {
+                    logger.warn(`extractor returned something weird ${JSON.stringify(fps)}`);
+                    return acc
                 }
-            } catch (e) {
-                logger.error(e);
-            }
-        }
+            },
+            []
+        )
 
-        logger.info(renderData(fps));
+        logger.debug(renderData(fps));
+
+        fps.forEach(
+            fp => {
+                sendCustomEvent(i.context.messageClient, i.push, fp);
+            }
+        );
+
+        const votes: Vote[] = (await Promise.all(
+            fps.map(fp => handleDiffs(fp, previous[fp.name], info, handlers, i))
+        )).reduce<Vote[]>(
+            (acc, votes) => { return acc.concat(votes); },
+            []
+        );
+        logger.debug(`Votes:  ${renderData(votes)}`)
+        tallyVotes(votes, handlers, i, info);
+
         return fps;
     };
 }
@@ -354,7 +475,7 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
             if (!!options.fingerprintGoal) {
                 options.fingerprintGoal.with({
                     name: `${options.fingerprintGoal.uniqueName}-fingerprinter`,
-                    action: runFingerprints(fingerprintRunner(fingerprints)),
+                    action: runFingerprints(fingerprintRunner(fingerprints, handlers.map(h => h(sdm, fingerprints)))),
                 });
             }
 
@@ -367,13 +488,7 @@ function configure(sdm: SoftwareDeliveryMachine,
     handlers: RegisterFingerprintImpactHandler[],
     fpRegistraitons: FingerprintRegistration[]): void {
 
-    // Fired on every Push after Fingerprints are uploaded
-    sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm, fpRegistraitons))));
-    sdm.addIngester(GraphQL.ingester("AtomistFingerprint"));
-
-    sdm.addCommand(SetTargetFingerprint);
-    sdm.addCommand(DumpLibraryPreferences);
-    sdm.addCommand(listFingerprintTargets(sdm));
-    sdm.addCommand(listOneFingerprintTarget(sdm));
+    sdm.addCommand(ListFingerprints);
+    sdm.addCommand(ListFingerprint);
     sdm.addCommand(FingerprintEverything);
 }

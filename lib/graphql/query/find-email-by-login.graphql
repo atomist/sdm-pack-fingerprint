@@ -1,8 +1,0 @@
-query Email($login: String!) {
-    GitHubId(login: $login){
-        name
-        emails {
-            address
-        }
-    }
-}

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Atomist, Inc.
+ * Copyright © 2019 Atomist, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,86 +19,34 @@ import {
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
-    ChatTeamById,
     FindLinkedReposWithFingerprint,
-    GetAllFingerprintsOnSha,
-    GetFingerprintBySha,
-    GetFingerprintOnShaByName,
+    GetFpByBranch,
 } from "../typings/types";
 
-export const queryChatTeamById = async (graphClient: GraphClient, teamid: string): Promise<string> => {
-    return graphClient.query<ChatTeamById.Query, ChatTeamById.Variables>(
-        {
-            name: "chatTeamById",
-            variables: { id: teamid },
-        },
-    ).then(
-        result => {
-            return result.Team[0].chatTeams[0].id;
-        },
-    );
-};
-
-export function queryFingerprints(graphClient: GraphClient): (name: string) => Promise<any> {
+export function findTaggedRepos(graphClient: GraphClient): (name: string) => Promise<any> {
     return async name => {
         return graphClient.query<FindLinkedReposWithFingerprint.Query, FindLinkedReposWithFingerprint.Variables>(
             {
-                name: "findLinkedReposWithFingerprint",
+                name: "FindLinkedReposWithFingerprint",
                 options: QueryNoCacheOptions,
-                variables: {
-                    name,
-                },
-            },
-        );
-    };
-}
-
-export function queryFingerprintBySha(graphClient: GraphClient): (name: string, sha: string) => Promise<any> {
-    return async (name, sha) => {
-        return graphClient.query<GetFingerprintBySha.Query, GetFingerprintBySha.Variables>(
-            {
-                name: "get-fingerprint-by-sha",
-                options: QueryNoCacheOptions,
-                variables: {
-                    name,
-                    sha,
-                },
             },
         );
     };
 }
 
 export function queryFingerprintsByBranchRef(graphClient: GraphClient):
-    (repo: string, owner: string, branch: string) => Promise<GetAllFingerprintsOnSha.Query> {
-    return async (repo, owner, branch) => {
-        return graphClient.query<GetAllFingerprintsOnSha.Query, GetAllFingerprintsOnSha.Variables>(
-            {
-                name: "get-all-fingerprints-on-sha",
-                options: QueryNoCacheOptions,
-                variables: {
-                    repo,
-                    owner,
-                    branch,
-                },
-            },
-        );
-    };
-}
+    (repo: string, owner: string, branch: string) => Promise<GetFpByBranch.Fingerprints[]> {
 
-export function queryFingerprintOnShaByName(graphClient: GraphClient):
-    (repo: string, owner: string, branch: string, fpName: string) => Promise<GetFingerprintOnShaByName.Query> {
-    return async (repo, owner, branch, fpName: string) => {
-        return graphClient.query<GetFingerprintOnShaByName.Query, GetFingerprintOnShaByName.Variables>(
-            {
-                name: "get-fingerprint-on-sha-by-name",
-                options: QueryNoCacheOptions,
-                variables: {
-                    repo,
-                    owner,
-                    branch,
-                    fpName,
-                },
-            },
-        );
+    return async (repo, owner, branch) => {
+        const query: GetFpByBranch.Query = await graphClient.query<GetFpByBranch.Query, GetFpByBranch.Variables>({
+            name: "GetFpByBranch",
+            options: QueryNoCacheOptions,
+            variables: {
+                owner,
+                repo,
+                branch,
+            }
+        });
+        return query.Repo[0].branches[0].commit.pushes[0].fingerprints;
     };
 }

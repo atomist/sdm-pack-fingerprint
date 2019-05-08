@@ -34,15 +34,10 @@ export declare interface Handler {
     diffAction?: (b: Diff) => Promise<Vote>,
     ballot?: (votes: Vote[]) => boolean
 }
-// event is the PushImpact subscription data
-// getFingerprintData returns application/json - return "{}" if data is empty
-// handlers select and action the push impacts for different fingerprints
-export declare function processPushImpact(event: any,
-    getFingerprintData: (sha: string, name: string) => Promise<string>,
-    handlers: Handler[]): Promise<any>
 
 // send a message if any project fingerprints are out of sync with the target state
-export declare function checkFingerprintTargets(queryPreferences: () => Promise<any>,
+export declare function checkFingerprintTargets(
+    queryPreferences: () => Promise<any>,
     sendMessage: (s: string, targetFP: FP, fingerprint: FP) => Promise<Vote>,
     inSync: (fingerprint: FP) => Promise<Vote>,
     diff: Diff
@@ -56,10 +51,7 @@ export declare function logbackFingerprints(f1: string): Promise<FP[]>
 export declare function cljFunctionFingerprints(f1: string): Promise<FP[]>
 export declare function mavenFingerprints(f1: string): Promise<FP[]>
 
-export declare function getFingerprintPreference(query: () => Promise<any>, fpName: string): Promise<FP>
 export declare function applyFingerprint(f1: string, fp: FP): Promise<any>
-export declare function fpPreferences(query: any): FP[]
-export declare function fpPreference(query: any, fpName: string): FP
 
 /**
  * Utility functions to rewrite in typescript
@@ -72,27 +64,10 @@ export declare function sha256(data: string): string
 export declare function consistentHash(data: any): string
 export declare function renderClojureProjectDiff(diff: Diff, target: FP): { title: "string", description: string }
 
-// choose a new library target and set it in the team wide preferences
-// we use this to set a new fingerprint target
-export declare function setGoalFingerprint(queryPreferences: () => Promise<any>,
-    queryFingerprintBySha: (name: string, sha: string) => Promise<any>,
-    mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
-    name: string,
-    sha: string,
-    userId: string,
-): Promise<boolean>
-export declare function setTargetFingerprint(queryPreferences: () => Promise<any>,
-    mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
-    fp: string,
-): Promise<boolean>
-
-export declare function deleteGoalFingerprint(queryPreferences: () => Promise<any>,
-    mutatePreference: (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any>,
-    name: string): Promise<boolean>
-
 // fire callbacks for all project consuming a library when a new library target is set
 // we use this to broadcast a new library goal to all projects that might be impacted
-export declare function broadcastFingerprint(queryFingerprints: (name: string) => Promise<any>,
+export declare function broadcastFingerprint(
+    queryFingerprints: (name: string) => Promise<any>,
     fingerprint: { name: string, version: string, sha: string },
     callback: (owner: string, repo: string, channel: string) => Promise<any>
 ): Promise<any>

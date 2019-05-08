@@ -15,39 +15,45 @@
  */
 
 import {
-    logger,
     SuccessPromise,
 } from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 
-export const FingerprintEverything: CommandHandlerRegistration<{ optional?: string, required: string }> = {
+interface FingerprintParameters {
+    operation: string,
+}
+
+export const FingerprintEverything: CommandHandlerRegistration<FingerprintParameters> = {
     name: "FingerprintEverything",
     description: "query fingerprints",
     intent: "fingerprints",
     parameters: {
-        optional: { required: false },
-        required: { required: true },
-    },
-    listener: i => {
-
-        i.promptFor({
-            operation: {
-                required: true,
-                type: {
-                    kind: "single",
-                    options: [
-                        { value: "list", description: "li`st" },
-                        { value: "set", description: "set" }],
-                },
+        operation: {
+            required: true,
+            type: {
+                kind: "single",
+                options: [
+                    { value: "list", description: "list fingerprints" },
+                    { value: "set", description: "set target fingerprint using current" },
+                    { value: "targets", description: "list target fingerprints" }],
             },
-        }).then(result => {
-            logger.info(`result ${result.operation} ${i.parameters.optional} ${i.parameters.required}`);
-            return i.context.messageClient.respond(`this worked ${result.operation} ${i.parameters.optional} ${i.parameters.required}`);
         },
-        ).catch(error => {
-            logger.info(`error ${error}`);
-        },
-        );
+    },
+    listener: async i => {
+        switch (i.parameters.operation) {
+            case "list": {
+                //await ListFingerprints.listener(i);
+
+                break;
+            }
+            case "set": {
+                //await SelectTargetFingerprintFromCurrentProject.listener(i);
+                break;
+            }
+            case "targets": {
+                //await 
+            }
+        }
         return SuccessPromise;
     },
     autoSubmit: true,

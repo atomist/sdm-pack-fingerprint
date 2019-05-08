@@ -1,0 +1,8 @@
+query GetFpBySha($sha: String!) {
+  AtomistFingerprint(sha: $sha) {
+    id
+    sha
+    data
+    name
+  }
+}

@@ -1,8 +1,0 @@
-query GetFingerprintBySha($sha: String!, $name: String!) {
-    Fingerprint(name: $name, sha: $sha) {
-        name
-        sha
-        _id
-        data
-    }
-}

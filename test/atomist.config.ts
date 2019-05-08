@@ -71,7 +71,6 @@ import {
     diffNpmDepsFingerprints,
 } from "../lib/fingerprints/npmDeps";
 import {
-    checkCljCoordinatesImpactHandler,
     checkNpmCoordinatesImpactHandler,
 } from "../lib/machine/fingerprintSupport";
 
@@ -196,7 +195,6 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 ],
             handlers: [
                 checkNpmCoordinatesImpactHandler(),
-                checkCljCoordinatesImpactHandler(),
                 fingerprintImpactHandler(
                     {
                         //complianceGoal,

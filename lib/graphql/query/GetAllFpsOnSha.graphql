@@ -1,0 +1,11 @@
+query GetAllFpsOnSha($sha: String!){
+	Commit(sha: $sha) {
+    pushes {
+      fingerprints {
+        name
+        sha
+        data
+      }
+    }
+  }
+}

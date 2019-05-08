@@ -1,0 +1,7 @@
+mutation SetFpTarget($name: String!, $value: String!) {
+	setTeamConfiguration(name: $name, value: $value, namespace: "fptarget") {
+    name
+    value
+    namespace
+  }
+}

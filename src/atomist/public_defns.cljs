@@ -7,17 +7,14 @@
             [rewrite-clj.node :as n]
             [rewrite-clj.node.protocols :as protocols]
             [rewrite-clj.zip.base :as base]
-            [cljs.nodejs :as nodejs]
             [atomist.cljs-log :as log]
             [clojure.string :as str]
             [cljs-node-io.core :as io :refer [slurp spit file-seq]]
             [cljs-node-io.fs :as fs]
-            [cljs-node-io.file :as file]
             [hasch.core :as hasch]
             [atomist.json :as json]
             [goog.string :as gstring]
             [goog.string.format]
-            [clojure.string :as s]
             [cljs.spec.alpha :as spec]))
 
 (defn- generate-sig
@@ -167,7 +164,7 @@
           :sha (sha (:bodies dufn))
           :version "0.0.4"
           :abbreviation "defn-bodies"
-          :data (json/json-str (dissoc dufn :zloc))}
+          :data (dissoc dufn :zloc)}
          (catch :default t
            (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
      (filter identity)
@@ -200,54 +197,72 @@
 (defn apply-fingerprint
   [f {:keys [name] {:keys [filename fn-name bodies ns-name]} :data}]
   (log/info "run the public-defn-bodies fingerprint application in " f)
-  (if-let [dufn (->> (all-defns f)
-                     (filter #(= fn-name (:fn-name %)))
-                     first)]
-    ;; found a fingerprinted function with the same name (possibly different namespace)
-    (let [zloc (:zloc dufn)
-          replaced (replace-fn zloc fn-name bodies)]
-      (println "found location" (base/string zloc))
-      (println "replaced" (base/string replaced))
-      (if (= (base/string zloc) (base/string replaced))
-        (log/warnf "%s was not replaced in %s as there is no change" fn-name filename)
-        (do
-          (log/infof "Writing new %s to %s - function coming from %s" fn-name (:filename dufn) filename)
-          (println "shared" (base/root-string replaced))
-          (spit (io/file f (:filename dufn)) (base/root-string replaced))
-          true)))
-    ;; no existing one found
-    (let [f (io/file f filename)]
-      (if (.exists f)
-        (spit f (gstring/format "%s\n%s" (slurp f) bodies))
-        (spit f (gstring/format "(ns %s)\n%s" ns-name bodies))))))
+  (try
+    (if-let [dufn (->> (all-defns f)
+                       (filter #(= fn-name (:fn-name %)))
+                       first)]
+      ;; found a fingerprinted function with the same name (possibly different namespace)
+      (let [zloc (:zloc dufn)
+            replaced (replace-fn zloc fn-name bodies)]
+        (println "found location" (base/string zloc))
+        (println "replaced" (base/string replaced))
+        (if (= (base/string zloc) (base/string replaced))
+          (log/warnf "%s was not replaced in %s as there is no change" fn-name filename)
+          (do
+            (log/infof "Writing new %s to %s - function coming from %s" fn-name (:filename dufn) filename)
+            (println "shared" (base/root-string replaced))
+            (spit (io/file f (:filename dufn)) (base/root-string replaced))
+            true)))
+      ;; no existing one found
+      (let [f (io/file f filename)]
+        (if (.exists f)
+          (spit f (gstring/format "%s\n%s" (slurp f) bodies))
+          (spit f (gstring/format "(ns %s)\n%s" ns-name bodies)))))
+    (catch js/Error ex
+      (.log js/console (.-stack ex))
+      (log/error "failed apply fingerprint to " f))))
 (spec/fdef apply-fingerprint :args (spec/cat :dir string? :fingerprint ::spec/fp))
 
 (comment
 
-  (cljs.pprint/pprint (->> (all-defns "/Users/slim/repo/clj1")
-                           (map #(dissoc % :zloc))))
+ (spit "resources/atomist-fingerprint-automation.edn"
+       (str
+        {:name "@atomist/atomist-fingerprint-automation"
+         :version "1.0.0"
+         :policy {:name "durable"}
+         :groups ["all"]
+         :metadata {:labels {:atomist-static true}}
+         :ingesters [(slurp "lib/graphql/ingester/fingerprint.graphql")]}))
 
-  (apply-fingerprint "/Users/slim/repo/clj1" {:data {:filename "src/shared.clj"
-                                                     :fn-name "great"
-                                                     :bodies "(defn ^:fingerprint great [] \"thing6\")"
-                                                     :ns-name "shared"}})
+ (cljs.pprint/pprint (cljs.reader/read-string (slurp "resources/atomist-fingerprint-automation.edn")))
+ (println (:ingesters (cljs.reader/read-string (slurp "resources/atomist-fingerprint-automation.edn"))))
 
-  (def f "/Users/slim/atomist/atomisthq/bot-service")
-  (def f "/Users/slim/repo/clj1")
+ (cljs.pprint/pprint (->> (all-defns "/Users/slim/atomist/slimslender/clj1")
+                          (map #(dissoc % :zloc))))
 
-  (for [dufn (all-defns f) :when (:fn-name dufn)]
-    (try
-      (cljs.pprint/pprint dufn)
-      (catch :default t
-        (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
+ (apply-fingerprint "/Users/slim/atomist/slimslender/clj1" {:data {:filename "src/shared.clj"
+                                                                   :fn-name "thing1"
+                                                                   :bodies "(defn ^:fingerprint thing1 [] 8)"
+                                                                   :ns-name "shared"}})
 
-  (-> (z/of-string "(defn hey [] (#(println %) \"x\"))")
-      (z/root)
-      (protocols/sexpr))
+ (log/info "crap")
 
-  (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/thing.clj")
-  (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/handler.clj")
+ (def f "/Users/slim/atomist/atomisthq/bot-service")
+ (def f "/Users/slim/repo/clj1")
 
-  (cljs.pprint/pprint (fingerprints "/Users/slim/repo/clj1")))
+ (for [dufn (all-defns f) :when (:fn-name dufn)]
+   (try
+     (cljs.pprint/pprint dufn)
+     (catch :default t
+       (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
+
+ (-> (z/of-string "(defn hey [] (#(println %) \"x\"))")
+     (z/root)
+     (protocols/sexpr))
+
+ (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/thing.clj")
+ (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/handler.clj")
+
+ (cljs.pprint/pprint (fingerprints "/Users/slim/repo/clj1")))
 
 

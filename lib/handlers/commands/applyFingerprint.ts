@@ -41,15 +41,15 @@ import { SlackMessage } from "@atomist/slack-messages";
 import {
     applyFingerprint,
     FP,
-    getFingerprintPreference,
 } from "../../../fingerprints/index";
-import { queryFingerprints } from "../../adhoc/fingerprints";
-import { queryPreferences } from "../../adhoc/preferences";
+import { findTaggedRepos } from "../../adhoc/fingerprints";
 import {
     EditModeMaker,
     FingerprintRegistration,
 } from "../../machine/fingerprintSupport";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
+import { queryPreferences } from "../../adhoc/preferences";
+import _ = require("lodash");
 
 /**
  * Call relevant apply functions from Registrations for a Fingerprint
@@ -60,7 +60,6 @@ import { FindLinkedReposWithFingerprint } from "../../typings/types";
  * @param registrations all of the current Registrations containing apply functions
  * @param fp the fingerprint to apply
  */
-
 async function pushFingerprint(
     message: (s: string) => Promise<any>,
     p: GitProject,
@@ -97,8 +96,7 @@ export function runAllFingerprintAppliers(registrations: FingerprintRegistration
                 {
                     author_name: "Apply target fingerprint",
                     author_icon: `https://images.atomist.com/rug/check-circle.gif?gif=${guid()}`,
-                    text: `Applying target fingerprint \`${cli.parameters.fingerprint}\` to <https://github.com/${
-                        p.id.owner}/${p.id.repo}|${p.id.owner}/${p.id.repo}>`,
+                    text: `Applying target fingerprint \`${cli.parameters.fingerprint}\` to ${p.id.owner}/${p.id.repo}`,
                     mrkdwn_in: ["text"],
                     color: "#45B254",
                     fallback: "none",
@@ -107,14 +105,15 @@ export function runAllFingerprintAppliers(registrations: FingerprintRegistration
             ],
         };
 
-        await cli.addressChannels(message);
+        await cli.addressChannels(message, { id: cli.parameters.msgId });
 
+        // TODO replace the function to fetch the current FP target by name
         return pushFingerprint(
             async (s: string) => cli.addressChannels(s),
             (p as GitProject),
             registrations,
-            await getFingerprintPreference(
-                queryPreferences(cli.context.graphClient),
+            await queryPreferences(
+                cli.context.graphClient,
                 cli.parameters.fingerprint));
     };
 }
@@ -133,8 +132,7 @@ function runEveryFingerprintApplication(registrations: FingerprintRegistration[]
                 {
                     author_name: "Apply target fingerprints",
                     author_icon: `https://images.atomist.com/rug/check-circle.gif?gif=${guid()}`,
-                    text: `Applying target fingerprints \`${cli.parameters.fingerprints}\` to <https://github.com/${
-                        p.id.owner}/${p.id.repo}|${p.id.owner}/${p.id.repo}>`,
+                    text: `Applying target fingerprints \`${cli.parameters.fingerprints}\` to ${p.id.owner}/${p.id.repo}`,
                     mrkdwn_in: ["text"],
                     color: "#45B254",
                     fallback: "none",
@@ -143,7 +141,7 @@ function runEveryFingerprintApplication(registrations: FingerprintRegistration[]
             ],
         };
 
-        await cli.addressChannels(message);
+        await cli.addressChannels(message, { id: cli.parameters.msgId });
 
         await Promise.all(
             cli.parameters.fingerprints.split(",").map(
@@ -152,8 +150,8 @@ function runEveryFingerprintApplication(registrations: FingerprintRegistration[]
                         async (s: string) => cli.addressChannels(s),
                         (p as GitProject),
                         registrations,
-                        await getFingerprintPreference(
-                            queryPreferences(cli.context.graphClient),
+                        await queryPreferences(
+                            cli.context.graphClient,
                             fpName));
                 },
             ),
@@ -247,25 +245,31 @@ export function broadcastFingerprintMandate(
 
             const refs: RepoRef[] = [];
 
-            const fp = await getFingerprintPreference(
-                queryPreferences(i.context.graphClient),
+            const fp = await queryPreferences(
+                i.context.graphClient,
                 i.parameters.fingerprint);
 
             // start by running
             logger.info(`run all fingerprint transforms for ${i.parameters.fingerprint}: ${fp.name}/${fp.sha}`);
 
-            const data: FindLinkedReposWithFingerprint.Query = await (queryFingerprints(i.context.graphClient))(i.parameters.fingerprint);
+            const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(i.context.graphClient))(i.parameters.fingerprint);
 
-            logger.info(`FindLinkedReposWithFingerprint ${JSON.stringify(data)}`);
-
-            refs.push(...data.Repo.map(repo => {
-                return {
-                    owner: repo.owner,
-                    repo: repo.name,
-                    url: "url",
-                    branch: "master",
-                };
-            }));
+            if (!!data.Repo) {
+                refs.push(
+                    ...data.Repo
+                        .filter(repo => _.get(repo, "branches[0].commit.pushes[0].fingerprints"))
+                        .filter(repo => repo.branches[0].commit.pushes[0].fingerprints.some(x => x.name === fp.name))
+                        .map(repo => {
+                            return {
+                                owner: repo.owner,
+                                repo: repo.name,
+                                url: "url",
+                                branch: "master",
+                            };
+                        }
+                        )
+                );
+            }
 
             const editor: (p: Project) => Promise<EditResult> = async p => {
                 await pushFingerprint(
@@ -308,6 +312,7 @@ export function broadcastFingerprintMandate(
                 },
             );
 
+            // replace the previous message where we chose this action
             await i.addressChannels(
                 {
                     attachments: [
