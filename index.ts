@@ -23,7 +23,6 @@ export {
     ApplyFingerprint,
     ExtractFingerprint,
     register,
-    checkCljCoordinatesImpactHandler,
     checkNpmCoordinatesImpactHandler,
     fingerprintRunner,
     runFingerprints,

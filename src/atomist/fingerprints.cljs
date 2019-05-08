@@ -39,8 +39,8 @@
         (map (add-fingerprint "maven-project-deps") (get-file basedir "pom.xml" maven/project-dependencies)))
        (into [])))
 (spec/fdef get-deps
-           :args (spec/cat :basedir string?)
-           :ret ::schema/deps)
+  :args (spec/cat :basedir string?)
+  :ret ::schema/deps)
 
 (defn fingerprint
   "extract library fingerprint data from a basedir containing some sort of project manifest and possibly
@@ -56,9 +56,9 @@
                   (get-file basedir "project.clj" lein/run))]
         (->> data
              (map #(assoc %
-                     :sha (lein/sha-256 (json/json-str (:data %)))
-                     :data (json/json-str (:data %))
-                     :value (json/json-str (:data %))))
+                          :sha (lein/sha-256 (json/json-str (:data %)))
+                          :data (:data %)
+                          :value (json/json-str (:data %))))
              (into [])
              (clj->js)))))))
 

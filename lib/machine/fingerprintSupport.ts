@@ -228,25 +228,6 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
 }
 
 /**
- * This creates the registration function for a handler that notices that a project.clj file version
- * has been updated.
- */
-export function checkCljCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
-    return (sdm: SoftwareDeliveryMachine) => {
-
-        return {
-            selector: forFingerprints("clojure-project-coordinates"),
-            diffHandler: (ctx, diff) => {
-                return setNewTargetFingerprint(
-                    ctx,
-                    getNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
-                    diff.channel);
-            },
-        };
-    };
-}
-
-/**
  * This creates the registration function for a handler that notices that a package.json version
  * has been updated.
  */
@@ -289,6 +270,7 @@ function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, finge
 
     const event: any = {
         ...fingerprint,
+        data: JSON.stringify(fingerprint.data),
         branch: push.branch,
         commit: push.after.sha,
     }
@@ -352,7 +334,7 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
             if (fp.name) {
                 record[fp.name] = {
                     sha: fp.sha,
-                    data: fp.data,
+                    data: JSON.parse(fp.data),
                     name: fp.name,
                     version: "1.0",
                     abbreviation: "abbrev"

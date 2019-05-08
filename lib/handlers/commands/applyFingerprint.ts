@@ -41,7 +41,6 @@ import { SlackMessage } from "@atomist/slack-messages";
 import {
     applyFingerprint,
     FP,
-    renderData,
 } from "../../../fingerprints/index";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import {
@@ -257,20 +256,22 @@ export function broadcastFingerprintMandate(
 
             const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(i.context.graphClient))(i.parameters.fingerprint);
 
-            logger.info(`findTaggedRepos ${renderData(data)}`);
-
-            refs.push(
-                ...data.Repo
-                    .filter(repo => _.get(repo, "branches[0].commit.pushes[0].fingerprints"))
-                    .filter(repo => repo.branches[0].commit.pushes[0].fingerprints.some(x => x.name === fp.name))
-                    .map(repo => {
-                        return {
-                            owner: repo.owner,
-                            repo: repo.name,
-                            url: "url",
-                            branch: "master",
-                        };
-                    }));
+            if (!!data.Repo) {
+                refs.push(
+                    ...data.Repo
+                        .filter(repo => _.get(repo, "branches[0].commit.pushes[0].fingerprints"))
+                        .filter(repo => repo.branches[0].commit.pushes[0].fingerprints.some(x => x.name === fp.name))
+                        .map(repo => {
+                            return {
+                                owner: repo.owner,
+                                repo: repo.name,
+                                url: "url",
+                                branch: "master",
+                            };
+                        }
+                        )
+                );
+            }
 
             const editor: (p: Project) => Promise<EditResult> = async p => {
                 await pushFingerprint(

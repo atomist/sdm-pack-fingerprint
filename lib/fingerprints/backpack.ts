@@ -32,14 +32,14 @@ export const backpackFingerprint: ExtractFingerprint = async p => {
         const packagejson = JSON.parse(await file.getContent());
 
         // tslint:disable-next-line:no-string-literal
-        const data: string = JSON.stringify(packagejson["backpack-react-scripts"]["externals"]);
+        const data: any = packagejson["backpack-react-scripts"]["externals"];
 
         const fp: FP = {
             name: "backpack-react-scripts",
             abbreviation: "backpack",
             version: "0.0.1",
-            data,
-            sha: sha256(data),
+            data: packagejson["backpack-react-scripts"]["externals"],
+            sha: sha256(JSON.stringify(data)),
         };
 
         // bug opened and fix coming

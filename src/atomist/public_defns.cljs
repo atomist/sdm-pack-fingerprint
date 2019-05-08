@@ -164,7 +164,7 @@
           :sha (sha (:bodies dufn))
           :version "0.0.4"
           :abbreviation "defn-bodies"
-          :data (json/json-str (dissoc dufn :zloc))}
+          :data (dissoc dufn :zloc)}
          (catch :default t
            (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
      (filter identity)
@@ -197,26 +197,30 @@
 (defn apply-fingerprint
   [f {:keys [name] {:keys [filename fn-name bodies ns-name]} :data}]
   (log/info "run the public-defn-bodies fingerprint application in " f)
-  (if-let [dufn (->> (all-defns f)
-                     (filter #(= fn-name (:fn-name %)))
-                     first)]
-    ;; found a fingerprinted function with the same name (possibly different namespace)
-    (let [zloc (:zloc dufn)
-          replaced (replace-fn zloc fn-name bodies)]
-      (println "found location" (base/string zloc))
-      (println "replaced" (base/string replaced))
-      (if (= (base/string zloc) (base/string replaced))
-        (log/warnf "%s was not replaced in %s as there is no change" fn-name filename)
-        (do
-          (log/infof "Writing new %s to %s - function coming from %s" fn-name (:filename dufn) filename)
-          (println "shared" (base/root-string replaced))
-          (spit (io/file f (:filename dufn)) (base/root-string replaced))
-          true)))
-    ;; no existing one found
-    (let [f (io/file f filename)]
-      (if (.exists f)
-        (spit f (gstring/format "%s\n%s" (slurp f) bodies))
-        (spit f (gstring/format "(ns %s)\n%s" ns-name bodies))))))
+  (try
+    (if-let [dufn (->> (all-defns f)
+                       (filter #(= fn-name (:fn-name %)))
+                       first)]
+      ;; found a fingerprinted function with the same name (possibly different namespace)
+      (let [zloc (:zloc dufn)
+            replaced (replace-fn zloc fn-name bodies)]
+        (println "found location" (base/string zloc))
+        (println "replaced" (base/string replaced))
+        (if (= (base/string zloc) (base/string replaced))
+          (log/warnf "%s was not replaced in %s as there is no change" fn-name filename)
+          (do
+            (log/infof "Writing new %s to %s - function coming from %s" fn-name (:filename dufn) filename)
+            (println "shared" (base/root-string replaced))
+            (spit (io/file f (:filename dufn)) (base/root-string replaced))
+            true)))
+      ;; no existing one found
+      (let [f (io/file f filename)]
+        (if (.exists f)
+          (spit f (gstring/format "%s\n%s" (slurp f) bodies))
+          (spit f (gstring/format "(ns %s)\n%s" ns-name bodies)))))
+    (catch js/Error ex
+      (.log js/console (.-stack ex))
+      (log/error "failed apply fingerprint to " f))))
 (spec/fdef apply-fingerprint :args (spec/cat :dir string? :fingerprint ::spec/fp))
 
 (comment

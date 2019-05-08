@@ -12,7 +12,7 @@
     (catch :default ex
       (.info js/console (apply str args)))))
 
-(defn- warn [& args]
+(defn warn [& args]
   (try
     (.warn logger (apply str args))
     (catch :default ex
@@ -20,13 +20,13 @@
 
 (def info log)
 
-(defn- error [& args]
+(defn error [& args]
   (try
     (.error logger (apply str args))
     (catch :default ex
       (.error js/console (apply str args)))))
 
-(defn- debug [& args]
+(defn debug [& args]
   (try
     (.debug logger (apply str args))
     (catch :default ex
