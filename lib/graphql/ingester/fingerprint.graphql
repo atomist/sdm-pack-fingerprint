@@ -2,8 +2,8 @@ type AtomistFingerprint @rootType {
   commit: String! @compositeId
   branch: String! @compositeId
   name: String! @compositeId
-
-  sha: String!
+  sha: String! @compositeId
+  
   data: String
   version: String
   abbreviation: String

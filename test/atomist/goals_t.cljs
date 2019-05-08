@@ -10,7 +10,7 @@
             [goog.string :as gstring]
             [goog.string.format]
             [atomist.goals :refer [get-options with-project-goals with-new-goal check-library-goals broadcast message
-                                   set-fingerprint-preference get-fingerprint-preference check-fingerprint-goals]]))
+                                   set-fingerprint-preference check-fingerprint-goals]]))
 
 (defn success-promise [m]
   (js/Promise. (fn [resolve] (resolve (clj->js m)))))
@@ -181,29 +181,6 @@
                     (resolve :done))))
                fp-name
                sha))))))))
-
-(deftest get-fingerprint-tests
-  (cljs.test/update-current-env! [:formatter] (constantly pprint))
-  (testing "that we can extract a fingerprint from a named preference"
-    (let [fp-name "fingerprint-name"
-          data [["a" "v1"] ["b" "v2"]]
-          fp {:name fp-name
-              :sha "sha"
-              :data data}]
-      (async done
-        (go
-         (done
-          (is (= fp
-                 (js->clj
-                  (<! (get-fingerprint-preference
-                       (fn []
-                         (js/Promise.
-                          (fn [resolve reject]
-                            (resolve (clj->js {:ChatTeam [{:preferences
-                                                           [{:name fp-name
-                                                             :value (json/clj->json fp)}]}]})))))
-                       fp-name))
-                  :keywordize-keys true)))))))))
 
 (deftest check-fingerprint-goals-tests
   (testing "different shas trigger a message"

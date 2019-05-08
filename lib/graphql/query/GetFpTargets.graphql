@@ -1,5 +1,5 @@
 query GetFpTargets {
-    TeamConfiguration(namespace: "fpTarget") {
+    TeamConfiguration(namespace: "fptarget") {
         name
         value
         namespace

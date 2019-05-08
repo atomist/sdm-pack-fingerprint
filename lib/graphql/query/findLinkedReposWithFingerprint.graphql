@@ -1,4 +1,4 @@
-query findLinkedReposWithFingerprint($name: String!) {
+query FindLinkedReposWithFingerprint {
     Repo {
         name
         owner
@@ -9,12 +9,14 @@ query findLinkedReposWithFingerprint($name: String!) {
         branches(name: "master") @required {
             name
             commit {
-                fingerprints(name: $name) @required {
-                    data
-                    name
-                    sha
+                pushes @required {
+                    fingerprints @required {
+                        data
+                        name
+                    }
                 }
-            }
+            }            
         }
     }
 }
+

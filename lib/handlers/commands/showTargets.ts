@@ -30,13 +30,11 @@ import {
 import { SlackMessage } from "@atomist/slack-messages";
 import {
     FP,
-    fpPreference,
-    fpPreferences,
     renderData,
 } from "../../../fingerprints/index";
-import { queryPreferences } from "../../adhoc/preferences";
+import { queryPreferences, getFPTargets } from "../../adhoc/preferences";
 import { comparator } from "../../support/util";
-import { ChatTeamPreferences } from "../../typings/types";
+import { GetFpTargets } from "../../typings/types";
 
 @Parameters()
 export class ListOneFingerprintTargetParameters {
@@ -51,9 +49,8 @@ export function listOneFingerprintTarget(sdm: SoftwareDeliveryMachine): CommandH
         paramsMaker: ListOneFingerprintTargetParameters,
         intent: [`list fingerprint target ${sdm.configuration.name.replace("@", "")}`],
         listener: async cli => {
-            const query: ChatTeamPreferences.Query = await (queryPreferences(cli.context.graphClient))();
 
-            const fp: FP = fpPreference(query, cli.parameters.fingerprint);
+            const fp: FP = await queryPreferences(cli.context.graphClient, cli.parameters.fingerprint);
             logger.info(`fps ${renderData(fp)}`);
 
             const message: SlackFileMessage = {
@@ -74,9 +71,11 @@ export function listFingerprintTargets(sdm: SoftwareDeliveryMachine): CommandHan
         intent: [`list all fingerprint targets ${sdm.configuration.name.replace("@", "")}`],
         listener: async cli => {
 
-            const query: ChatTeamPreferences.Query = await (queryPreferences(cli.context.graphClient))();
+            const query: GetFpTargets.Query = await getFPTargets(cli.context.graphClient);
 
-            const fps: FP[] = fpPreferences(query).sort(comparator("name"));
+            const fps: FP[] = query.TeamConfiguration
+                .map(x => JSON.parse(x.value))
+                .sort(comparator("name"));
 
             const message: SlackMessage = {
                 attachments: [

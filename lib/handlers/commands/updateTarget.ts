@@ -23,6 +23,7 @@ import {
     menuForCommand,
     Parameter,
     Parameters,
+    QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
     actionableButton,
@@ -31,24 +32,20 @@ import {
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import {
-    deleteGoalFingerprint,
     FP,
-    setGoalFingerprint,
-    setTargetFingerprint,
     Vote,
 } from "../../../fingerprints/index";
 import {
-    queryFingerprintBySha,
-    queryFingerprintOnShaByName,
     queryFingerprintsByBranchRef,
 } from "../../adhoc/fingerprints";
 import {
-    mutatePreference,
-    queryPreferences,
+    setFPTarget,
+    deleteFPTarget,
 } from "../../adhoc/preferences";
 import {
-    GetAllFingerprintsOnSha,
-    GetFingerprintOnShaByName,
+    GetFpByBranch,
+    GetFpBySha,
+    GetAllFpsOnSha,
 } from "../../typings/types";
 import { askAboutBroadcast } from "./broadcast";
 
@@ -86,25 +83,21 @@ export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<Se
 
         const branch = cli.parameters.branch || "master";
 
-        const query: GetFingerprintOnShaByName.Query =
-            await (queryFingerprintOnShaByName(cli.context.graphClient))(
-                cli.parameters.repo,
-                cli.parameters.owner,
-                branch,
-                cli.parameters.fingerprint,
-            );
-        const sha: string = query.Repo[0].branches[0].commit.fingerprints[0].sha;
-        logger.info(`found sha ${sha}`);
-        if (sha) {
-            await setGoalFingerprint(
-                queryPreferences(cli.context.graphClient),
-                queryFingerprintBySha(cli.context.graphClient),
-                mutatePreference(cli.context.graphClient),
-                cli.parameters.fingerprint,
-                sha,
-                cli.context.source.slack.user.id,
-            );
-            return askAboutBroadcast(cli, cli.parameters.fingerprint, "version", sha, cli.parameters.msgId);
+        const query: GetFpByBranch.Query = await cli.context.graphClient.query<GetFpByBranch.Query, GetFpByBranch.Variables>({
+            name: "GetFpByBranch",
+            options: QueryNoCacheOptions,
+            variables: {
+                owner: cli.parameters.owner,
+                repo: cli.parameters.repo,
+                branch
+            }
+        })
+        const fp: GetFpByBranch.Fingerprints = query.Repo[0].branches[0].commit.pushes[0].fingerprints.find(x => x.name === cli.parameters.fingerprint);
+        logger.info(`found sha ${fp.sha}`);
+
+        if (!!fp.sha) {
+            await (setFPTarget(cli.context.graphClient))(fp.name, fp.data);
+            return askAboutBroadcast(cli, cli.parameters.fingerprint, "version", fp.sha, cli.parameters.msgId);
         } else {
             return FailurePromise;
         }
@@ -135,14 +128,27 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
     description: "set a new target for a team to consume a particular version",
     paramsMaker: UpdateTargetFingerprintParameters,
     listener: async cli => {
-        await setGoalFingerprint(
-            queryPreferences(cli.context.graphClient),
-            queryFingerprintBySha(cli.context.graphClient),
-            mutatePreference(cli.context.graphClient),
-            cli.parameters.name,
-            cli.parameters.sha,
-            cli.context.source.slack.user.id,
-        );
+
+        const query: GetFpBySha.Query = await cli.context.graphClient.query<GetFpBySha.Query, GetFpBySha.Variables>(
+            {
+                options: QueryNoCacheOptions,
+                name: "GetFpBySha",
+                variables: {
+                    sha: cli.parameters.sha
+                }
+            }
+        )
+        const fp: GetFpBySha.AtomistFingerprint = query.AtomistFingerprint[0];
+        logger.info(`update target to ${JSON.stringify(fp)}`);
+        const fingerprint: FP = {
+            name: fp.name,
+            data: fp.data,
+            sha: fp.sha,
+            version: "1.0",
+            abbreviation: "abbreviation",
+        }
+
+        await (setFPTarget(cli.context.graphClient))(cli.parameters.name, JSON.stringify(fingerprint));
         return askAboutBroadcast(cli, cli.parameters.name, "version", cli.parameters.sha, cli.parameters.msgId);
     },
 };
@@ -171,10 +177,7 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
             user: { id: cli.context.source.slack.user.id },
             ...JSON.parse(cli.parameters.fp),
         };
-        await setTargetFingerprint(
-            queryPreferences(cli.context.graphClient),
-            mutatePreference(cli.context.graphClient),
-            JSON.stringify(fp));
+        await (setFPTarget(cli.context.graphClient))(fp.name, JSON.stringify(fp))
 
         return askAboutBroadcast(cli, fp.name, fp.data[1], fp.sha, cli.parameters.msgId);
     },
@@ -194,11 +197,20 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
     description: "remove the team target for a particular fingerprint",
     paramsMaker: DeleteTargetFingerprintParameters,
     listener: async cli => {
-        await deleteGoalFingerprint(
-            queryPreferences(cli.context.graphClient),
-            mutatePreference(cli.context.graphClient),
-            cli.parameters.name,
-        );
+        return await (deleteFPTarget(cli.context.graphClient))(cli.parameters.name)
+            .then(result => {
+                return {
+                    code: 0,
+                    message: `successfully deleted ${cli.parameters.name}`
+                }
+            })
+            .catch(error => {
+                logger.error(error);
+                return {
+                    code: 1,
+                    message: `failed to delete target`
+                }
+            });
     },
 };
 
@@ -279,11 +291,10 @@ export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistrati
         // this has got to be wrong.  ugh
         const branch: string = cli.parameters.branch || "master";
 
-        const query: GetAllFingerprintsOnSha.Query = await queryFingerprintsByBranchRef(cli.context.graphClient)(
+        const fps: GetAllFpsOnSha.Fingerprints[] = await queryFingerprintsByBranchRef(cli.context.graphClient)(
             cli.parameters.repo,
             cli.parameters.owner,
             branch);
-        const fps: GetAllFingerprintsOnSha.Fingerprints[] = query.Repo[0].branches[0].commit.fingerprints;
 
         const message: SlackMessage = {
             attachments: [

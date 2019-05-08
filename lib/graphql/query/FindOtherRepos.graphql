@@ -1,0 +1,16 @@
+query FindOtherRepos($name: String!, $sha: String!) {
+    Repo {
+        name
+        owner
+        branches(name: "master") @required {
+            commit {
+                pushes {
+                    fingerprints {
+                        data
+                        name
+                    }
+                }
+            }
+        }
+    }
+}

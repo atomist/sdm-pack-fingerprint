@@ -26,13 +26,11 @@ import { CommandHandlerRegistration } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import { renderData } from "../../..";
 import {
-    queryFingerprintOnShaByName,
     queryFingerprintsByBranchRef,
 } from "../../adhoc/fingerprints";
 import { comparator } from "../../support/util";
 import {
-    GetAllFingerprintsOnSha,
-    GetFingerprintOnShaByName,
+    GetAllFpsOnSha,
 } from "../../typings/types";
 
 @Parameters()
@@ -74,14 +72,14 @@ export const ListFingerprint: CommandHandlerRegistration<ListOneFingerprintParam
     paramsMaker: ListOneFingerprintParameters,
     listener: async cli => {
 
-        const query: GetFingerprintOnShaByName.Query = await queryFingerprintOnShaByName(cli.context.graphClient)(
+        const fps: GetAllFpsOnSha.Fingerprints[] = await queryFingerprintsByBranchRef(cli.context.graphClient)(
             cli.parameters.repo,
             cli.parameters.owner,
             cli.parameters.branch,
-            cli.parameters.fingerprint,
         );
 
-        const fingerprint = query.Repo[0].branches[0].commit.fingerprints[0];
+        const fingerprint: GetAllFpsOnSha.Fingerprints = fps.find(x => x.name === cli.parameters.fingerprint);
+
         fingerprint.data = JSON.parse(fingerprint.data);
 
         const message: SlackFileMessage = {
@@ -112,11 +110,10 @@ export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParamet
         // this has got to be wrong.  ugh
         const branch: string = cli.parameters.branch || "master";
 
-        const query: GetAllFingerprintsOnSha.Query = await queryFingerprintsByBranchRef(cli.context.graphClient)(
+        const fps: GetAllFpsOnSha.Fingerprints[] = await queryFingerprintsByBranchRef(cli.context.graphClient)(
             cli.parameters.repo,
             cli.parameters.owner,
             branch);
-        const fps: GetAllFingerprintsOnSha.Fingerprints[] = query.Repo[0].branches[0].commit.fingerprints;
 
         const message: SlackMessage = {
             attachments: [

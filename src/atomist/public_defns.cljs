@@ -7,20 +7,15 @@
             [rewrite-clj.node :as n]
             [rewrite-clj.node.protocols :as protocols]
             [rewrite-clj.zip.base :as base]
-            [cljs.nodejs :as nodejs]
             [atomist.cljs-log :as log]
             [clojure.string :as str]
             [cljs-node-io.core :as io :refer [slurp spit file-seq]]
             [cljs-node-io.fs :as fs]
-            [cljs-node-io.file :as file]
             [hasch.core :as hasch]
             [atomist.json :as json]
             [goog.string :as gstring]
             [goog.string.format]
-            [clojure.string :as s]
             [cljs.spec.alpha :as spec]))
-
-(+ 2 2)
 
 (defn- generate-sig
   "  params

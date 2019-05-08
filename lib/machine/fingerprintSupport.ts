@@ -172,7 +172,6 @@ export function register(name: string, extract: ExtractFingerprint, apply?: Appl
 
 function checkScope(fp: FP, registrations: FingerprintRegistration[]): boolean {
     const inScope: boolean = _.some(registrations, reg => reg.selector(fp));
-    logger.info(`checked scope for ${fp.name} => ${inScope}`);
     return inScope;
 }
 
@@ -290,8 +289,6 @@ function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, finge
         branch: push.branch,
         commit: push.after.sha,
     }
-
-    logger.info(`AtomistFingerprint ${JSON.stringify(event)}`);
 
     try {
         client.send(event, customFPEvent);
@@ -416,7 +413,7 @@ export function fingerprintRunner(fingerprinters: FingerprintRegistration[], han
         const previous: Record<string, FP> = await lastFingerprints(
             i.push.before.sha,
             i.context.graphClient);
-        logger.info(`Previous ${JSON.stringify(previous)}`);
+        logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
         const fps: FP[] = (await Promise.all(
             fingerprinters.map(
@@ -438,7 +435,7 @@ export function fingerprintRunner(fingerprinters: FingerprintRegistration[], han
             []
         )
 
-        logger.info(renderData(fps));
+        logger.debug(renderData(fps));
 
         fps.forEach(
             fp => {
@@ -452,7 +449,7 @@ export function fingerprintRunner(fingerprinters: FingerprintRegistration[], han
             (acc, votes) => { return acc.concat(votes); },
             []
         );
-        logger.info(`Votes:  ${renderData(votes)}`)
+        logger.debug(`Votes:  ${renderData(votes)}`)
         tallyVotes(votes, handlers, i, info);
 
         return fps;
@@ -507,8 +504,6 @@ function configure(sdm: SoftwareDeliveryMachine,
     handlers: RegisterFingerprintImpactHandler[],
     fpRegistraitons: FingerprintRegistration[]): void {
 
-    // Fired on every Push after Fingerprints are uploaded
-    // sdm.addEvent(pushImpactHandler(handlers.map(h => h(sdm, fpRegistraitons))));
     sdm.addIngester(GraphQL.ingester("AtomistFingerprint"));
 
     sdm.addCommand(ListFingerprints);

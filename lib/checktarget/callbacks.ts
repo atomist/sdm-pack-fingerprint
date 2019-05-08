@@ -38,7 +38,7 @@ import {
     voteResults,
     VoteResults,
 } from "../../fingerprints/index";
-import { queryPreferences } from "../adhoc/preferences";
+import { getFPTargets } from "../adhoc/preferences";
 import {
     FingerprintImpactHandlerConfig,
     FingerprintRegistration,
@@ -185,7 +185,9 @@ export async function checkFingerprintTarget(
     registrations: FingerprintRegistration[]): Promise<any> {
 
     return checkFingerprintTargets(
-        queryPreferences(ctx.graphClient),
+        () => {
+            return getFPTargets(ctx.graphClient);
+        },
         fingerprintOutOfSyncCallback(ctx, diff, config, registrations),
         fingerprintInSyncCallback(ctx, diff, config.complianceGoal),
         diff,

@@ -19,69 +19,62 @@ import {
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
-    ChatTeamPreferences,
     GetFpTargets,
     SetFpTarget,
-    SetTeamPreference,
+    DeleteFpTarget,
 } from "../typings/types";
-
-// TODO this assumes one ChatTeam per graphql endpoint - the whole preference model will move to a custom type
-export function queryPreferences(graphClient: GraphClient): () => Promise<ChatTeamPreferences.Query> {
-    return () => {
-        return graphClient.query<ChatTeamPreferences.Query, ChatTeamPreferences.Variables>(
-            { name: "chatTeamPreferences", options: QueryNoCacheOptions },
-        );
-    };
-}
-
-export function mutateIgnores(graphClient: GraphClient): (chatTeamId: string, prefsAsJson: string) => Promise<any> {
-    return (chatTeamId, prefsAsJson): Promise<any> => {
-        return graphClient.mutate<SetTeamPreference.Mutation, SetTeamPreference.Variables>(
-            {
-                name: "setTeamPreference",
-                variables: {
-                    name: "fingerprints.deps.ignore",
-                    value: prefsAsJson,
-                    team: chatTeamId,
-                },
-            },
-        );
-    };
-}
-
-export function mutatePreference(graphClient: GraphClient): (prefName: string, chatTeamId: string, prefsAsJson: string) => Promise<any> {
-    return (prefName: string, chatTeamId, prefsAsJson): Promise<any> => {
-        return graphClient.mutate<SetTeamPreference.Mutation, SetTeamPreference.Variables>(
-            {
-                name: "setTeamPreference",
-                variables: {
-                    name: prefName,
-                    value: prefsAsJson,
-                    team: chatTeamId,
-                },
-            },
-        );
-    };
-}
+import { FP } from "../../fingerprints";
 
 /**
  * create a function that can query for a fingerprint target by name (team specific)
  * 
- * @param graphClient 
+ * @param graphClient
  */
-export function getFPTargets(graphClient: GraphClient): () => Promise<GetFpTargets.Query> {
-    return async () => {
-        const query: GetFpTargets.Query = await graphClient.query<GetFpTargets.Query, GetFpTargets.Variables>(
-            { name: "GetFpTarget", options: QueryNoCacheOptions }
-        );
-        return query;
-    }
+export async function getFPTargets(graphClient: GraphClient): Promise<GetFpTargets.Query> {
+    const query: GetFpTargets.Query = await graphClient.query<GetFpTargets.Query, GetFpTargets.Variables>(
+        {
+            name: "GetFpTargets",
+            options: QueryNoCacheOptions
+        }
+    );
+    return query;
+}
+
+/**
+ * the target fingerprint is stored as a json encoded string in the value of the TeamConfiguration
+ * 
+ * @param graphClient 
+ * @param name 
+ */
+export async function queryPreferences(graphClient: GraphClient, name: string): Promise<FP> {
+    const query: GetFpTargets.Query = await getFPTargets(graphClient);
+    const config: GetFpTargets.TeamConfiguration = query.TeamConfiguration.find(x => x.name === name);
+    return JSON.parse(config.value) as FP;
 }
 
 export function setFPTarget(graphClient: GraphClient): (name: string, value: string) => Promise<SetFpTarget.Mutation> {
     return (name, value) => {
-        return graphClient.query<SetFpTarget.Mutation, SetFpTarget.Variables>(
-            { name: "SetFpTarget", options: QueryNoCacheOptions, variables: { name, value } }
+        return graphClient.mutate<SetFpTarget.Mutation, SetFpTarget.Variables>(
+            {
+                name: "SetFpTarget",
+                variables: {
+                    name,
+                    value,
+                }
+            }
+        );
+    }
+}
+
+export function deleteFPTarget(graphClient: GraphClient): (name: string) => Promise<SetFpTarget.Mutation> {
+    return (name) => {
+        return graphClient.mutate<DeleteFpTarget.Mutation, DeleteFpTarget.Variables>(
+            {
+                name: "DeleteFpTarget",
+                variables: {
+                    name
+                }
+            }
         );
     }
 }

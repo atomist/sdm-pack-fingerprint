@@ -1,8 +1,0 @@
-query chatTeamById($id: String!) {
-    Team(id: $id) {
-        chatTeams {
-            id
-            name
-        }
-    }
-}

@@ -41,15 +41,16 @@ import { SlackMessage } from "@atomist/slack-messages";
 import {
     applyFingerprint,
     FP,
-    getFingerprintPreference,
+    renderData,
 } from "../../../fingerprints/index";
-import { queryFingerprints } from "../../adhoc/fingerprints";
-import { queryPreferences } from "../../adhoc/preferences";
+import { findTaggedRepos } from "../../adhoc/fingerprints";
 import {
     EditModeMaker,
     FingerprintRegistration,
 } from "../../machine/fingerprintSupport";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
+import { queryPreferences } from "../../adhoc/preferences";
+import _ = require("lodash");
 
 /**
  * Call relevant apply functions from Registrations for a Fingerprint
@@ -113,8 +114,8 @@ export function runAllFingerprintAppliers(registrations: FingerprintRegistration
             async (s: string) => cli.addressChannels(s),
             (p as GitProject),
             registrations,
-            await getFingerprintPreference(
-                queryPreferences(cli.context.graphClient),
+            await queryPreferences(
+                cli.context.graphClient,
                 cli.parameters.fingerprint));
     };
 }
@@ -152,8 +153,8 @@ function runEveryFingerprintApplication(registrations: FingerprintRegistration[]
                         async (s: string) => cli.addressChannels(s),
                         (p as GitProject),
                         registrations,
-                        await getFingerprintPreference(
-                            queryPreferences(cli.context.graphClient),
+                        await queryPreferences(
+                            cli.context.graphClient,
                             fpName));
                 },
             ),
@@ -247,25 +248,29 @@ export function broadcastFingerprintMandate(
 
             const refs: RepoRef[] = [];
 
-            const fp = await getFingerprintPreference(
-                queryPreferences(i.context.graphClient),
+            const fp = await queryPreferences(
+                i.context.graphClient,
                 i.parameters.fingerprint);
 
             // start by running
             logger.info(`run all fingerprint transforms for ${i.parameters.fingerprint}: ${fp.name}/${fp.sha}`);
 
-            const data: FindLinkedReposWithFingerprint.Query = await (queryFingerprints(i.context.graphClient))(i.parameters.fingerprint);
+            const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(i.context.graphClient))(i.parameters.fingerprint);
 
-            logger.info(`FindLinkedReposWithFingerprint ${JSON.stringify(data)}`);
+            logger.info(`findTaggedRepos ${renderData(data)}`);
 
-            refs.push(...data.Repo.map(repo => {
-                return {
-                    owner: repo.owner,
-                    repo: repo.name,
-                    url: "url",
-                    branch: "master",
-                };
-            }));
+            refs.push(
+                ...data.Repo
+                    .filter(repo => _.get(repo, "branches[0].commit.pushes[0].fingerprints"))
+                    .filter(repo => repo.branches[0].commit.pushes[0].fingerprints.some(x => x.name === fp.name))
+                    .map(repo => {
+                        return {
+                            owner: repo.owner,
+                            repo: repo.name,
+                            url: "url",
+                            branch: "master",
+                        };
+                    }));
 
             const editor: (p: Project) => Promise<EditResult> = async p => {
                 await pushFingerprint(

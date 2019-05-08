@@ -315,6 +315,8 @@
                   fingerprint-data (->> branches
                                         first
                                         :commit
+                                        :pushes
+                                        first
                                         :fingerprints
                                         (filter #(= fp-name (:name %)))
                                         first
@@ -344,9 +346,7 @@
   "ChatTeam preferences may contain a fingerprint goal"
   [preferences fp-name]
   (some-> preferences
-          :ChatTeam
-          first
-          :preferences
+          :TeamConfiguration
           (->> (filter #(= fp-name (:name %))))
           first
           :value
@@ -376,55 +376,3 @@
        (<! (from-promise
             (confirm-goal (clj->js fingerprint))))))))
 
-(defn get-fingerprint-preference
-  "a fingerprint can itself be a preference and we must fetch it
-   when it's time to apply it as an editor"
-  [query-prefs fp-name]
-  (go
-   (let [preferences (<! (from-promise (query-prefs)))
-         goal-fingerprint (get-fp-from-preferences preferences fp-name)]
-     (log/info "get-fingerprint goal-fingerprint" goal-fingerprint)
-     (clj->js goal-fingerprint))))
-
-(defn set-fingerprint-preference
-  "set or replace a fingerprint preference "
-  [query-prefs query-fingerprint-by-sha pref-editor fp-name fp-sha user-id]
-  (go
-   (let [preferences (<! (from-promise (query-prefs)))
-         fps (<! (from-promise (query-fingerprint-by-sha fp-name fp-sha)))
-         chat-team-id (-> preferences :ChatTeam first :id)
-         fp (-> fps :Fingerprint first)
-         fingerprint (assoc fp :data (-> fp :data (json/json->clj :keywordize-keys true)) :user {:id user-id})]
-     (log/info "set-fingerprint-preference to team " chat-team-id " and fingerprint " fingerprint)
-     (if fingerprint
-       (do
-         (<! (from-promise (pref-editor fp-name chat-team-id (json/clj->json fingerprint))))
-         true)
-       false))))
-
-(defn set-fingerprint-preference-from-json
-  "set or replace a fingerprint preference "
-  [query-prefs pref-editor fp-json]
-  (go
-   (let [preferences (<! (from-promise (query-prefs)))
-         chat-team-id (-> preferences :ChatTeam first :id)
-         fingerprint (json/json->clj fp-json :keywordize-keys true)]
-     (log/info "set-fingerprint-preference for team " chat-team-id " and fingerprint " fingerprint " and set to " (:name fingerprint))
-     (if fingerprint
-       (do
-         (<! (from-promise (pref-editor (:name fingerprint) chat-team-id (json/clj->json fingerprint))))
-         true)
-       false))))
-
-(defn delete-fingerprint-preference
-  "set or replace a fingerprint preference "
-  [query-prefs pref-editor fp-name]
-  (go
-   (let [preferences (<! (from-promise (query-prefs)))
-         chat-team-id (-> preferences :ChatTeam first :id)]
-     (log/info "delete-fingerprint-preference on team " chat-team-id " and fingerprint " fp-name)
-     (if fp-name
-       (do
-         (<! (from-promise (pref-editor fp-name chat-team-id "")))
-         true)
-       false))))

@@ -17,6 +17,7 @@
 import {
     buttonForCommand,
     ParameterType,
+    logger,
 } from "@atomist/automation-client";
 import {
     actionableButton,
@@ -31,11 +32,12 @@ import {
     user,
 } from "@atomist/slack-messages";
 import { broadcastFingerprint } from "../../../fingerprints";
-import { queryFingerprints } from "../../adhoc/fingerprints";
+import { findTaggedRepos } from "../../adhoc/fingerprints";
 import {
     ApplyTargetFingerprintName,
     BroadcastFingerprintMandateName,
 } from "./applyFingerprint";
+import { FindLinkedReposWithFingerprint } from "../../typings/types";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
     name: string,
@@ -99,7 +101,12 @@ export interface BroadcastFingerprintNudgeParameters extends ParameterType {
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>): Promise<any> {
     const msgId = `broadcastNudge-${cli.parameters.name}-${cli.parameters.sha}`;
     return broadcastFingerprint(
-        queryFingerprints(cli.context.graphClient),
+        async (name: string): Promise<FindLinkedReposWithFingerprint.Repo[]> => {
+            // TODO this in memory filtering should be moved into the query
+            const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(cli.context.graphClient))(name);
+            logger.info(`findTaggedRepos(broadcastNudge) ${JSON.stringify(data.Repo.filter(repo => repo.branches[0].commit.pushes[0].fingerprints.some(x => x.name === name)))}`);
+            return data.Repo.filter(repo => repo.branches[0].commit.pushes[0].fingerprints.some(x => x.name === name));
+        },
         {
             name: cli.parameters.name,
             version: cli.parameters.version,
