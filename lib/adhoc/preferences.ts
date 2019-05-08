@@ -52,14 +52,14 @@ export async function queryPreferences(graphClient: GraphClient, name: string): 
     return JSON.parse(config.value) as FP;
 }
 
-export function setFPTarget(graphClient: GraphClient): (name: string, value: string) => Promise<SetFpTarget.Mutation> {
+export function setFPTarget(graphClient: GraphClient): (name: string, value: any) => Promise<SetFpTarget.Mutation> {
     return (name, value) => {
         return graphClient.mutate<SetFpTarget.Mutation, SetFpTarget.Variables>(
             {
                 name: "SetFpTarget",
                 variables: {
                     name,
-                    value,
+                    value: JSON.stringify(value),
                 }
             }
         );

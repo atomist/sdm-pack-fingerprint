@@ -225,30 +225,32 @@
 
 (comment
 
-  (cljs.pprint/pprint (->> (all-defns "/Users/slim/repo/clj1")
-                           (map #(dissoc % :zloc))))
+ (cljs.pprint/pprint (->> (all-defns "/Users/slim/atomist/slimslender/clj1")
+                          (map #(dissoc % :zloc))))
 
-  (apply-fingerprint "/Users/slim/repo/clj1" {:data {:filename "src/shared.clj"
-                                                     :fn-name "great"
-                                                     :bodies "(defn ^:fingerprint great [] \"thing6\")"
-                                                     :ns-name "shared"}})
+ (apply-fingerprint "/Users/slim/atomist/slimslender/clj1" {:data {:filename "src/shared.clj"
+                                                                   :fn-name "thing1"
+                                                                   :bodies "(defn ^:fingerprint thing1 [] 8)"
+                                                                   :ns-name "shared"}})
 
-  (def f "/Users/slim/atomist/atomisthq/bot-service")
-  (def f "/Users/slim/repo/clj1")
+ (log/info "crap")
 
-  (for [dufn (all-defns f) :when (:fn-name dufn)]
-    (try
-      (cljs.pprint/pprint dufn)
-      (catch :default t
-        (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
+ (def f "/Users/slim/atomist/atomisthq/bot-service")
+ (def f "/Users/slim/repo/clj1")
 
-  (-> (z/of-string "(defn hey [] (#(println %) \"x\"))")
-      (z/root)
-      (protocols/sexpr))
+ (for [dufn (all-defns f) :when (:fn-name dufn)]
+   (try
+     (cljs.pprint/pprint dufn)
+     (catch :default t
+       (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
 
-  (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/thing.clj")
-  (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/handler.clj")
+ (-> (z/of-string "(defn hey [] (#(println %) \"x\"))")
+     (z/root)
+     (protocols/sexpr))
 
-  (cljs.pprint/pprint (fingerprints "/Users/slim/repo/clj1")))
+ (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/thing.clj")
+ (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/handler.clj")
+
+ (cljs.pprint/pprint (fingerprints "/Users/slim/repo/clj1")))
 
 

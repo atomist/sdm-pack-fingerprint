@@ -4,6 +4,8 @@
  :output-to      "fingerprints/main.js"
  :output-dir     "out"
  :externs        ["externs.js"]
+ :foreign-libs [{:file "logger.js"
+                 :provides ["logger"]}]
  :npm-deps       {:xml-js "1.6.7"
                   :semver "5.5.0"}
  :install-deps   true

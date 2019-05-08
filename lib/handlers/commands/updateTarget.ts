@@ -94,9 +94,10 @@ export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<Se
         })
         const fp: GetFpByBranch.Fingerprints = query.Repo[0].branches[0].commit.pushes[0].fingerprints.find(x => x.name === cli.parameters.fingerprint);
         logger.info(`found sha ${fp.sha}`);
+        fp.data = JSON.parse(fp.data);
 
         if (!!fp.sha) {
-            await (setFPTarget(cli.context.graphClient))(fp.name, fp.data);
+            await (setFPTarget(cli.context.graphClient))(fp.name, fp);
             return askAboutBroadcast(cli, cli.parameters.fingerprint, "version", fp.sha, cli.parameters.msgId);
         } else {
             return FailurePromise;
@@ -139,6 +140,7 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
             }
         )
         const fp: GetFpBySha.AtomistFingerprint = query.AtomistFingerprint[0];
+        fp.data = JSON.parse(fp.data);
         logger.info(`update target to ${JSON.stringify(fp)}`);
         const fingerprint: FP = {
             name: fp.name,
@@ -148,7 +150,7 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
             abbreviation: "abbreviation",
         }
 
-        await (setFPTarget(cli.context.graphClient))(cli.parameters.name, JSON.stringify(fingerprint));
+        await (setFPTarget(cli.context.graphClient))(cli.parameters.name, fingerprint);
         return askAboutBroadcast(cli, cli.parameters.name, "version", cli.parameters.sha, cli.parameters.msgId);
     },
 };
@@ -177,7 +179,7 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
             user: { id: cli.context.source.slack.user.id },
             ...JSON.parse(cli.parameters.fp),
         };
-        await (setFPTarget(cli.context.graphClient))(fp.name, JSON.stringify(fp))
+        await (setFPTarget(cli.context.graphClient))(fp.name, fp);
 
         return askAboutBroadcast(cli, fp.name, fp.data[1], fp.sha, cli.parameters.msgId);
     },
