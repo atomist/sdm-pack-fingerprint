@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-import { applyFingerprint, cljFunctionFingerprints, depsFingerprints, logbackFingerprints, renderClojureProjectDiff } from "../../fingerprints";
+import {
+    applyFingerprint,
+    cljFunctionFingerprints,
+    depsFingerprints,
+    logbackFingerprints,
+    renderClojureProjectDiff,
+} from "../../fingerprints";
 import { FingerprintRegistration } from "../machine/fingerprintSupport";
 
 export const Logback: FingerprintRegistration = {

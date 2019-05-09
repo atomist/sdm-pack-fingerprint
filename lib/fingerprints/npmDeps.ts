@@ -25,7 +25,10 @@ import {
     FP,
     sha256,
 } from "../..";
-import { DiffSummaryFingerprint, FingerprintRegistration } from "../machine/fingerprintSupport";
+import {
+    DiffSummaryFingerprint,
+    FingerprintRegistration,
+} from "../machine/fingerprintSupport";
 
 export function getNpmDepFingerprint(lib: string, version: string): FP {
 

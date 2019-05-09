@@ -48,7 +48,11 @@ import {
 import {
     Backpack,
 } from "../lib/fingerprints/backpack";
-import { CljFunctions, LeinMavenDeps, Logback } from "../lib/fingerprints/clojure";
+import {
+    CljFunctions,
+    LeinMavenDeps,
+    Logback,
+} from "../lib/fingerprints/clojure";
 import {
     DockerFrom,
 } from "../lib/fingerprints/dockerFrom";
