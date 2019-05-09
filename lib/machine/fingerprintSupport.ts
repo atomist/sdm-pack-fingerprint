@@ -399,9 +399,13 @@ export function fingerprintRunner(fingerprinters: FingerprintRegistration[], han
         const info: MissingInfo = await missingInfo(i);
         logger.info(`Missing Info:  ${JSON.stringify(info)}`);
 
-        const previous: Record<string, FP> = await lastFingerprints(
-            i.push.before.sha,
-            i.context.graphClient);
+        let previous: Record<string, FP> = {};
+
+        if (!!i.push.before) {
+            previous = await lastFingerprints(
+                i.push.before.sha,
+                i.context.graphClient);
+        }
         logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
         const allFps: FP[] = (await Promise.all(
