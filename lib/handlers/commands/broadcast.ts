@@ -106,7 +106,7 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudge
             const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(cli.context.graphClient))(name);
             logger.info(`findTaggedRepos(broadcastNudge)
             ${JSON.stringify(
-                data.Repo.filter(   
+                data.Repo.filter(
                     repo => repo.branches[0].commit.analysis.some(x => x.name === name)))}`);
             return data.Repo.filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name));
         },

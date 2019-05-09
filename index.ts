@@ -67,4 +67,4 @@ export {
     CljFunctions,
     LeinMavenDeps,
     Logback,
-} from "./lib/fingerprints/clojure"
+} from "./lib/fingerprints/clojure";
