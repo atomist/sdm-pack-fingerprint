@@ -18,33 +18,33 @@ import {
     GraphClient,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
+import { FP } from "../../fingerprints";
 import {
     DeleteFpTarget,
     GetFpTargets,
     SetFpTarget,
 } from "../typings/types";
-import { FP } from "../../fingerprints";
 
 /**
  * create a function that can query for a fingerprint target by name (team specific)
- * 
+ *
  * @param graphClient
  */
 export async function getFPTargets(graphClient: GraphClient): Promise<GetFpTargets.Query> {
     const query: GetFpTargets.Query = await graphClient.query<GetFpTargets.Query, GetFpTargets.Variables>(
         {
             name: "GetFpTargets",
-            options: QueryNoCacheOptions
-        }
+            options: QueryNoCacheOptions,
+        },
     );
     return query;
 }
 
 /**
  * the target fingerprint is stored as a json encoded string in the value of the TeamConfiguration
- * 
- * @param graphClient 
- * @param name 
+ *
+ * @param graphClient
+ * @param name
  */
 export async function queryPreferences(graphClient: GraphClient, name: string): Promise<FP> {
     const query: GetFpTargets.Query = await getFPTargets(graphClient);
@@ -60,21 +60,21 @@ export function setFPTarget(graphClient: GraphClient): (name: string, value: any
                 variables: {
                     name,
                     value: JSON.stringify(value),
-                }
-            }
+                },
+            },
         );
-    }
+    };
 }
 
 export function deleteFPTarget(graphClient: GraphClient): (name: string) => Promise<SetFpTarget.Mutation> {
-    return (name) => {
+    return name => {
         return graphClient.mutate<DeleteFpTarget.Mutation, DeleteFpTarget.Variables>(
             {
                 name: "DeleteFpTarget",
                 variables: {
-                    name
-                }
-            }
+                    name,
+                },
+            },
         );
-    }
+    };
 }

@@ -4,11 +4,10 @@ query FindOtherRepos($name: String!, $sha: String!) {
         owner
         branches(name: "master") @required {
             commit {
-                pushes {
-                    fingerprints {
-                        data
-                        name
-                    }
+                analysis(name: $name, sha: $sha) {
+                    data
+                    sha
+                    name
                 }
             }
         }

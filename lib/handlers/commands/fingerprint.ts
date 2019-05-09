@@ -20,7 +20,7 @@ import {
 import { CommandHandlerRegistration } from "@atomist/sdm";
 
 interface FingerprintParameters {
-    operation: string,
+    operation: string;
 }
 
 export const FingerprintEverything: CommandHandlerRegistration<FingerprintParameters> = {
@@ -42,16 +42,16 @@ export const FingerprintEverything: CommandHandlerRegistration<FingerprintParame
     listener: async i => {
         switch (i.parameters.operation) {
             case "list": {
-                //await ListFingerprints.listener(i);
+                // await ListFingerprints.listener(i);
 
                 break;
             }
             case "set": {
-                //await SelectTargetFingerprintFromCurrentProject.listener(i);
+                // await SelectTargetFingerprintFromCurrentProject.listener(i);
                 break;
             }
             case "targets": {
-                //await 
+                // await
             }
         }
         return SuccessPromise;

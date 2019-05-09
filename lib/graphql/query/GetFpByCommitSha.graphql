@@ -1,16 +1,7 @@
 query GetFPByCommitSha($sha: String!, $name: String!) {
-  AtomistFingerprint(commit: $sha, name: $name) {
+  AtomistFingerprint(commitSha: $sha, name: $name) {
     id
     sha
     data
-    push {
-      branch
-      commits {
-        repo {
-          name
-        }
-        sha
-      }
-    }
   }
 }

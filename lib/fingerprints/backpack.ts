@@ -22,6 +22,7 @@ import {
     renderData,
     sha256,
 } from "../..";
+import { FingerprintRegistration } from "../machine/fingerprintSupport";
 
 export const backpackFingerprint: ExtractFingerprint = async p => {
 
@@ -38,7 +39,7 @@ export const backpackFingerprint: ExtractFingerprint = async p => {
             name: "backpack-react-scripts",
             abbreviation: "backpack",
             version: "0.0.1",
-            data: packagejson["backpack-react-scripts"]["externals"],
+            data: packagejson["backpack-react-scripts"].externals,
             sha: sha256(JSON.stringify(data)),
         };
 
@@ -74,4 +75,10 @@ export const applyBackpackFingerprint: ApplyFingerprint = async (p, fp) => {
         logger.error(`caught error ${error}`);
         return false;
     }
+};
+
+export const Backpack: FingerprintRegistration = {
+    extract: backpackFingerprint,
+    apply: applyBackpackFingerprint,
+    selector: fp => fp.name === "backpack-react-scripts",
 };

@@ -29,7 +29,6 @@ import {
     GeneratorRegistration,
     goals,
     Goals,
-    //    GoalWithFulfillment,
     pushTest,
     PushTest,
     SoftwareDeliveryMachine,
@@ -47,28 +46,17 @@ import {
     messageMaker,
 } from "..";
 import {
-    applyFingerprint,
-    cljFunctionFingerprints,
-    depsFingerprints,
-    logbackFingerprints,
-    renderClojureProjectDiff,
-} from "../fingerprints";
-import {
-    applyBackpackFingerprint,
-    backpackFingerprint,
+    Backpack,
 } from "../lib/fingerprints/backpack";
+import { CljFunctions, LeinMavenDeps, Logback } from "../lib/fingerprints/clojure";
 import {
-    applyDockerBaseFingerprint,
-    dockerBaseFingerprint,
+    DockerFrom,
 } from "../lib/fingerprints/dockerFrom";
 import {
-    applyFileFingerprint,
-    createFileFingerprint,
+    JsonFile,
 } from "../lib/fingerprints/jsonFiles";
 import {
-    applyNpmDepsFingerprint,
-    createNpmDepsFingerprints,
-    diffNpmDepsFingerprints,
+    NpmDeps,
 } from "../lib/fingerprints/npmDeps";
 import {
     checkNpmCoordinatesImpactHandler,
@@ -122,7 +110,7 @@ const CljServiceGenerator: GeneratorRegistration = {
 
 export const FingerprintGoal = new Fingerprint();
 const FingerprintingGoals: Goals = goals("check fingerprints")
-    .plan(FingerprintGoal, //complianceGoal
+    .plan(FingerprintGoal, // complianceGoal
     );
 
 export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
@@ -151,53 +139,19 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             fingerprintGoal: FingerprintGoal,
             fingerprints:
                 [
-                    {
-                        extract: createNpmDepsFingerprints,
-                        apply: applyNpmDepsFingerprint,
-                        selector: fp => fp.name.startsWith("npm-project-dep"),
-                        summary: diffNpmDepsFingerprints,
-                    },
-                    {
-                        apply: applyDockerBaseFingerprint,
-                        extract: dockerBaseFingerprint,
-                        selector: myFp => myFp.name.startsWith("docker-base-image"),
-                    },
-                    {
-                        extract: backpackFingerprint,
-                        apply: applyBackpackFingerprint,
-                        selector: fp => fp.name === "backpack-react-scripts",
-                    },
-                    {
-                        extract: p => logbackFingerprints(p.baseDir),
-                        apply: (p, fp) => applyFingerprint(p.baseDir, fp),
-                        selector: fp => fp.name === "elk-logback",
-                    },
-                    {
-                        extract: p => depsFingerprints(p.baseDir),
-                        apply: (p, fp) => applyFingerprint(p.baseDir, fp),
-                        selector: fp => {
-                            return fp.name.startsWith("maven-project") || fp.name.startsWith("clojure-project");
-                        },
-                        summary: renderClojureProjectDiff,
-                    },
-                    {
-                        extract: p => cljFunctionFingerprints(p.baseDir),
-                        apply: (p, fp) => applyFingerprint(p.baseDir, fp),
-                        selector: fp => fp.name.startsWith("public-defn-bodies"),
-                    },
-                    {
-                        extract: createFileFingerprint(
-                            "tslint.json",
-                            "tsconfig.json"),
-                        apply: applyFileFingerprint,
-                        selector: fp => fp.name.startsWith("file-"),
-                    },
+                    NpmDeps,
+                    DockerFrom,
+                    Backpack,
+                    JsonFile,
+                    Logback,
+                    LeinMavenDeps,
+                    CljFunctions,
                 ],
             handlers: [
                 checkNpmCoordinatesImpactHandler(),
                 fingerprintImpactHandler(
                     {
-                        //complianceGoal,
+                        // complianceGoal,
                         transformPresentation: (ci, p) => {
                             // name the branch apply-target-fingerprint with a Date
                             // title can be derived from ApplyTargetParameters

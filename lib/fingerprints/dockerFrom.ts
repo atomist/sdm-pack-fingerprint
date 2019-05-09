@@ -26,6 +26,7 @@ import {
     renderData,
     sha256,
 } from "../..";
+import { FingerprintRegistration } from "../machine/fingerprintSupport";
 
 export const dockerBaseFingerprint: ExtractFingerprint = async p => {
 
@@ -79,4 +80,10 @@ export const applyDockerBaseFingerprint: ApplyFingerprint = async (p, fp) => {
         logger.error(e);
         return false;
     }
+};
+
+export const DockerFrom: FingerprintRegistration = {
+    apply: applyDockerBaseFingerprint,
+    extract: dockerBaseFingerprint,
+    selector: myFp => myFp.name.startsWith("docker-base-image"),
 };

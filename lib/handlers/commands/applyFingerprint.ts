@@ -38,18 +38,18 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
+import _ = require("lodash");
 import {
     applyFingerprint,
     FP,
 } from "../../../fingerprints/index";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
+import { queryPreferences } from "../../adhoc/preferences";
 import {
     EditModeMaker,
     FingerprintRegistration,
 } from "../../machine/fingerprintSupport";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
-import { queryPreferences } from "../../adhoc/preferences";
-import _ = require("lodash");
 
 /**
  * Call relevant apply functions from Registrations for a Fingerprint
@@ -257,8 +257,8 @@ export function broadcastFingerprintMandate(
             if (!!data.Repo) {
                 refs.push(
                     ...data.Repo
-                        .filter(repo => _.get(repo, "branches[0].commit.pushes[0].fingerprints"))
-                        .filter(repo => repo.branches[0].commit.pushes[0].fingerprints.some(x => x.name === fp.name))
+                        .filter(repo => _.get(repo, "branches[0].commit.analysis"))
+                        .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === fp.name))
                         .map(repo => {
                             return {
                                 owner: repo.owner,
@@ -266,8 +266,8 @@ export function broadcastFingerprintMandate(
                                 url: "url",
                                 branch: "master",
                             };
-                        }
-                        )
+                        },
+                        ),
                 );
             }
 

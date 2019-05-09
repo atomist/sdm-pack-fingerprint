@@ -66,7 +66,7 @@ export class SetTargetFingerprintFromLatestMasterParameters {
     @Parameter({ required: false })
     public branch: string;
 
-    @Parameter({ required: false, displayable: false, })
+    @Parameter({ required: false, displayable: false })
     public msgId?: string;
 }
 
@@ -89,10 +89,10 @@ export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<Se
             variables: {
                 owner: cli.parameters.owner,
                 repo: cli.parameters.repo,
-                branch
-            }
-        })
-        const fp: GetFpByBranch.Fingerprints = query.Repo[0].branches[0].commit.pushes[0].fingerprints.find(x => x.name === cli.parameters.fingerprint);
+                branch,
+            },
+        });
+        const fp: GetFpByBranch.Analysis = query.Repo[0].branches[0].commit.analysis.find(x => x.name === cli.parameters.fingerprint);
         logger.info(`found sha ${fp.sha}`);
         fp.data = JSON.parse(fp.data);
 
@@ -135,10 +135,10 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
                 options: QueryNoCacheOptions,
                 name: "GetFpBySha",
                 variables: {
-                    sha: cli.parameters.sha
-                }
-            }
-        )
+                    sha: cli.parameters.sha,
+                },
+            },
+        );
         const fp: GetFpBySha.AtomistFingerprint = query.AtomistFingerprint[0];
         fp.data = JSON.parse(fp.data);
         logger.info(`update target to ${JSON.stringify(fp)}`);
@@ -148,7 +148,7 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
             sha: fp.sha,
             version: "1.0",
             abbreviation: "abbreviation",
-        }
+        };
 
         await (setFPTarget(cli.context.graphClient))(cli.parameters.name, fingerprint);
         return askAboutBroadcast(cli, cli.parameters.name, "version", cli.parameters.sha, cli.parameters.msgId);
@@ -161,7 +161,7 @@ export class SetTargetFingerprintParameters {
     @Parameter({ required: true, displayable: false, control: "textarea", pattern: /.*/ })
     public fp: string;
 
-    @Parameter({ required: false, displayable: false, })
+    @Parameter({ required: false, displayable: false })
     public msgId?: string;
 }
 
@@ -189,7 +189,7 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
 export class DeleteTargetFingerprintParameters {
     @Parameter({ required: true })
     public name: string;
-    @Parameter({ required: false, displayable: false, })
+    @Parameter({ required: false, displayable: false })
     public msgId: string;
 }
 
@@ -199,19 +199,19 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
     description: "remove the team target for a particular fingerprint",
     paramsMaker: DeleteTargetFingerprintParameters,
     listener: async cli => {
-        return await (deleteFPTarget(cli.context.graphClient))(cli.parameters.name)
+        return (deleteFPTarget(cli.context.graphClient))(cli.parameters.name)
             .then(result => {
                 return {
                     code: 0,
-                    message: `successfully deleted ${cli.parameters.name}`
-                }
+                    message: `successfully deleted ${cli.parameters.name}`,
+                };
             })
             .catch(error => {
                 logger.error(error);
                 return {
                     code: 1,
-                    message: `failed to delete target`
-                }
+                    message: `failed to delete target`,
+                };
             });
     },
 };
@@ -219,14 +219,14 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
 /**
  * Used in other diff handlers to maybe choose to set a new target because one of them has changed
  * (assumed to be a new message - not updating anything)
- * 
- * @param ctx 
- * @param fp 
- * @param channel 
+ *
+ * @param ctx
+ * @param fp
+ * @param channel
  */
 export async function setNewTargetFingerprint(ctx: HandlerContext,
-    fp: FP,
-    channel: string): Promise<Vote> {
+                                              fp: FP,
+                                              channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {
@@ -268,7 +268,7 @@ export class SelectTargetFingerprintFromCurrentProjectParameters {
     @Parameter({ required: false, description: "pull fingerprints from a branch ref" })
     public branch: string;
 
-    @Parameter({ required: false, displayable: false, })
+    @Parameter({ required: false, displayable: false })
     public msgId: string;
 }
 
@@ -293,7 +293,7 @@ export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistrati
         // this has got to be wrong.  ugh
         const branch: string = cli.parameters.branch || "master";
 
-        const fps: GetAllFpsOnSha.Fingerprints[] = await queryFingerprintsByBranchRef(cli.context.graphClient)(
+        const fps: GetAllFpsOnSha.Analysis[] = await queryFingerprintsByBranchRef(cli.context.graphClient)(
             cli.parameters.repo,
             cli.parameters.owner,
             branch);

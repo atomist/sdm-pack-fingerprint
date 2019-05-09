@@ -25,7 +25,7 @@ import {
     FP,
     sha256,
 } from "../..";
-import { DiffSummaryFingerprint } from "../machine/fingerprintSupport";
+import { DiffSummaryFingerprint, FingerprintRegistration } from "../machine/fingerprintSupport";
 
 export function getNpmDepFingerprint(lib: string, version: string): FP {
 
@@ -101,4 +101,11 @@ export const diffNpmDepsFingerprints: DiffSummaryFingerprint = (diff, target) =>
         description:
             `Target version for library *${diff.from.data[0]}* is *${target.data[1]}*.\nCurrently *${diff.from.data[1]}* in *${diff.owner}/${diff.repo}*`,
     };
+};
+
+export const NpmDeps: FingerprintRegistration = {
+    extract: createNpmDepsFingerprints,
+    apply: applyNpmDepsFingerprint,
+    selector: fp => fp.name.startsWith("npm-project-dep"),
+    summary: diffNpmDepsFingerprints,
 };

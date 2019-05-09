@@ -36,6 +36,7 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
+import { PushFields } from "@atomist/sdm-core/lib/typings/types";
 import _ = require("lodash");
 import {
     Diff,
@@ -79,7 +80,6 @@ import {
     SetTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
-import { PushFields } from "@atomist/sdm-core/lib/typings/types";
 import {
     GetAllFpsOnSha,
     GetPushDetails,
@@ -263,27 +263,32 @@ export function simpleImpactHandler(
     };
 }
 
-function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, fingerprint: any): void {
+async function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, fingerprint: any): Promise<void> {
 
     const customFPEvent = addressEvent("AtomistFingerprint");
 
     const event: any = {
         ...fingerprint,
         data: JSON.stringify(fingerprint.data),
-        branch: push.branch,
-        commit: push.after.sha,
-    }
+        commitSha: push.after.sha,
+    };
 
     try {
-        client.send(event, customFPEvent);
+        await client.send(event, customFPEvent);
     } catch (e) {
         logger.error(`unable to send AtomistFingerprint ${JSON.stringify(fingerprint)}`);
     }
 }
 
-interface MissingInfo { providerId: string, channel: string };
+interface MissingInfo { providerId: string; channel: string; }
 
-async function handleDiffs(fp: FP, previous: FP, info: MissingInfo, handlers: FingerprintHandler[], i: PushImpactListenerInvocation): Promise<Vote[]> {
+async function handleDiffs(
+    fp: FP,
+    previous: FP,
+    info: MissingInfo,
+    handlers: FingerprintHandler[],
+    i: PushImpactListenerInvocation): Promise<Vote[]> {
+
     const diff: Diff = {
         ...info,
         from: previous,
@@ -294,18 +299,18 @@ async function handleDiffs(fp: FP, previous: FP, info: MissingInfo, handlers: Fi
         sha: i.push.after.sha,
         data: {
             from: [],
-            to: []
-        }
+            to: [],
+        },
     };
     let diffVotes: Vote[] = new Array<Vote>();
-    if (previous && fp.sha != previous.sha) {
+    if (previous && fp.sha !== previous.sha) {
         diffVotes = await Promise.all(
             handlers
                 .filter(h => h.diffHandler)
                 .filter(h => h.selector(fp))
                 .map(h => h.diffHandler(i.context, diff)));
     }
-    const votes: Vote[] = await Promise.all(
+    const currentVotes: Vote[] = await Promise.all(
         handlers
             .filter(h => h.handler)
             .filter(h => h.selector(fp))
@@ -313,7 +318,7 @@ async function handleDiffs(fp: FP, previous: FP, info: MissingInfo, handlers: Fi
 
     return [].concat(
         diffVotes,
-        votes
+        currentVotes,
     );
 }
 
@@ -325,18 +330,18 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
             options: QueryNoCacheOptions,
             variables: {
                 sha,
-            }
-        }
+            },
+        },
     );
-    return results.Commit[0].pushes[0].fingerprints.reduce(
-        (record: Record<string, FP>, fp: GetAllFpsOnSha.Fingerprints) => {
+    return results.Commit[0].analysis.reduce<Record<string, FP>>(
+        (record: Record<string, FP>, fp: GetAllFpsOnSha.Analysis) => {
             if (fp.name) {
                 record[fp.name] = {
                     sha: fp.sha,
                     data: JSON.parse(fp.data),
                     name: fp.name,
                     version: "1.0",
-                    abbreviation: "abbrev"
+                    abbreviation: "abbrev",
                 };
             }
             return record;
@@ -344,13 +349,13 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
         {});
 }
 
-async function tallyVotes(votes: Vote[], handlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo) {
+async function tallyVotes(vts: Vote[], handlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo): Promise<void> {
     await Promise.all(
         handlers.map(async h => {
             if (h.ballot) {
                 await h.ballot(
                     i.context,
-                    votes,
+                    vts,
                     {
                         owner: i.push.repo.owner,
                         repo: i.push.repo.name,
@@ -361,8 +366,8 @@ async function tallyVotes(votes: Vote[], handlers: FingerprintHandler[], i: Push
                     info.channel,
                 );
             }
-        }
-        )
+        },
+        ),
     );
 }
 
@@ -373,11 +378,11 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
             options: QueryNoCacheOptions,
             variables: {
                 id: i.push.id,
-            }
+            },
         });
     return {
         providerId: results.Push[0].repo.org.scmProvider.providerId,
-        channel: results.Push[0].repo.channels[0].name
+        channel: results.Push[0].repo.channels[0].name,
     };
 }
 
@@ -399,10 +404,10 @@ export function fingerprintRunner(fingerprinters: FingerprintRegistration[], han
             i.context.graphClient);
         logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
-        const fps: FP[] = (await Promise.all(
+        const allFps: FP[] = (await Promise.all(
             fingerprinters.map(
-                x => x.extract(p)
-            )
+                x => x.extract(p),
+            ),
         )).reduce<FP[]>(
             (acc, fps) => {
                 if (fps && !(fps instanceof Array)) {
@@ -413,30 +418,30 @@ export function fingerprintRunner(fingerprinters: FingerprintRegistration[], han
                     return acc.concat(fps);
                 } else {
                     logger.warn(`extractor returned something weird ${JSON.stringify(fps)}`);
-                    return acc
+                    return acc;
                 }
             },
-            []
-        )
-
-        logger.debug(renderData(fps));
-
-        fps.forEach(
-            fp => {
-                sendCustomEvent(i.context.messageClient, i.push, fp);
-            }
+            [],
         );
 
-        const votes: Vote[] = (await Promise.all(
-            fps.map(fp => handleDiffs(fp, previous[fp.name], info, handlers, i))
+        logger.debug(renderData(allFps));
+
+        allFps.forEach(
+            async fp => {
+                await sendCustomEvent(i.context.messageClient, i.push, fp);
+            },
+        );
+
+        const allVotes: Vote[] = (await Promise.all(
+            allFps.map(fp => handleDiffs(fp, previous[fp.name], info, handlers, i)),
         )).reduce<Vote[]>(
-            (acc, votes) => { return acc.concat(votes); },
-            []
+            (acc, vts) => acc.concat(vts),
+            [],
         );
-        logger.debug(`Votes:  ${renderData(votes)}`)
-        tallyVotes(votes, handlers, i, info);
+        logger.debug(`Votes:  ${renderData(allVotes)}`);
+        await tallyVotes(allVotes, handlers, i, info);
 
-        return fps;
+        return allFps;
     };
 }
 
@@ -485,8 +490,8 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
-    handlers: RegisterFingerprintImpactHandler[],
-    fpRegistraitons: FingerprintRegistration[]): void {
+                   handlers: RegisterFingerprintImpactHandler[],
+                   fpRegistraitons: FingerprintRegistration[]): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);

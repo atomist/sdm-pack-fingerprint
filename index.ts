@@ -50,13 +50,21 @@ export {
 export {
     applyDockerBaseFingerprint,
     dockerBaseFingerprint,
+    DockerFrom,
 } from "./lib/fingerprints/dockerFrom";
 export {
     diffNpmDepsFingerprints,
     applyNpmDepsFingerprint,
     createNpmDepsFingerprints,
+    NpmDeps,
 } from "./lib/fingerprints/npmDeps";
 export {
     backpackFingerprint,
     applyBackpackFingerprint,
+    Backpack,
 } from "./lib/fingerprints/backpack";
+export {
+    CljFunctions,
+    LeinMavenDeps,
+    Logback,
+} from "./lib/fingerprints/clojure"

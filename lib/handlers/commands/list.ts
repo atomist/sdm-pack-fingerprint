@@ -72,13 +72,13 @@ export const ListFingerprint: CommandHandlerRegistration<ListOneFingerprintParam
     paramsMaker: ListOneFingerprintParameters,
     listener: async cli => {
 
-        const fps: GetAllFpsOnSha.Fingerprints[] = await queryFingerprintsByBranchRef(cli.context.graphClient)(
+        const fps: GetAllFpsOnSha.Analysis[] = await queryFingerprintsByBranchRef(cli.context.graphClient)(
             cli.parameters.repo,
             cli.parameters.owner,
             cli.parameters.branch,
         );
 
-        const fingerprint: GetAllFpsOnSha.Fingerprints = fps.find(x => x.name === cli.parameters.fingerprint);
+        const fingerprint: GetAllFpsOnSha.Analysis = fps.find(x => x.name === cli.parameters.fingerprint);
 
         fingerprint.data = JSON.parse(fingerprint.data);
 
@@ -110,7 +110,7 @@ export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParamet
         // this has got to be wrong.  ugh
         const branch: string = cli.parameters.branch || "master";
 
-        const fps: GetAllFpsOnSha.Fingerprints[] = await queryFingerprintsByBranchRef(cli.context.graphClient)(
+        const fps: GetAllFpsOnSha.Analysis[] = await queryFingerprintsByBranchRef(cli.context.graphClient)(
             cli.parameters.repo,
             cli.parameters.owner,
             branch);

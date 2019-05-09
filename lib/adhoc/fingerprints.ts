@@ -35,7 +35,7 @@ export function findTaggedRepos(graphClient: GraphClient): (name: string) => Pro
 }
 
 export function queryFingerprintsByBranchRef(graphClient: GraphClient):
-    (repo: string, owner: string, branch: string) => Promise<GetFpByBranch.Fingerprints[]> {
+    (repo: string, owner: string, branch: string) => Promise<GetFpByBranch.Analysis[]> {
 
     return async (repo, owner, branch) => {
         const query: GetFpByBranch.Query = await graphClient.query<GetFpByBranch.Query, GetFpByBranch.Variables>({
@@ -45,8 +45,8 @@ export function queryFingerprintsByBranchRef(graphClient: GraphClient):
                 owner,
                 repo,
                 branch,
-            }
+            },
         });
-        return query.Repo[0].branches[0].commit.pushes[0].fingerprints;
+        return query.Repo[0].branches[0].commit.analysis;
     };
 }

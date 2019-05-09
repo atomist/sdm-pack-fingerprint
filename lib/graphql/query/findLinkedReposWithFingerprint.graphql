@@ -9,11 +9,9 @@ query FindLinkedReposWithFingerprint {
         branches(name: "master") @required {
             name
             commit {
-                pushes {
-                    fingerprints {
-                        data
-                        name
-                    }
+                analysis {
+                    data
+                    name
                 }
             }            
         }

@@ -2,13 +2,11 @@ query GetFpByBranch($owner: String!, $repo: String!, $branch: String!){
   Repo(owner: $owner, name: $repo) { 
     branches(name: $branch) {
       commit {
-        pushes {
-          fingerprints {
-            id
-            name
-            sha
-            data
-          }
+        analysis {
+          id
+          name
+          sha
+          data
         }
       }
     }
