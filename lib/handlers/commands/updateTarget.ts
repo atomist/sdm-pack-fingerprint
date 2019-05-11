@@ -48,6 +48,7 @@ import {
     GetFpBySha,
 } from "../../typings/types";
 import { askAboutBroadcast } from "./broadcast";
+import _ = require("lodash");
 
 @Parameters()
 export class SetTargetFingerprintFromLatestMasterParameters {
@@ -225,12 +226,12 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
  * @param channel
  */
 export async function setNewTargetFingerprint(ctx: HandlerContext,
-                                              fp: FP,
-                                              channel: string): Promise<Vote> {
+    fp: FP,
+    channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {
-                text: `Shall we update the target version of \`${fp.name}\` for all projects?`,
+                text: `Shall we update the target version of \`${fp.name}\` to \`${_.get(fp.data, "[1]")}\` for all projects?`,
                 fallback: "none",
                 actions: [
                     actionableButton<any>(

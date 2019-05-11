@@ -31,6 +31,7 @@ import {
     SlackMessage,
     user,
 } from "@atomist/slack-messages";
+import _ = require("lodash");
 import { broadcastFingerprint } from "../../../fingerprints";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
@@ -40,10 +41,10 @@ import {
 } from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
-                                  name: string,
-                                  version: string,
-                                  sha: string,
-                                  msgId: string): Promise<void> {
+    name: string,
+    version: string,
+    sha: string,
+    msgId: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
 
     // always create a new message
@@ -106,9 +107,12 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudge
             const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(cli.context.graphClient))(name);
             logger.info(`findTaggedRepos(broadcastNudge)
             ${JSON.stringify(
-                data.Repo.filter(
-                    repo => repo.branches[0].commit.analysis.some(x => x.name === name)))}`);
-            return data.Repo.filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name));
+                data.Repo
+                    .filter(repo => _.get(repo, "branches[0].commit.analysis"))
+                    .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name)))}`);
+            return data.Repo
+                .filter(repo => _.get(repo, "branches[0].commit.analysis"))
+                .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name));
         },
         {
             name: cli.parameters.name,

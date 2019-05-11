@@ -42,7 +42,7 @@
                                    :target :nodejs
                                    :output-to "fingerprints/main.js"
                                    :output-dir "out"
-                                   :foreign-libs [{:file "logger.js"
+                                   :foreign-libs [{:file "src/logger.js"
                                                    :provides ["logger"]}]
                                    :npm-deps {:xml-js "1.6.7"
                                               :semver "5.5.0"}

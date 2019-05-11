@@ -9,7 +9,7 @@
             [cljs.test :refer-macros [deftest testing is run-tests async] :refer [report testing-vars-str empty-env get-current-env]]
             [goog.string :as gstring]
             [goog.string.format]
-            [atomist.goals :refer [broadcast check-fingerprint-goals]]))
+            [atomist.goals :refer [broadcast-fingerprint check-fingerprint-goals]]))
 
 (defn success-promise [m]
   (js/Promise. (fn [resolve] (resolve (clj->js m)))))
@@ -24,7 +24,7 @@
       (go
        (done
         (is (= []
-               (<! (broadcast
+               (<! (broadcast-fingerprint
                     (fn [fp-name]
                       (is (= "npm-project-deps" fp-name))
                       (js/Promise.
@@ -53,7 +53,7 @@
         (go
          (done
           (is (= [{:done "slimslendernpm-testnpm-test"}]
-                 (<! (broadcast
+                 (<! (broadcast-fingerprint
                       (fn [fp-name]
                         (is (= "npm-project-deps" fp-name))
                         (js/Promise.

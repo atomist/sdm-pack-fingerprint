@@ -33,7 +33,7 @@
    (let [graph-data (<! (from-promise (graph-promise fp-name)))
          owner-name-channels
          (->>
-          (for [repo (:Repo graph-data)]
+          (for [repo graph-data]
             (let [{:keys [name owner channels branches]} repo
                   channel (-> channels first :name)
                   fingerprint-sha (->> branches
@@ -47,52 +47,7 @@
                 (log/info (gstring/format "found identical version of %s in %s" fp-name name))
                 {:owner owner :name name :channel channel})))
           (filter identity))]
-     (log/info "need to send to callbacks " owner-name-channels)
-     (let [callback-return-values
-           (<! (->> (for [{:keys [owner name channel]} owner-name-channels]
-                      (promise/from-promise (callback owner name channel)))
-                    (async/merge)
-                    (async/reduce conj [])))]
-       (log/info "callback returns" callback-return-values)
-       callback-return-values))))
-
-(defn broadcast
-  "use fingerprints to scan for projects that could be impacted by this new lib version
-   fire callbacks for all projects consuming a library when a new library target is set
-
-   params
-     complete-callback - zero-arg callback which fulfills a Promise
-     graph-promise - get repos with a particular fingerprint
-     target-library - here's the target library that projects might want to use
-     callback - this is the callback to use when we find a project to notify
-
-   returns channel with result
-     but the complete-callback might complete the outside promise chain and should be the last thing called"
-  [graph-promise {:keys [name version fp]} callback]
-  (go
-   (let [fp-name fp
-         graph-data (<! (from-promise (graph-promise fp-name)))
-         lib-name name
-         owner-name-channels
-         (->>
-          (for [repo (:Repo graph-data)]
-            (let [{:keys [name owner channels branches]} repo
-                  channel (-> channels first :name)
-                  fingerprint-data (->> branches
-                                        first
-                                        :commit
-                                        :analysis
-                                        (filter #(= fp-name (:name %)))
-                                        first
-                                        :data
-                                        (json/json->clj)
-                                        (into {}))]
-              (if-let [v (get fingerprint-data lib-name)]
-                (if-not (= version v)
-                  {:owner owner :name name :channel channel}
-                  (log/info (gstring/format "found identical version of %s in" name)))
-                (log/info (gstring/format "fingerprint data for %s/%s does not contain library %s" owner name lib-name)))))
-          (filter identity))]
+     (log/info "need to send for " graph-data)
      (log/info "need to send to callbacks " owner-name-channels)
      (let [callback-return-values
            (<! (->> (for [{:keys [owner name channel]} owner-name-channels]
