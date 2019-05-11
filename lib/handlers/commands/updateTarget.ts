@@ -31,6 +31,7 @@ import {
     slackFooter,
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
+import _ = require("lodash");
 import {
     FP,
     Vote,
@@ -48,7 +49,6 @@ import {
     GetFpBySha,
 } from "../../typings/types";
 import { askAboutBroadcast } from "./broadcast";
-import _ = require("lodash");
 
 @Parameters()
 export class SetTargetFingerprintFromLatestMasterParameters {
@@ -226,8 +226,8 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
  * @param channel
  */
 export async function setNewTargetFingerprint(ctx: HandlerContext,
-    fp: FP,
-    channel: string): Promise<Vote> {
+                                              fp: FP,
+                                              channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {
