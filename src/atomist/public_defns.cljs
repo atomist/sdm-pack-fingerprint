@@ -15,28 +15,57 @@
             [atomist.json :as json]
             [goog.string :as gstring]
             [goog.string.format]
-            [cljs.spec.alpha :as spec]))
+            [cljs.spec.alpha :as spec]
+            [rewrite-clj.node :as node]
+            [rewrite-clj.parser.string]
+            [rewrite-clj.node]))
+
+(defn parse-regex
+  "patch the parse-regex function in rewrite-cljs because cljs regular expression parsers are way more strict
+   than the java one"
+  [^not-native reader]
+  (let [lines (#'rewrite-clj.parser.string/read-string-data reader)
+        regex (clojure.string/join "\n" lines)]
+    (try
+      (rewrite-clj.node/token-node (re-pattern regex) (str "#\"" regex "\""))
+      (catch :default ex
+        (log/warn ex)
+        (rewrite-clj.node/token-node (str "#\"" regex "\"") (str "#\"" regex "\""))))))
 
 (defn- generate-sig
   "  params
         clj-path relative-path (string)
         dufn zloc of defn list form
-        coll of zlocs occurring to the right of a 'defn symbol in a list"
+        coll of zlocs occurring to the right of a 'defn symbol in a list
+     returns
+       nil on failure or "
   [clj-path dufn coll]
   ;; even if the symbol has metadata, the z/sexpr will remove the metadata and just leave the symbol
-  (let [fn-name (->> coll
-                     (drop 1)
-                     first
-                     z/sexpr)]
+  (let [fn-name-sexpr (->> coll
+                           (drop 1)
+                           first
+                           z/sexpr)]
+    (try
+      {:ns-name (-> clj-path
+                    (fs/normalize-path)
+                    (str/split #"\.")
+                    first)
 
-    {:ns-name (-> clj-path
-                  (fs/normalize-path)
-                  (str/split #"\.")
-                  first)
-     :filename clj-path
-     :fn-name (name fn-name)
-     :bodies (z/string dufn)
-     :zloc dufn}))
+       :filename clj-path
+
+       ;; should follow the rules fo symbol naming but this can break in macros
+       :fn-name (name fn-name-sexpr)
+
+       ;; get the node at this zloc and use the string function from the node protocols
+       :bodies (z/string dufn)
+
+       ;; hold on to the zloc for now but remove it before trying to print this
+       :zloc dufn}
+      (catch :default ex
+        ;; one failure scenario occurs when the first sexpr following defn is not a symbol!
+        ;; we are skipping these defns
+        (log/warn ex)
+        nil))))
 
 (defn- public-sig
   "collect zlocs to the right and including the zloc param
@@ -69,7 +98,7 @@
   (= :list (-> zloc z/up z/node n/tag)))
 
 (defn fingerprint-metadata?
-  ""
+  "true if the node to the right of the zloc is symbol metadata containing :fingerprint"
   [zloc]
   (let [symbol-loc (-> zloc z/right)]
     (and
@@ -90,20 +119,9 @@
        (take-while (complement m/end?))
        (filter (is-sym 'defn))
        (filter start-of-list?)
-       (filter fingerprint-metadata?)
-       (map (partial public-sig clj-path))))
-
-(defn find-all-named-fn-symbols-with-fingerprint-metadata
-  "  params
-       f - string path to file"
-  [f]
-  (->> (z/of-string (io/slurp f))
-       (iterate z/next)
-       (take-while identity)
-       (take-while (complement m/end?))
-       (filter (is-sym 'defn))
-       (filter start-of-list?)
-       (filter fingerprint-metadata?)))
+       #_(filter fingerprint-metadata?)
+       (map (partial public-sig clj-path))
+       (filter identity)))
 
 (defn all-clj-files
   "return seq of strings normalized by path module (resolves .. and .)"
@@ -117,52 +135,37 @@
        (map #(try
                [(fs/normalize-path %) (z/of-string (io/slurp %))]
                (catch :default t
-                 (log/warn (.-message t))
-                 (log/warn "normalizing clj-path " %))))
+                 (log/warn (.-stack t)))))
        (filter identity)
        (map (fn [[clj-path zipper]]
               (try
                 [(.relative fs/path (fs/normalize-path dir) clj-path) zipper]
-                (catch :default t (log/warn "clj-path " clj-path)))))
+                (catch :default t
+                  (log/warn "clj-path " clj-path)))))
        (filter identity)
        (mapcat find-public-sigs)))
 
-(defn map-vec-zipper [m]
-  (clojure.zip/zipper
-   (fn [x] (or (map? x) (sequential? x)))
-   seq
-   (fn [p xs]
-     (if (vector? (type p))
-       (into [] xs)
-       (into (empty p) xs)))
-   m))
-
-(defn drop-nth
-  "drop the nth member of this collection"
-  [n coll]
-  (->> coll
-       (map vector (iterate inc 1))
-       (remove #(zero? (mod (first %) n)))
-       (map second)))
-
-(defn consistentHash [edn]
+(defn- consistentHash [edn]
   (.toString (hasch/uuid5 (hasch/edn-hash (js->clj edn)))))
 
-(defn sha
+(defn- sha
   "Consistent hash of a function str
    return string"
   [somefn]
   (let [ast (z/root (z/of-string somefn))]
     (consistentHash (protocols/string ast))))
 
-(defn- fingerprints [f]
+(defn- fingerprints
+  "extract fingerprints from one .clj file
+     returns "
+  [f]
   (try
     (->>
      (for [dufn (all-defns f) :when (:fn-name dufn)]
        (try
          {:name (gstring/format "public-defn-bodies-%s" (:fn-name dufn))
           :sha (sha (:bodies dufn))
-          :version "0.0.4"
+          :version "0.0.5"
           :abbreviation "defn-bodies"
           :data (dissoc dufn :zloc)}
          (catch :default t
@@ -179,9 +182,11 @@
   (js/Promise.
    (fn [accept reject]
      (->>
-      (fingerprints f)
+      (with-redefs [rewrite-clj.parser.string/parse-regex parse-regex]
+        (fingerprints f))
       (clj->js)
       (accept)))))
+(spec/fdef fingerprint :args (spec/cat :dir string?))
 
 (defn- replace-fn
   "Replace a function in file/zipper
@@ -225,44 +230,31 @@
 
 (comment
 
- (spit "resources/atomist-fingerprint-automation.edn"
-       (str
-        {:name "@atomist/atomist-fingerprint-automation"
-         :version "1.0.0"
-         :policy {:name "durable"}
-         :groups ["all"]
-         :metadata {:labels {:atomist-static true}}
-         :ingesters [(slurp "lib/graphql/ingester/fingerprint.graphql")]}))
+ ;; working on this to fix shas
+ (->> (z/of-string "(defn crap [] \"crap\")")
+      (iterate z/next)
+      (take-while identity)
+      (take-while (complement m/end?))
+      (map #(str (protocols/tag (z/node %)) " " (z/node %)))
+      (cljs.pprint/pprint))
 
- (cljs.pprint/pprint (cljs.reader/read-string (slurp "resources/atomist-fingerprint-automation.edn")))
- (println (:ingesters (cljs.reader/read-string (slurp "resources/atomist-fingerprint-automation.edn"))))
+ ;; fix up the shas
+ (cljs.pprint/pprint
+  (with-redefs [rewrite-clj.parser.string/parse-regex parse-regex]
+               (try
+                 (->> (fingerprints "test-resources/cljs"))
+                 (catch :default ex
+                   (log/error (.-stack ex))))))
 
- (cljs.pprint/pprint (->> (all-defns "/Users/slim/atomist/slimslender/clj1")
-                          (map #(dissoc % :zloc))))
+ (for [p ["pochta" "chatops-service" "bot-service" "neo4j-ingester" "org-service" "incoming-webhooks" "automation-api"]
+         :let [project (str "/Users/slim/atomist/atomisthq/" p)]]
+   [project (count (fingerprints project))])
 
  (apply-fingerprint "/Users/slim/atomist/slimslender/clj1" {:data {:filename "src/shared.clj"
                                                                    :fn-name "thing1"
                                                                    :bodies "(defn ^:fingerprint thing1 [] 8)"
                                                                    :ns-name "shared"}})
 
- (log/info "crap")
-
- (def f "/Users/slim/atomist/atomisthq/bot-service")
- (def f "/Users/slim/repo/clj1")
-
- (for [dufn (all-defns f) :when (:fn-name dufn)]
-   (try
-     (cljs.pprint/pprint dufn)
-     (catch :default t
-       (log/errorf t "taking sha of %s body %s" (:filename dufn) (:bodies dufn)))))
-
- (-> (z/of-string "(defn hey [] (#(println %) \"x\"))")
-     (z/root)
-     (protocols/sexpr))
-
- (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/thing.clj")
- (find-all-named-fn-symbols-with-fingerprint-metadata "/Users/slim/repo/clj1/src/clj1/handler.clj")
-
- (cljs.pprint/pprint (fingerprints "/Users/slim/repo/clj1")))
+ )
 
 
