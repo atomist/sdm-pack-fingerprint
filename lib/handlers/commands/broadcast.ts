@@ -41,10 +41,10 @@ import {
 } from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
-    name: string,
-    version: string,
-    sha: string,
-    msgId: string): Promise<void> {
+                                  name: string,
+                                  version: string,
+                                  sha: string,
+                                  msgId: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
 
     // always create a new message
