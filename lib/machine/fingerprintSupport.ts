@@ -158,7 +158,7 @@ export interface FingerprintRegistration<FPI extends FP = FP> {
     /**
      * Is this registration able to manage this fingerprint instance?
      */
-    selector: (fingerprint: FPI) => boolean;
+    selector?: (fingerprint: FPI) => boolean;
 
     /**
      * Is this registration relevant to this project? For example, if
@@ -184,10 +184,14 @@ export interface FingerprintRegistration<FPI extends FP = FP> {
     /**
      * To a human readable string. Must be unique
      */
-    toReadableString(fpi: FPI): string;
+    toDisplayableString(fpi: FPI): string;
 
 }
 
+/**
+ * Implemented by types that know how to compare two fingerprints,
+ * for example by quality or up-to-dateness
+ */
 export interface FingerprintComparator<FPI extends FP = FP> {
     readonly name: string;
     comparator: (a: FPI, b: FPI) => number;
@@ -198,21 +202,6 @@ export interface FingerprintComparator<FPI extends FP = FP> {
  * to configure the sdm, and they'll need all of the current active FingerprintRegistrations.
  */
 export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => FingerprintHandler;
-
-/**
- * convenient function to register a create a FingerprintRegistration
- *
- * @param name name of the new Fingerprint
- * @param extract function to extract the Fingerprint from a cloned code base
- * @param apply function to apply an external Fingerprint to a cloned code base
- */
-export function register(name: string, extract: ExtractFingerprint, apply?: ApplyFingerprint): FingerprintRegistration {
-    return {
-        selector: (fp: FP) => (fp.name === name),
-        extract,
-        apply,
-    };
-}
 
 function checkScope(fp: FP, registrations: FingerprintRegistration[]): boolean {
     const inScope: boolean = _.some(registrations, reg => reg.selector(fp));

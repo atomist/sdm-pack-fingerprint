@@ -54,12 +54,10 @@ export const backpackFingerprint: ExtractFingerprint = async p => {
 };
 
 export const applyBackpackFingerprint: ApplyFingerprint = async (p, fp) => {
-
-    logger.info(`apply ${renderData(fp)} to ${p.baseDir}`);
+    logger.info(`Apply ${renderData(fp)} to project at ${p.id.url}`);
 
     try {
         if (await p.hasFile("package.json")) {
-
             const file = await p.getFile("package.json");
             const packagejson = JSON.parse(await file.getContent());
 
@@ -81,4 +79,5 @@ export const Backpack: FingerprintRegistration = {
     extract: backpackFingerprint,
     apply: applyBackpackFingerprint,
     selector: fp => fp.name === "backpack-react-scripts",
+    toDisplayableString: fp => fp.name,
 };

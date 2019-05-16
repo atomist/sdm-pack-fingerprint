@@ -58,7 +58,7 @@ export const dockerBaseFingerprint: ExtractFingerprint = async p => {
 };
 
 export const applyDockerBaseFingerprint: ApplyFingerprint = async (p, fp) => {
-    logger.info(`apply ${renderData(fp)} to ${p.baseDir}`);
+    logger.info(`apply ${renderData(fp)} to ${p.id.url}`);
 
     interface DockerFP {
         name: string;
@@ -86,4 +86,5 @@ export const DockerFrom: FingerprintRegistration = {
     apply: applyDockerBaseFingerprint,
     extract: dockerBaseFingerprint,
     selector: myFp => myFp.name.startsWith("docker-base-image"),
+    toDisplayableString: fp => fp.name,
 };

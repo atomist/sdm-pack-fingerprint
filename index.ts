@@ -22,7 +22,6 @@ export {
     FingerprintImpactHandlerConfig,
     ApplyFingerprint,
     ExtractFingerprint,
-    register,
     checkNpmCoordinatesImpactHandler,
     fingerprintRunner,
     runFingerprints,
