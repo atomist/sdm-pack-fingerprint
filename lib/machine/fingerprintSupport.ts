@@ -17,7 +17,6 @@
 import {
     addressEvent,
     editModes,
-    GitProject,
     GraphClient,
     HandlerContext,
     logger,
@@ -105,8 +104,16 @@ export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactLis
 }
 
 type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
-export type ExtractFingerprint = (p: GitProject) => Promise<FP | FP[]>;
-export type ApplyFingerprint = (p: GitProject, fp: FP) => Promise<boolean>;
+
+/**
+ * Extract fingerprint(s) from the given project
+ */
+export type ExtractFingerprint = (p: Project) => Promise<FP | FP[]>;
+
+/**
+ * Apply the given fingerprint to the project
+ */
+export type ApplyFingerprint = (p: Project, fp: FP) => Promise<boolean>;
 
 export interface DiffSummary {
     title: string;
@@ -116,7 +123,7 @@ export interface DiffSummary {
 export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
 
 /**
- * different strategies can be used to handle PushImpactEventHandlers.
+ * Different strategies can be used to handle PushImpactEventHandlers.
  */
 export interface FingerprintHandler {
     selector: (name: FP) => boolean;
@@ -142,12 +149,25 @@ export interface FingerprintImpactHandlerConfig {
 }
 
 /**
- * each new class of Fingerprints must implement this interface and pass the
+ * Each new class of Fingerprints must implement this interface
  */
 export interface FingerprintRegistration {
-    selector: (name: FP) => boolean;
+
+    /**
+     * Is this registration able to manage this fingerprint instance?
+     */
+    selector: (fingerprint: FP) => boolean;
+
+    /**
+     * Function to extract fingerprint(s) from this project
+     */
     extract: ExtractFingerprint;
+
+    /**
+     * Function to apply the given fingerprint instance to a project
+     */
     apply?: ApplyFingerprint;
+
     summary?: DiffSummaryFingerprint;
 }
 
@@ -394,7 +414,7 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
 export function fingerprintRunner(fingerprinters: FingerprintRegistration[], handlers: FingerprintHandler[]): FingerprintRunner {
     return async (i: PushImpactListenerInvocation) => {
 
-        const p: GitProject = i.project;
+        const p: Project = i.project;
 
         const info: MissingInfo = await missingInfo(i);
         logger.info(`Missing Info:  ${JSON.stringify(info)}`);
