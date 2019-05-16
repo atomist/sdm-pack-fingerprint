@@ -21,25 +21,29 @@ import {
     logbackFingerprints,
     renderClojureProjectDiff,
 } from "../../fingerprints";
-import { FingerprintRegistration } from "../machine/fingerprintSupport";
+import {FingerprintRegistration} from "../machine/fingerprintSupport";
+import {LocalProject} from "@atomist/automation-client";
 
 export const Logback: FingerprintRegistration = {
-    extract: p => logbackFingerprints(p.baseDir),
-    apply: (p, fp) => applyFingerprint(p.baseDir, fp),
+    extract: p => logbackFingerprints((p as LocalProject).baseDir),
+    apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
     selector: fp => fp.name === "elk-logback",
+    toDisplayableString: fp => fp.name,
 };
 
 export const LeinMavenDeps: FingerprintRegistration = {
-    extract: p => depsFingerprints(p.baseDir),
-    apply: (p, fp) => applyFingerprint(p.baseDir, fp),
+    extract: p => depsFingerprints((p as LocalProject).baseDir),
+    apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
     selector: fp => {
         return fp.name.startsWith("maven-project") || fp.name.startsWith("clojure-project");
     },
+    toDisplayableString: fp => fp.name,
     summary: renderClojureProjectDiff,
 };
 
 export const CljFunctions: FingerprintRegistration = {
-    extract: p => cljFunctionFingerprints(p.baseDir),
-    apply: (p, fp) => applyFingerprint(p.baseDir, fp),
+    extract: p => cljFunctionFingerprints((p as LocalProject).baseDir),
+    apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
     selector: fp => fp.name.startsWith("public-defn-bodies"),
+    toDisplayableString: fp => fp.name,
 };

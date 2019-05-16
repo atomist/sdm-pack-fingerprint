@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { logger } from "@atomist/automation-client";
+import {LocalProject, logger} from "@atomist/automation-client";
 import {
     LoggingProgressLog,
     spawnLog,
@@ -84,11 +84,11 @@ export const applyNpmDepsFingerprint: ApplyFingerprint = async (p, fp) => {
             "npm",
             ["install", `${fp.data[0]}@${fp.data[1]}`, "--save-exact"],
             {
-                cwd: p.baseDir,
+                cwd: (p as LocalProject).baseDir,
                 log,
                 logCommand: false,
             });
-        logger.info("finished npm instsall");
+        logger.info("finished npm install");
         await log.flush();
         logger.info(log.log);
         return result.code === 0;
@@ -111,4 +111,5 @@ export const NpmDeps: FingerprintRegistration = {
     apply: applyNpmDepsFingerprint,
     selector: fp => fp.name.startsWith("npm-project-dep"),
     summary: diffNpmDepsFingerprints,
+    toDisplayableString: fp => fp.name,
 };
