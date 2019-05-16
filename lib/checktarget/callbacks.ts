@@ -40,8 +40,8 @@ import {
 } from "../../fingerprints/index";
 import { getFPTargets } from "../adhoc/preferences";
 import {
+    Feature,
     FingerprintImpactHandlerConfig,
-    FingerprintRegistration,
 } from "../machine/fingerprintSupport";
 import {
     getDiffSummary,
@@ -56,7 +56,7 @@ function fingerprintOutOfSyncCallback(
     ctx: HandlerContext,
     diff: Diff,
     config: FingerprintImpactHandlerConfig,
-    registrations: FingerprintRegistration[],
+    registrations: Feature[],
 ): (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
 
     return async (text, fpTarget, fingerprint) => {
@@ -182,7 +182,7 @@ export async function checkFingerprintTarget(
     ctx: HandlerContext,
     diff: Diff,
     config: FingerprintImpactHandlerConfig,
-    registrations: FingerprintRegistration[]): Promise<any> {
+    registrations: Feature[]): Promise<any> {
 
     return checkFingerprintTargets(
         () => {

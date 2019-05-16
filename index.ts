@@ -25,6 +25,7 @@ export {
     checkNpmCoordinatesImpactHandler,
     fingerprintRunner,
     runFingerprints,
+    Feature,
     FingerprintRegistration,
 } from "./lib/machine/fingerprintSupport";
 export {

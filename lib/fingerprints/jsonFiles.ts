@@ -21,7 +21,7 @@ import {
     FP,
     sha256,
 } from "../..";
-import { FingerprintRegistration } from "../machine/fingerprintSupport";
+import { Feature } from "../machine/fingerprintSupport";
 
 export function createFileFingerprint(...filenames: string[]): ExtractFingerprint {
 
@@ -75,7 +75,7 @@ export const applyFileFingerprint: ApplyFingerprint = async (p, fp) => {
     }
 };
 
-export const JsonFile: FingerprintRegistration = {
+export const JsonFile: Feature = {
     extract: createFileFingerprint(
         "tslint.json",
         "tsconfig.json"),

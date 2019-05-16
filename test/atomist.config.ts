@@ -141,7 +141,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
         goalState(),
         fingerprintSupport({
             fingerprintGoal: FingerprintGoal,
-            fingerprints:
+            features:
                 [
                     NpmDeps,
                     DockerFrom,

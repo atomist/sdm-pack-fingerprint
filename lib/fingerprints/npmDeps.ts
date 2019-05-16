@@ -27,7 +27,7 @@ import {
 } from "../..";
 import {
     DiffSummaryFingerprint,
-    FingerprintRegistration,
+    Feature,
 } from "../machine/fingerprintSupport";
 
 export function getNpmDepFingerprint(lib: string, version: string): FP {
@@ -106,7 +106,7 @@ export const diffNpmDepsFingerprints: DiffSummaryFingerprint = (diff, target) =>
     };
 };
 
-export const NpmDeps: FingerprintRegistration = {
+export const NpmDeps: Feature = {
     extract: createNpmDepsFingerprints,
     apply: applyNpmDepsFingerprint,
     selector: fp => fp.name.startsWith("npm-project-dep"),
