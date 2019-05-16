@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {LocalProject} from "@atomist/automation-client";
+import { LocalProject } from "@atomist/automation-client";
 import {
     applyFingerprint,
     cljFunctionFingerprints,
@@ -22,7 +22,7 @@ import {
     logbackFingerprints,
     renderClojureProjectDiff,
 } from "../../fingerprints";
-import {Feature} from "../machine/fingerprintSupport";
+import { Feature } from "../machine/fingerprintSupport";
 
 export const Logback: Feature = {
     extract: p => logbackFingerprints((p as LocalProject).baseDir),
