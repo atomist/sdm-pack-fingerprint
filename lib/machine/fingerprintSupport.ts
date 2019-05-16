@@ -110,6 +110,8 @@ type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
  */
 export type ExtractFingerprint = (p: Project) => Promise<FP | FP[]>;
 
+export type RelevanceTest = (p: Project) => Promise<boolean>;
+
 /**
  * Apply the given fingerprint to the project
  */
@@ -157,6 +159,13 @@ export interface FingerprintRegistration {
      * Is this registration able to manage this fingerprint instance?
      */
     selector: (fingerprint: FP) => boolean;
+
+    /**
+     * Is this registration relevant to this project? For example, if
+     * we are tracking TypeScript version, is this even a Node project?
+     * Is the target at all relevant
+     */
+    relevanceTest?: RelevanceTest;
 
     /**
      * Function to extract fingerprint(s) from this project
