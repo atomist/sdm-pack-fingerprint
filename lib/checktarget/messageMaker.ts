@@ -35,7 +35,7 @@ import {
     SlackMessage,
 } from "@atomist/slack-messages";
 import _ = require("lodash");
-import { FingerprintRegistration } from "../..";
+import { Feature } from "../..";
 import {
     Diff,
     FP,
@@ -77,7 +77,7 @@ export const updateableMessage: MessageIdMaker = (fingerprint, coordinate: GitCo
 /**
  * get a diff summary if any registrations support one for this Fingerprint type
  */
-export function getDiffSummary(diff: Diff, target: FP, registrations: FingerprintRegistration[]): undefined | DiffSummary {
+export function getDiffSummary(diff: Diff, target: FP, registrations: Feature[]): undefined | DiffSummary {
 
     try {
         for (const registration of registrations) {

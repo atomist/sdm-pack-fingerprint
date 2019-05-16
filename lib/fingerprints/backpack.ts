@@ -22,7 +22,7 @@ import {
     renderData,
     sha256,
 } from "../..";
-import { FingerprintRegistration } from "../machine/fingerprintSupport";
+import { Feature } from "../machine/fingerprintSupport";
 
 export const backpackFingerprint: ExtractFingerprint = async p => {
 
@@ -75,7 +75,7 @@ export const applyBackpackFingerprint: ApplyFingerprint = async (p, fp) => {
     }
 };
 
-export const Backpack: FingerprintRegistration = {
+export const Backpack: Feature = {
     extract: backpackFingerprint,
     apply: applyBackpackFingerprint,
     selector: fp => fp.name === "backpack-react-scripts",

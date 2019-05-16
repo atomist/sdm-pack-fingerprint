@@ -178,7 +178,7 @@ export interface FingerprintImpactHandlerConfig {
  * for example, helping with convergence across an organization and supporting
  * visualization.
  */
-export interface FingerprintRegistration<FPI extends FP = FP> {
+export interface Feature<FPI extends FP = FP> {
 
     /**
      * Is this registration able to manage this fingerprint instance?
@@ -214,6 +214,11 @@ export interface FingerprintRegistration<FPI extends FP = FP> {
 }
 
 /**
+ * @deprecated use Feature
+ */
+export type FingerprintRegistration = Feature;
+
+/**
  * Implemented by types that know how to compare two fingerprints,
  * for example by quality or up-to-dateness
  */
@@ -224,11 +229,11 @@ export interface FingerprintComparator<FPI extends FP = FP> {
 
 /**
  * Setting up a PushImpactHandler to handle different strategies (FingerprintHandlers) involves giving them the opportunity
- * to configure the sdm, and they'll need all of the current active FingerprintRegistrations.
+ * to configure the sdm, and they'll need all of the current active Features.
  */
-export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => FingerprintHandler;
+export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, registrations: Feature[]) => FingerprintHandler;
 
-function checkScope(fp: FP, registrations: FingerprintRegistration[]): boolean {
+function checkScope(fp: FP, registrations: Feature[]): boolean {
     const inScope: boolean = _.some(registrations, reg => reg.selector(fp));
     return inScope;
 }
@@ -241,7 +246,7 @@ function checkScope(fp: FP, registrations: FingerprintRegistration[]): boolean {
  * @param config
  */
 export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig): RegisterFingerprintImpactHandler {
-    return (sdm: SoftwareDeliveryMachine, registrations: FingerprintRegistration[]) => {
+    return (sdm: SoftwareDeliveryMachine, registrations: Feature[]) => {
         // set goal Fingerprints
         //   - first can be added as an option when difference is noticed (uses our api to update the fingerprint)
         //   - second is a default intent
@@ -447,7 +452,7 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
  *
  * @param fingerprinters
  */
-export function fingerprintRunner(fingerprinters: FingerprintRegistration[], handlers: FingerprintHandler[]): FingerprintRunner {
+export function fingerprintRunner(fingerprinters: Feature[], handlers: FingerprintHandler[]): FingerprintRunner {
     return async (i: PushImpactListenerInvocation) => {
 
         const p: Project = i.project;
@@ -509,6 +514,7 @@ export function fingerprintRunner(fingerprinters: FingerprintRegistration[], han
  * Options to configure the Fingerprint support
  */
 export interface FingerprintOptions {
+
     /**
      * Optional Fingerprint goal that will get configured.
      * If not provided fingerprints need to be registered manually with the goal.
@@ -516,9 +522,9 @@ export interface FingerprintOptions {
     fingerprintGoal?: Fingerprint;
 
     /**
-     * Registrations for desired fingerprints
+     * Features we are managing
      */
-    fingerprints: FingerprintRegistration | FingerprintRegistration[];
+    features: Feature | Feature[];
 
     /**
      * Register FingerprintHandler factories to handle fingerprint impacts
@@ -534,7 +540,7 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
         ...metadata(),
         configure: (sdm: SoftwareDeliveryMachine) => {
 
-            const fingerprints = Array.isArray(options.fingerprints) ? options.fingerprints : [options.fingerprints];
+            const fingerprints = Array.isArray(options.features) ? options.features : [options.features];
             const handlers = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
 
             if (!!options.fingerprintGoal) {
@@ -551,7 +557,7 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 
 function configure(sdm: SoftwareDeliveryMachine,
                    handlers: RegisterFingerprintImpactHandler[],
-                   fpRegistraitons: FingerprintRegistration[]): void {
+                   fpRegistraitons: Feature[]): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);

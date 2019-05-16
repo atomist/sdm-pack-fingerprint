@@ -47,7 +47,7 @@ import { findTaggedRepos } from "../../adhoc/fingerprints";
 import { queryPreferences } from "../../adhoc/preferences";
 import {
     EditModeMaker,
-    FingerprintRegistration,
+    Feature,
 } from "../../machine/fingerprintSupport";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
 
@@ -63,7 +63,7 @@ import { FindLinkedReposWithFingerprint } from "../../typings/types";
 async function pushFingerprint(
     message: (s: string) => Promise<any>,
     p: GitProject,
-    registrations: FingerprintRegistration[],
+    registrations: Feature[],
     fp: FP): Promise<GitProject> {
 
     logger.info(`transform running -- ${fp.name}/${fp.sha} --`);
@@ -88,7 +88,7 @@ async function pushFingerprint(
  *
  * @param registrations
  */
-export function runAllFingerprintAppliers(registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintParameters> {
+export function runAllFingerprintAppliers(registrations: Feature[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
         const message: SlackMessage = {
@@ -124,7 +124,7 @@ export function runAllFingerprintAppliers(registrations: FingerprintRegistration
  *
  * @param registrations
  */
-function runEveryFingerprintApplication(registrations: FingerprintRegistration[]): CodeTransform<ApplyTargetFingerprintsParameters> {
+function runEveryFingerprintApplication(registrations: Feature[]): CodeTransform<ApplyTargetFingerprintsParameters> {
     return async (p, cli) => {
 
         const message: SlackMessage = {
@@ -176,7 +176,7 @@ export const ApplyTargetFingerprintName = "ApplyTargetFingerprint";
 
 export function applyTarget(
     sdm: SoftwareDeliveryMachine,
-    registrations: FingerprintRegistration[],
+    registrations: Feature[],
     presentation: EditModeMaker): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
 
     return {
@@ -205,7 +205,7 @@ export const ApplyAllFingerprintsName = "ApplyAllFingerprints";
 
 export function applyTargets(
     sdm: SoftwareDeliveryMachine,
-    registrations: FingerprintRegistration[],
+    registrations: Feature[],
     presentation: EditModeMaker,
 ): CodeTransformRegistration<ApplyTargetFingerprintsParameters> {
     return {
@@ -236,7 +236,7 @@ export const BroadcastFingerprintMandateName = "BroadcastFingerprintMandate";
 
 export function broadcastFingerprintMandate(
     sdm: SoftwareDeliveryMachine,
-    registrations: FingerprintRegistration[],
+    registrations: Feature[],
 ): CommandHandlerRegistration<BroadcastFingerprintMandateParameters> {
     return {
         name: BroadcastFingerprintMandateName,

@@ -22,16 +22,16 @@ import {
     logbackFingerprints,
     renderClojureProjectDiff,
 } from "../../fingerprints";
-import {FingerprintRegistration} from "../machine/fingerprintSupport";
+import {Feature} from "../machine/fingerprintSupport";
 
-export const Logback: FingerprintRegistration = {
+export const Logback: Feature = {
     extract: p => logbackFingerprints((p as LocalProject).baseDir),
     apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
     selector: fp => fp.name === "elk-logback",
     toDisplayableString: fp => fp.name,
 };
 
-export const LeinMavenDeps: FingerprintRegistration = {
+export const LeinMavenDeps: Feature = {
     extract: p => depsFingerprints((p as LocalProject).baseDir),
     apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
     selector: fp => {
@@ -41,7 +41,7 @@ export const LeinMavenDeps: FingerprintRegistration = {
     summary: renderClojureProjectDiff,
 };
 
-export const CljFunctions: FingerprintRegistration = {
+export const CljFunctions: Feature = {
     extract: p => cljFunctionFingerprints((p as LocalProject).baseDir),
     apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
     selector: fp => fp.name.startsWith("public-defn-bodies"),
