@@ -125,12 +125,35 @@ export interface DiffSummary {
 export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
 
 /**
+ * Handles differences between fingerprints across pushes and between targets.
  * Different strategies can be used to handle PushImpactEventHandlers.
  */
 export interface FingerprintHandler {
+
+    /**
+     * Is this handler able to manage this fingerprint instance?
+     */
     selector: (name: FP) => boolean;
+
+    /**
+     * Called when shas differ across pushes
+     * @param {HandlerContext} context
+     * @param {Diff} diff
+     * @return {Promise<Vote>}
+     */
     diffHandler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
+
+    /**
+     * Called when target fingerprint differs from current fingerprint
+     * @param {HandlerContext} context
+     * @param {Diff} diff
+     * @return {Promise<Vote>}
+     */
     handler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
+
+    /**
+     * For collecting results on all fingerprint diff handlers
+     */
     ballot?: (context: HandlerContext, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any>;
 }
 
@@ -151,7 +174,9 @@ export interface FingerprintImpactHandlerConfig {
 }
 
 /**
- * Each new class of Fingerprints must implement this interface
+ * Add ability to manage a particular type of fingerprint as a feature:
+ * for example, helping with convergence across an organization and supporting
+ * visualization.
  */
 export interface FingerprintRegistration<FPI extends FP = FP> {
 
