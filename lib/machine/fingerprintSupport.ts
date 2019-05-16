@@ -108,14 +108,14 @@ type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
 /**
  * Extract fingerprint(s) from the given project
  */
-export type ExtractFingerprint = (p: Project) => Promise<FP | FP[]>;
+export type ExtractFingerprint<FPI extends FP = FP> = (p: Project) => Promise<FPI | FPI[]>;
 
 export type RelevanceTest = (p: Project) => Promise<boolean>;
 
 /**
  * Apply the given fingerprint to the project
  */
-export type ApplyFingerprint = (p: Project, fp: FP) => Promise<boolean>;
+export type ApplyFingerprint<FPI extends FP = FP> = (p: Project, fp: FPI) => Promise<boolean>;
 
 export interface DiffSummary {
     title: string;
@@ -153,12 +153,12 @@ export interface FingerprintImpactHandlerConfig {
 /**
  * Each new class of Fingerprints must implement this interface
  */
-export interface FingerprintRegistration {
+export interface FingerprintRegistration<FPI extends FP = FP> {
 
     /**
      * Is this registration able to manage this fingerprint instance?
      */
-    selector: (fingerprint: FP) => boolean;
+    selector: (fingerprint: FPI) => boolean;
 
     /**
      * Is this registration relevant to this project? For example, if
@@ -170,14 +170,27 @@ export interface FingerprintRegistration {
     /**
      * Function to extract fingerprint(s) from this project
      */
-    extract: ExtractFingerprint;
+    extract: ExtractFingerprint<FPI>;
 
     /**
      * Function to apply the given fingerprint instance to a project
      */
-    apply?: ApplyFingerprint;
+    apply?: ApplyFingerprint<FPI>;
 
     summary?: DiffSummaryFingerprint;
+
+    comparators?: Array<FingerprintComparator<FPI>>;
+
+    /**
+     * To a human readable string. Must be unique
+     */
+    toReadableString(fpi: FPI): string;
+
+}
+
+export interface FingerprintComparator<FPI extends FP = FP> {
+    readonly name: string;
+    comparator: (a: FPI, b: FPI) => number;
 }
 
 /**
