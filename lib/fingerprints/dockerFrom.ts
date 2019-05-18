@@ -29,9 +29,7 @@ import {
 import { Feature } from "../machine/fingerprintSupport";
 
 export const dockerBaseFingerprint: ExtractFingerprint = async p => {
-
     const file = await p.getFile("Dockerfile");
-
     if (file && await file.getContent() !== "") {
         const imageName: string[] = await astUtils.findValues(
             p, DockerFileParser, "Dockerfile", "//FROM/image/name");
@@ -49,10 +47,8 @@ export const dockerBaseFingerprint: ExtractFingerprint = async p => {
 
         // bug opened and fix coming
         (fp as any).value = data;
-
         return fp;
     } else {
-
         return undefined;
     }
 };
@@ -83,6 +79,7 @@ export const applyDockerBaseFingerprint: ApplyFingerprint = async (p, fp) => {
 };
 
 export const DockerFrom: Feature = {
+    displayName: "Docker base image",
     apply: applyDockerBaseFingerprint,
     extract: dockerBaseFingerprint,
     selector: myFp => myFp.name.startsWith("docker-base-image"),
