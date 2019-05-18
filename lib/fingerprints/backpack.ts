@@ -76,6 +76,7 @@ export const applyBackpackFingerprint: ApplyFingerprint = async (p, fp) => {
 };
 
 export const Backpack: Feature = {
+    displayName: "Backpack",
     extract: backpackFingerprint,
     apply: applyBackpackFingerprint,
     selector: fp => fp.name === "backpack-react-scripts",

@@ -24,22 +24,15 @@ import {
 import { Feature } from "../machine/fingerprintSupport";
 
 export function createFileFingerprint(...filenames: string[]): ExtractFingerprint {
-
     return async p => {
-
-        const fps: FP[] = new Array<FP>();
-
+        const fps: FP[] = [];
         await Promise.all(
             filenames.map(async filename => {
-
                 const file = await p.getFile(filename);
 
                 if (file) {
-
                     const fileData = await file.getContent();
-
                     const jsonData = JSON.parse(fileData);
-
                     fps.push(
                         {
                             name: `file-${filename}`,
@@ -61,7 +54,6 @@ export function createFileFingerprint(...filenames: string[]): ExtractFingerprin
 }
 
 export const applyFileFingerprint: ApplyFingerprint = async (p, fp) => {
-
     const file = await p.getFile(fp.data.filename);
 
     if (file) {
@@ -76,6 +68,7 @@ export const applyFileFingerprint: ApplyFingerprint = async (p, fp) => {
 };
 
 export const JsonFile: Feature = {
+    displayName: "JSON files",
     extract: createFileFingerprint(
         "tslint.json",
         "tsconfig.json"),

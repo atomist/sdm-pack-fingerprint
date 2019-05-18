@@ -179,9 +179,14 @@ export interface FingerprintImpactHandlerConfig {
 export interface Feature<FPI extends FP = FP> {
 
     /**
+     * Displayable name of this feature. Used only for reporting.
+     */
+    readonly displayName: string;
+
+    /**
      * Is this registration able to manage this fingerprint instance?
      */
-    selector: (fingerprint: FPI) => boolean;
+    selector: (fingerprint: Partial<FPI> & { name: string}) => boolean;
 
     /**
      * Function to extract fingerprint(s) from this project
