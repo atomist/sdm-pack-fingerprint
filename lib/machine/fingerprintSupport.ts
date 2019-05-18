@@ -181,7 +181,7 @@ export interface Feature<FPI extends FP = FP> {
     /**
      * Is this registration able to manage this fingerprint instance?
      */
-    selector?: (fingerprint: FPI) => boolean;
+    selector: (fingerprint: FPI) => boolean;
 
     /**
      * Function to extract fingerprint(s) from this project
