@@ -34,9 +34,7 @@ import {
 } from "../machine/fingerprintSupport";
 
 export function getNpmDepFingerprint(lib: string, version: string): FP {
-
     const data = [lib, version];
-
     return {
         name: `npm-project-dep::${lib.replace("@", "").replace("/", "::")}`,
         abbreviation: "npmdeps",
@@ -115,5 +113,5 @@ export const NpmDeps: Feature = {
     apply: applyNpmDepsFingerprint,
     selector: fp => fp.name.startsWith("npm-project-dep"),
     summary: diffNpmDepsFingerprints,
-    toDisplayableString: fp => fp.name,
+    toDisplayableString: fp => fp.data[1],
 };
