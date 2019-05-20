@@ -74,5 +74,5 @@ export const JsonFile: Feature = {
         "tsconfig.json"),
     apply: applyFileFingerprint,
     selector: fp => fp.name.startsWith("file-"),
-    toDisplayableString: fp => fp.name,
+    toDisplayableFingerprint: fp => fp.name,
 };
