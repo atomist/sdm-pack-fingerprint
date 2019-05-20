@@ -53,6 +53,8 @@ export {
     DockerFrom,
 } from "./lib/fingerprints/dockerFrom";
 export {
+    constructNpmDepsFingerprintName,
+    deconstructNpmDepsFingerprintName,
     diffNpmDepsFingerprints,
     applyNpmDepsFingerprint,
     createNpmDepsFingerprints,
