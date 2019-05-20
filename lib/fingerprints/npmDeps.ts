@@ -54,6 +54,11 @@ export function constructNpmDepsFingerprintName(lib: string): string {
     return `npm-project-dep::${lib.replace("@", "").replace("/", "::")}`;
 }
 
+/**
+ * Return the library name in its natural form - e.g. "lodash" or "@types/lodash" or "@atomist/sdm"
+ * @param {string} fingerprintName
+ * @return {string | undefined}
+ */
 export function deconstructNpmDepsFingerprintName(fingerprintName: string): string | undefined {
     const regex = /^npm-project-dep::([^:]+)(::.*)?$/;
     const match = regex.exec(fingerprintName);
@@ -71,13 +76,10 @@ export function deconstructNpmDepsFingerprintName(fingerprintName: string): stri
 }
 
 export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
-
     const file = await p.getFile("package.json");
 
     if (file) {
-
         const jsonData = JSON.parse(await file.getContent());
-
         const dependencies: any[] = jsonData.dependencies || [];
 
         const fingerprints: FP[] = [];
@@ -140,4 +142,5 @@ export const NpmDeps: Feature = {
     selector: fp => fp.name.startsWith("npm-project-dep"),
     summary: diffNpmDepsFingerprints,
     toDisplayableFingerprint: fp => fp.data[1],
+    toDisplayableFingerprintName: deconstructNpmDepsFingerprintName,
 };
