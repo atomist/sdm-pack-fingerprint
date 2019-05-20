@@ -15,7 +15,10 @@
  */
 
 import * as assert from "assert";
-import { constructNpmDepsFingerprintName, deconstructNpmDepsFingerprintName } from "../../lib/fingerprints/npmDeps";
+import {
+    constructNpmDepsFingerprintName,
+    deconstructNpmDepsFingerprintName,
+} from "../../lib/fingerprints/npmDeps";
 
 describe("npmDeps", () => {
     it("constructs and deconstructs a fingerprint name", () => {
