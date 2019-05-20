@@ -216,7 +216,6 @@ export interface Feature<FPI extends FP = FP> {
      */
     toDisplayableFingerprintName?(fingerprintName: string): string;
 
-
 }
 
 /**
