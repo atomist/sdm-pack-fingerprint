@@ -33,6 +33,12 @@ import {
     Feature,
 } from "../machine/fingerprintSupport";
 
+/**
+ * Construct an npmdep fingerprint from the given library and version
+ * @param {string} lib
+ * @param {string} version
+ * @return {FP}
+ */
 export function getNpmDepFingerprint(lib: string, version: string): FP {
     const data = [lib, version];
     return {

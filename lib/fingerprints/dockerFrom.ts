@@ -18,7 +18,7 @@ import {
     astUtils,
     logger,
 } from "@atomist/automation-client";
-import { DockerFileParser } from "@atomist/sdm-pack-docker";
+import {DockerFileParser} from "@atomist/sdm-pack-docker";
 import {
     ApplyFingerprint,
     ExtractFingerprint,
@@ -26,7 +26,24 @@ import {
     renderData,
     sha256,
 } from "../..";
-import { Feature } from "../machine/fingerprintSupport";
+import {Feature} from "../machine/fingerprintSupport";
+
+/**
+ * Construct a Docker base image fingerprint from the given image and version
+ * @param {string} image
+ * @param {string} version
+ * @return {FP}
+ */
+export function getDockerBaseFingerprint(image: string, version: string): FP {
+    const data = {image, version};
+    return {
+        name: `docker-base-image-${image}`,
+        abbreviation: `dbi-${image}`,
+        version: "0.0.1",
+        data,
+        sha: sha256(JSON.stringify(data)),
+    };
+}
 
 export const dockerBaseFingerprint: ExtractFingerprint = async p => {
     const file = await p.getFile("Dockerfile");
@@ -36,17 +53,10 @@ export const dockerBaseFingerprint: ExtractFingerprint = async p => {
         const imageVersion: string[] = await astUtils.findValues(
             p, DockerFileParser, "Dockerfile", "//FROM/image/tag");
 
-        const data = { image: imageName[0], version: imageVersion[0] };
-        const fp: FP = {
-            name: `docker-base-image-${imageName[0]}`,
-            abbreviation: `dbi-${imageName[0]}`,
-            version: "0.0.1",
-            data,
-            sha: sha256(JSON.stringify(data)),
-        };
+        const fp: FP = getDockerBaseFingerprint(imageName[0], imageVersion[0]);
 
         // bug opened and fix coming
-        (fp as any).value = data;
+        (fp as any).value = fp.data;
         return fp;
     } else {
         return undefined;

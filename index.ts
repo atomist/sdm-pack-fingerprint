@@ -51,6 +51,7 @@ export {
     applyDockerBaseFingerprint,
     dockerBaseFingerprint,
     DockerFrom,
+    getDockerBaseFingerprint,
 } from "./lib/fingerprints/dockerFrom";
 export {
     constructNpmDepsFingerprintName,
