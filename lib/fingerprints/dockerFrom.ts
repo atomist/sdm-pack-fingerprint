@@ -18,7 +18,7 @@ import {
     astUtils,
     logger,
 } from "@atomist/automation-client";
-import {DockerFileParser} from "@atomist/sdm-pack-docker";
+import { DockerFileParser } from "@atomist/sdm-pack-docker";
 import {
     ApplyFingerprint,
     ExtractFingerprint,
@@ -26,7 +26,7 @@ import {
     renderData,
     sha256,
 } from "../..";
-import {Feature} from "../machine/fingerprintSupport";
+import { Feature } from "../machine/fingerprintSupport";
 
 /**
  * Construct a Docker base image fingerprint from the given image and version
