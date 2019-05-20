@@ -44,6 +44,26 @@ export function getNpmDepFingerprint(lib: string, version: string): FP {
     };
 }
 
+export function constructNpmDepsFingerprintName(lib: string): string {
+    return `npm-project-dep::${lib.replace("@", "").replace("/", "::")}`;
+}
+
+export function deconstructNpmDepsFingerprintName(fingerprintName: string): string | undefined {
+    const regex = /^npm-project-dep::([^:]+)(::.*)?$/;
+    const match = regex.exec(fingerprintName);
+    if (!match) {
+        return undefined;
+    }
+    if (match[2] !== undefined) {
+        const lib = match[2].replace("::", "");
+        const owner = match[1];
+        return `@${owner}/${lib}`;
+    } else {
+        const lib = match[1];
+        return lib;
+    }
+}
+
 export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
 
     const file = await p.getFile("package.json");
