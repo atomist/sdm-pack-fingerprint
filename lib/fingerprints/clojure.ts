@@ -29,7 +29,7 @@ export const Logback: Feature = {
     extract: p => logbackFingerprints((p as LocalProject).baseDir),
     apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
     selector: fp => fp.name === "elk-logback",
-    toDisplayableString: fp => fp.name,
+    toDisplayableFingerprint: fp => fp.name,
 };
 
 export const LeinMavenDeps: Feature = {
@@ -39,7 +39,7 @@ export const LeinMavenDeps: Feature = {
     selector: fp => {
         return fp.name.startsWith("maven-project") || fp.name.startsWith("clojure-project");
     },
-    toDisplayableString: fp => fp.name,
+    toDisplayableFingerprint: fp => fp.name,
     summary: renderClojureProjectDiff,
 };
 
@@ -48,5 +48,5 @@ export const CljFunctions: Feature = {
     extract: p => cljFunctionFingerprints((p as LocalProject).baseDir),
     apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
     selector: fp => fp.name.startsWith("public-defn-bodies"),
-    toDisplayableString: fp => fp.name,
+    toDisplayableFingerprint: fp => fp.name,
 };

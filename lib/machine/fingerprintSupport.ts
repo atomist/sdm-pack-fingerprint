@@ -203,9 +203,19 @@ export interface Feature<FPI extends FP = FP> {
     comparators?: Array<FingerprintComparator<FPI>>;
 
     /**
-     * To a human readable string. Must be unique
+     * Convert a fingerprint value to a human readable string
+     * fpi.data is a reasonable default
      */
-    toDisplayableString(fpi: FPI): string;
+    toDisplayableFingerprint?(fpi: FPI): string;
+
+    /**
+     * Convert a fingerprint name such as "npm-project-dep::atomist::automation-client"
+     * to a human readable form such as "npm package @atomist/automation-client"
+     * @param {string} fingerprintName
+     * @return {string}
+     */
+    toDisplayableFingerprintName?(fingerprintName: string): string;
+
 
 }
 

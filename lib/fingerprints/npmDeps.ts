@@ -139,5 +139,5 @@ export const NpmDeps: Feature = {
     apply: applyNpmDepsFingerprint,
     selector: fp => fp.name.startsWith("npm-project-dep"),
     summary: diffNpmDepsFingerprints,
-    toDisplayableString: fp => fp.data[1],
+    toDisplayableFingerprint: fp => fp.data[1],
 };
