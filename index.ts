@@ -71,3 +71,5 @@ export {
     LeinMavenDeps,
     Logback,
 } from "./lib/fingerprints/clojure";
+
+export { compositeFeature } from "./lib/machine/compositeFeature";

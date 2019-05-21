@@ -110,6 +110,8 @@ type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
  */
 export type ExtractFingerprint<FPI extends FP = FP> = (p: Project) => Promise<FPI | FPI[]>;
 
+export type FingerprintSelector<FPI extends FP = FP> = (fingerprint: Partial<FPI> & { name: string}) => boolean;
+
 /**
  * Apply the given fingerprint to the project
  */
@@ -186,7 +188,7 @@ export interface Feature<FPI extends FP = FP> {
     /**
      * Is this registration able to manage this fingerprint instance?
      */
-    selector: (fingerprint: Partial<FPI> & { name: string}) => boolean;
+    selector: FingerprintSelector<FPI>;
 
     /**
      * Function to extract fingerprint(s) from this project
