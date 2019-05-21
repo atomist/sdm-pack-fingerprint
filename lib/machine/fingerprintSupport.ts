@@ -35,7 +35,7 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import { PushFields } from "@atomist/sdm-core/lib/typings/types";
+import {PushFields} from "@atomist/sdm-core/lib/typings/types";
 import _ = require("lodash");
 import {
     Diff,
@@ -52,14 +52,14 @@ import {
     IgnoreCommandRegistration,
     MessageMaker,
 } from "../checktarget/messageMaker";
-import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
+import {getNpmDepFingerprint} from "../fingerprints/npmDeps";
 import {
     applyTarget,
     ApplyTargetParameters,
     applyTargets,
     broadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
-import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
+import {BroadcastFingerprintNudge} from "../handlers/commands/broadcast";
 import {
     FingerprintEverything,
 } from "../handlers/commands/fingerprint";
@@ -106,11 +106,12 @@ export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactLis
 type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
 
 /**
- * Extract fingerprint(s) from the given project
+ * Extract fingerprint(s) from the given project.
+ * Return undefined or the empty array if no fingerprints found.
  */
 export type ExtractFingerprint<FPI extends FP = FP> = (p: Project) => Promise<FPI | FPI[]>;
 
-export type FingerprintSelector<FPI extends FP = FP> = (fingerprint: Partial<FPI> & { name: string}) => boolean;
+export type FingerprintSelector<FPI extends FP = FP> = (fingerprint: Partial<FPI> & { name: string }) => boolean;
 
 /**
  * Apply the given fingerprint to the project
@@ -173,12 +174,7 @@ export interface FingerprintImpactHandlerConfig {
     messageMaker: MessageMaker;
 }
 
-/**
- * Add ability to manage a particular type of fingerprint as a feature:
- * for example, helping with convergence across an organization and supporting
- * visualization.
- */
-export interface Feature<FPI extends FP = FP> {
+export interface RawFeature<FPI extends FP = FP> {
 
     /**
      * Displayable name of this feature. Used only for reporting.
@@ -186,14 +182,14 @@ export interface Feature<FPI extends FP = FP> {
     readonly displayName: string;
 
     /**
+     * Tags that can classify this feature
+     */
+    readonly tags?: string[];
+
+    /**
      * Is this registration able to manage this fingerprint instance?
      */
     selector: FingerprintSelector<FPI>;
-
-    /**
-     * Function to extract fingerprint(s) from this project
-     */
-    extract: ExtractFingerprint<FPI>;
 
     /**
      * Function to apply the given fingerprint instance to a project
@@ -217,6 +213,32 @@ export interface Feature<FPI extends FP = FP> {
      * @return {string}
      */
     toDisplayableFingerprintName?(fingerprintName: string): string;
+
+}
+
+/**
+ * Add ability to manage a particular type of fingerprint as a feature:
+ * for example, helping with convergence across an organization and supporting
+ * visualization.
+ */
+export interface Feature<FPI extends FP = FP> extends RawFeature<FPI> {
+
+    /**
+     * Function to extract fingerprint(s) from this project
+     */
+    extract: ExtractFingerprint<FPI>;
+
+}
+
+/**
+ * Feature derived from existing fingerprints.
+ */
+export interface DerivedFeature<FPI extends FP = FP> extends RawFeature<FPI> {
+
+    /**
+     * Function to extract fingerprint(s) from this project
+     */
+    derive: (fps: FP[]) => Promise<FPI | FPI[]>;
 
 }
 
@@ -348,7 +370,10 @@ async function sendCustomEvent(client: MessageClient, push: PushFields.Fragment,
     }
 }
 
-interface MissingInfo { providerId: string; channel: string; }
+interface MissingInfo {
+    providerId: string;
+    channel: string;
+}
 
 async function handleDiffs(
     fp: FP,
@@ -420,21 +445,21 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
 async function tallyVotes(vts: Vote[], handlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo): Promise<void> {
     await Promise.all(
         handlers.map(async h => {
-            if (h.ballot) {
-                await h.ballot(
-                    i.context,
-                    vts,
-                    {
-                        owner: i.push.repo.owner,
-                        repo: i.push.repo.name,
-                        sha: i.push.after.sha,
-                        providerId: info.providerId,
-                        branch: i.push.branch,
-                    },
-                    info.channel,
-                );
-            }
-        },
+                if (h.ballot) {
+                    await h.ballot(
+                        i.context,
+                        vts,
+                        {
+                            owner: i.push.repo.owner,
+                            repo: i.push.repo.name,
+                            sha: i.push.after.sha,
+                            providerId: info.providerId,
+                            branch: i.push.branch,
+                        },
+                        info.channel,
+                    );
+                }
+            },
         ),
     );
 }

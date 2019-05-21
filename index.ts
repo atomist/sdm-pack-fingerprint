@@ -72,4 +72,4 @@ export {
     Logback,
 } from "./lib/fingerprints/clojure";
 
-export { compositeFeature } from "./lib/machine/compositeFeature";
+export { derivedFeature } from "./lib/machine/derivedFeature";
