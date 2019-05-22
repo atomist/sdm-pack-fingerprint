@@ -84,7 +84,7 @@ import {
     GetAllFpsOnSha,
     GetPushDetails,
 } from "../typings/types";
-import { PossibleIdeals } from "./ideals";
+import {PossibleIdeal} from "./ideals";
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
@@ -180,7 +180,9 @@ export interface FingerprintImpactHandlerConfig {
  * Common properties for all features.
  * Features add the ability to manage a particular type of fingerprint:
  * for example, helping with convergence across an organization and supporting
- * visualization.
+ * visualization. Features are typically extracted from a Project (see Feature)
+ * but may also be built from existing fingerprints (AtomicFeature) or derived from
+ * an intermediate representation such as a ProjectAnalysis (DerivedFeature).
  */
 export interface BaseFeature<FPI extends FP = FP> {
 
@@ -231,15 +233,14 @@ export interface BaseFeature<FPI extends FP = FP> {
      * Based on the given fingerprint name and any fingerprints
      * from our organization, suggest ideals
      * @param fingerprintName name of the fingerprint we're interesting in
-     * @param {FPI[]} cohort existing repositories
-     * @return {PossibleIdeals<FPI extends FP>}
+     * order of recommendation strength
      */
-    suggestIdeal?(fingerprintName: string, cohort: FPI[]): Promise<PossibleIdeals<FPI>>;
+    suggestedIdeal?(fingerprintName: string): Promise<Array<PossibleIdeal<FPI>>>;
 
 }
 
 /**
- * Feature extracted from a project.
+ * Feature that extracts fingerprints directly from a Project.
  */
 export interface Feature<FPI extends FP = FP> extends BaseFeature<FPI> {
 
