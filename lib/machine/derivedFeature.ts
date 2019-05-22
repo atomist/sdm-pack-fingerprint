@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {ApplyFingerprint, DerivedFeature, Feature, FingerprintSelector} from "./fingerprintSupport";
 import {FP, sha256} from "../../fingerprints";
+import {ApplyFingerprint, DerivedFeature, Feature, FingerprintSelector} from "./fingerprintSupport";
 
 /**
  * Create a composite feature from the given other features or extractors.
