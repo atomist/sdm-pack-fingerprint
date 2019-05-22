@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {logger} from "@atomist/automation-client";
 import {FP, sha256} from "../../fingerprints";
 import {
     ApplyFingerprint,
@@ -21,7 +22,6 @@ import {
     Feature,
     FingerprintSelector,
 } from "./fingerprintSupport";
-import {logger} from "@atomist/automation-client";
 
 /**
  * Feature derived from existing fingerprints.

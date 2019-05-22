@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {InMemoryProject} from "@atomist/automation-client";
 import {toArray} from "@atomist/sdm-core/lib/util/misc/array";
 import * as assert from "assert";
 import {
@@ -25,7 +26,6 @@ import {
     ExtractFingerprint,
     Feature,
 } from "../../lib/machine/fingerprintSupport";
-import {InMemoryProject} from "@atomist/automation-client";
 
 describe("atomicFeature", () => {
 
