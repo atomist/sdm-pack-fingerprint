@@ -20,7 +20,7 @@ import {
     constructNpmDepsFingerprintName,
     getNpmDepFingerprint,
 } from "../../lib/fingerprints/npmDeps";
-import {atomicFeature} from "../../lib/machine/atomicFeature";
+import {atomicFeature} from "../../lib/machine/AtomicFeature";
 import {
     ExtractFingerprint,
     Feature,
