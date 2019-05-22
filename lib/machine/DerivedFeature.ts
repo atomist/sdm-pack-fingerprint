@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {FP} from "../../fingerprints";
-import {BaseFeature} from "./fingerprintSupport";
+import { FP } from "../../fingerprints";
+import { BaseFeature } from "./fingerprintSupport";
 
 /**
  * Do we consider that the particular fingerprint is relevant to this project,

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {FP} from "../../fingerprints";
+import { FP } from "../../fingerprints";
 
 export interface PossibleIdeal<FPI extends FP> {
     ideal: FPI;

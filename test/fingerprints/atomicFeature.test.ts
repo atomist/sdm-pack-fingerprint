@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import {InMemoryProject} from "@atomist/automation-client";
-import {toArray} from "@atomist/sdm-core/lib/util/misc/array";
+import { InMemoryProject } from "@atomist/automation-client";
+import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as assert from "assert";
 import {
     constructNpmDepsFingerprintName,
     getNpmDepFingerprint,
 } from "../../lib/fingerprints/npmDeps";
-import {atomicFeature} from "../../lib/machine/AtomicFeature";
+import { atomicFeature } from "../../lib/machine/AtomicFeature";
 import {
     ExtractFingerprint,
     Feature,
