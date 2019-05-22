@@ -17,10 +17,24 @@
 import {FP, sha256} from "../../fingerprints";
 import {
     ApplyFingerprint,
-    AtomicFeature, BaseFeature,
+    BaseFeature,
     Feature,
     FingerprintSelector,
 } from "./fingerprintSupport";
+
+/**
+ * Feature derived from existing fingerprints.
+ * Surfaces as a single fingerprint. Implementations must
+ * also support atomic application.
+ */
+export interface AtomicFeature<FPI extends FP = FP> extends BaseFeature<FPI> {
+
+    /**
+     * Function to extract fingerprint(s) from this project
+     */
+    consolidate: (fps: FP[]) => Promise<FPI>;
+
+}
 
 /**
  * Create a composite feature from the given other features or extractors.

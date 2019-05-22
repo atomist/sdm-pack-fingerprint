@@ -251,33 +251,6 @@ export interface Feature<FPI extends FP = FP> extends BaseFeature<FPI> {
 }
 
 /**
- * Feature derived from existing fingerprints.
- * Surfaces as a single fingerprint. Implementations must
- * also support atomic application.
- */
-export interface AtomicFeature<FPI extends FP = FP> extends BaseFeature<FPI> {
-
-    /**
-     * Function to extract fingerprint(s) from this project
-     */
-    consolidate: (fps: FP[]) => Promise<FPI>;
-
-}
-
-/**
- * Feature derived from some intermediate representation of a project
- */
-export interface DerivedFeature<SOURCE, FPI extends FP = FP> extends BaseFeature<FPI> {
-
-    /**
-     * Function to extract fingerprint(s) from an intermediate representation
-     * of this project
-     */
-    derive: (source: SOURCE) => Promise<FPI | FPI[]>;
-
-}
-
-/**
  * @deprecated use Feature
  */
 export type FingerprintRegistration = Feature;
@@ -389,7 +362,6 @@ export function simpleImpactHandler(
 
 async function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, fingerprint: any): Promise<void> {
     const customFPEvent = addressEvent("AtomistFingerprint");
-
     const event: any = {
         ...fingerprint,
         data: JSON.stringify(fingerprint.data),
@@ -517,9 +489,7 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
  */
 export function fingerprintRunner(fingerprinters: Feature[], handlers: FingerprintHandler[]): FingerprintRunner {
     return async (i: PushImpactListenerInvocation) => {
-
         const p: Project = i.project;
-
         const info: MissingInfo = await missingInfo(i);
         logger.info(`Missing Info:  ${JSON.stringify(info)}`);
 
