@@ -35,7 +35,7 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import {PushFields} from "@atomist/sdm-core/lib/typings/types";
+import { PushFields } from "@atomist/sdm-core/lib/typings/types";
 import _ = require("lodash");
 import {
     Diff,
@@ -52,14 +52,14 @@ import {
     IgnoreCommandRegistration,
     MessageMaker,
 } from "../checktarget/messageMaker";
-import {getNpmDepFingerprint} from "../fingerprints/npmDeps";
+import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     applyTarget,
     ApplyTargetParameters,
     applyTargets,
     broadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
-import {BroadcastFingerprintNudge} from "../handlers/commands/broadcast";
+import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import {
     FingerprintEverything,
 } from "../handlers/commands/fingerprint";
