@@ -137,7 +137,6 @@ export const diffNpmDepsFingerprints: DiffSummaryFingerprint = (diff, target) =>
 
 export const NpmDeps: Feature = {
     displayName: "npm dependencies",
-    tags: ["dependencies", "npm"],
     extract: createNpmDepsFingerprints,
     apply: applyNpmDepsFingerprint,
     selector: fp => fp.name.startsWith("npm-project-dep"),

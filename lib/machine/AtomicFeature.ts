@@ -47,7 +47,7 @@ export interface AtomicFeature<FPI extends FP = FP> extends BaseFeature<FPI> {
  */
 export function atomicFeature(
     featureData: Pick<Feature, "displayName" | "summary" |
-        "comparators" | "tags" | "toDisplayableFingerprint" | "toDisplayableFingerprintName">,
+        "comparators" | "toDisplayableFingerprint" | "toDisplayableFingerprintName">,
     narrower: FingerprintSelector,
     feature0: Feature,
     ...features: Feature[]): AtomicFeature {
