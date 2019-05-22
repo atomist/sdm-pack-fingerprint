@@ -16,7 +16,6 @@
 
 export {
     BaseFeature,
-    DerivedFeature,
     fingerprintSupport,
     forFingerprints,
     simpleImpactHandler,
