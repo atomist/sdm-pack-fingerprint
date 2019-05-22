@@ -76,3 +76,5 @@ export {
 } from "./lib/fingerprints/clojure";
 
 export { atomicFeature } from "./lib/machine/atomicFeature";
+
+export * from "./lib/machine/ideals";
