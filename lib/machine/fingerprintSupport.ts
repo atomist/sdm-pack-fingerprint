@@ -83,6 +83,7 @@ import {
     GetAllFpsOnSha,
     GetPushDetails,
 } from "../typings/types";
+import {PossibleIdeals} from "./ideals";
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
@@ -225,6 +226,15 @@ export interface BaseFeature<FPI extends FP = FP> {
      * @return {Promise<ReviewComment[]>}
      */
     validate?(fpi: FPI): Promise<ReviewComment[]>;
+
+    /**
+     * Based on the given fingerprint name and any fingerprints
+     * from our organization, suggest ideals
+     * @param fingerprintName name of the fingerprint we're interesting in
+     * @param {FPI[]} cohort existing repositories
+     * @return {PossibleIdeals<FPI extends FP>}
+     */
+    suggestIdeal?(fingerprintName: string, cohort: FPI[]): Promise<PossibleIdeals<FPI>>;
 
 }
 
