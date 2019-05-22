@@ -22,7 +22,8 @@ import {
     logger,
     MessageClient,
     Project,
-    QueryNoCacheOptions, ReviewComment,
+    QueryNoCacheOptions,
+    ReviewComment,
 } from "@atomist/automation-client";
 import {
     CommandListenerInvocation,
@@ -83,7 +84,7 @@ import {
     GetAllFpsOnSha,
     GetPushDetails,
 } from "../typings/types";
-import {PossibleIdeals} from "./ideals";
+import { PossibleIdeals } from "./ideals";
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
