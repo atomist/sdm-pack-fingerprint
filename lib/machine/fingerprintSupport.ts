@@ -22,7 +22,7 @@ import {
     logger,
     MessageClient,
     Project,
-    QueryNoCacheOptions,
+    QueryNoCacheOptions, ReviewComment,
 } from "@atomist/automation-client";
 import {
     CommandListenerInvocation,
@@ -174,7 +174,13 @@ export interface FingerprintImpactHandlerConfig {
     messageMaker: MessageMaker;
 }
 
-export interface RawFeature<FPI extends FP = FP> {
+/**
+ * Common properties for all features.
+ * Features add the ability to manage a particular type of fingerprint:
+ * for example, helping with convergence across an organization and supporting
+ * visualization.
+ */
+export interface BaseFeature<FPI extends FP = FP> {
 
     /**
      * Displayable name of this feature. Used only for reporting.
@@ -214,14 +220,18 @@ export interface RawFeature<FPI extends FP = FP> {
      */
     toDisplayableFingerprintName?(fingerprintName: string): string;
 
+    /**
+     * Validate the feature. Return undefined or the empty array if there are no problems.
+     * @return {Promise<ReviewComment[]>}
+     */
+    validate?(fpi: FPI): Promise<ReviewComment[]>;
+
 }
 
 /**
- * Add ability to manage a particular type of fingerprint as a feature:
- * for example, helping with convergence across an organization and supporting
- * visualization.
+ * Feature extracted from a project.
  */
-export interface Feature<FPI extends FP = FP> extends RawFeature<FPI> {
+export interface Feature<FPI extends FP = FP> extends BaseFeature<FPI> {
 
     /**
      * Function to extract fingerprint(s) from this project
@@ -232,13 +242,28 @@ export interface Feature<FPI extends FP = FP> extends RawFeature<FPI> {
 
 /**
  * Feature derived from existing fingerprints.
+ * Surfaces as a single fingerprint. Implementations must
+ * also support atomic application.
  */
-export interface DerivedFeature<FPI extends FP = FP> extends RawFeature<FPI> {
+export interface AtomicFeature<FPI extends FP = FP> extends BaseFeature<FPI> {
 
     /**
      * Function to extract fingerprint(s) from this project
      */
-    derive: (fps: FP[]) => Promise<FPI | FPI[]>;
+    consolidate: (fps: FP[]) => Promise<FPI>;
+
+}
+
+/**
+ * Feature derived from some intermediate representation of a project
+ */
+export interface DerivedFeature<SOURCE, FPI extends FP = FP> extends BaseFeature<FPI> {
+
+    /**
+     * Function to extract fingerprint(s) from an intermediate representation
+     * of this project
+     */
+    derive: (source: SOURCE) => Promise<FPI | FPI[]>;
 
 }
 
@@ -322,7 +347,6 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
  */
 export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
     return (sdm: SoftwareDeliveryMachine) => {
-
         return {
             selector: forFingerprints("npm-project-coordinates"),
             diffHandler: (ctx, diff) => {
@@ -354,7 +378,6 @@ export function simpleImpactHandler(
 }
 
 async function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, fingerprint: any): Promise<void> {
-
     const customFPEvent = addressEvent("AtomistFingerprint");
 
     const event: any = {
@@ -395,7 +418,7 @@ async function handleDiffs(
             to: [],
         },
     };
-    let diffVotes: Vote[] = new Array<Vote>();
+    let diffVotes: Vote[] = [];
     if (previous && fp.sha !== previous.sha) {
         diffVotes = await Promise.all(
             handlers
@@ -481,8 +504,6 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
 
 /**
  * Construct our FingerprintRunner for the current registrations
- *
- * @param fingerprinters
  */
 export function fingerprintRunner(fingerprinters: Feature[], handlers: FingerprintHandler[]): FingerprintRunner {
     return async (i: PushImpactListenerInvocation) => {

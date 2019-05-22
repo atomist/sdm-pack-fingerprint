@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
+import {toArray} from "@atomist/sdm-core/lib/util/misc/array";
 import * as assert from "assert";
 import {
     constructNpmDepsFingerprintName,
     getNpmDepFingerprint,
 } from "../../lib/fingerprints/npmDeps";
-import { derivedFeature } from "../../lib/machine/derivedFeature";
+import {atomicFeature} from "../../lib/machine/atomicFeature";
 import {
     ExtractFingerprint,
     Feature,
 } from "../../lib/machine/fingerprintSupport";
+import {InMemoryProject} from "@atomist/automation-client";
 
-describe("derivedFeature", () => {
+describe("atomicFeature", () => {
 
     it("should ignore everything", async () => {
         const fp = getNpmDepFingerprint("foo", "0.1.0");
@@ -35,10 +36,10 @@ describe("derivedFeature", () => {
             extract: async () => fp,
             displayName: "foo",
         };
-        const feature = derivedFeature({
+        const feature = atomicFeature({
             displayName: "composite",
         }, () => false, f1);
-        const fingerprinted = await feature.derive([fp]);
+        const fingerprinted = await feature.consolidate([fp]);
         assert.strictEqual(fingerprinted, undefined);
     });
 
@@ -50,10 +51,10 @@ describe("derivedFeature", () => {
             extract: e1,
             displayName: "foo",
         };
-        const feature = derivedFeature({
+        const feature = atomicFeature({
             displayName: "composite",
         }, () => true, f1);
-        const fingerprinted = toArray(await feature.derive([fp]));
+        const fingerprinted = toArray(await feature.consolidate([fp]));
         assert(!!fingerprinted);
         assert.strictEqual(fingerprinted[0].name, "composite:" + constructNpmDepsFingerprintName("foo"));
     });
@@ -70,15 +71,56 @@ describe("derivedFeature", () => {
             extract: e1,
             displayName: "foo",
         };
-        const feature = derivedFeature({
+        const feature = atomicFeature({
             displayName: "composite",
         }, fp => fp.name.endsWith("foo") || fp.name.endsWith("bar"), f1);
-        const fingerprinted = toArray(await feature.derive([fp1, fp2, fp3]));
+        const fingerprinted = toArray(await feature.consolidate([fp1, fp2, fp3]));
         assert(!!fingerprinted);
         assert.strictEqual(fingerprinted.length, 1);
         assert(fingerprinted[0].name.includes("foo"));
         assert(fingerprinted[0].name.includes("bar"));
         assert(!fingerprinted[0].name.includes("whatever"));
+    });
+
+    it("should apply two", async () => {
+        const fp1 = getNpmDepFingerprint("foo", "0.1.0");
+        const fp2 = getNpmDepFingerprint("bar", "0.1.0");
+        const e1: ExtractFingerprint = async () => [
+            fp1,
+        ];
+        const e2: ExtractFingerprint = async () => [
+            fp2,
+        ];
+        const f1: Feature = {
+            selector: fp => fp.name.endsWith("foo"),
+            extract: e1,
+            displayName: "foo1",
+            apply: async p1 => {
+                await p1.addFile("f1", "content");
+                return true;
+            },
+        };
+        const f2: Feature = {
+            selector: fp => fp.name.endsWith("bar"),
+            extract: e2,
+            displayName: "bar",
+            apply: async p2 => {
+                await p2.addFile("f2", "content");
+                return true;
+            },
+        };
+        const feature = atomicFeature({
+                displayName: "composite",
+            }, fp => fp.name.endsWith("foo") || fp.name.endsWith("bar"),
+            f1, f2);
+        const consolidated = await feature.consolidate([fp1, fp2]);
+        assert(!!consolidated);
+        assert(consolidated.name.includes("foo"));
+        assert(consolidated.name.includes("bar"));
+        const p = InMemoryProject.of();
+        await feature.apply(p, consolidated);
+        assert(await p.hasFile("f1"));
+        assert(await p.hasFile("f2"));
     });
 
 });

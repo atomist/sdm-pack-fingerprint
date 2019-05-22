@@ -17,7 +17,7 @@
 import {FP, sha256} from "../../fingerprints";
 import {
     ApplyFingerprint,
-    DerivedFeature,
+    AtomicFeature, BaseFeature,
     Feature,
     FingerprintSelector,
 } from "./fingerprintSupport";
@@ -30,32 +30,21 @@ import {
  * @param feature0 first feature to combine
  * @param features other features
  */
-export function derivedFeature(
+export function atomicFeature(
     featureData: Pick<Feature, "displayName" | "summary" |
         "comparators" | "tags" | "toDisplayableFingerprint" | "toDisplayableFingerprintName">,
     narrower: FingerprintSelector,
     feature0: Feature,
-    ...features: Feature[]): DerivedFeature {
+    ...features: Feature[]): AtomicFeature {
     const prefix = featureData.displayName + ":";
     const allFeatures = [feature0, ...features];
     const apply: ApplyFingerprint = allFeatures.some(f => !f.apply) ?
         undefined :
-        async (p, fp) => {
-            // fp will be our composite fingerprint
-            for (const individualFingerprint of fp.data) {
-                const relevantFeature = allFeatures.find(f => f.selector(individualFingerprint));
-                if (!relevantFeature) {
-                    throw new Error(`Internal error: We should not have a fingerprint named '${individualFingerprint.name}'\n ` +
-                        "that we don't know how to apply");
-                }
-                await relevantFeature.apply(p, individualFingerprint);
-            }
-            return true;
-        };
+        applyAll(allFeatures);
     return {
         ...featureData,
         apply,
-        derive: async fps => {
+        consolidate: async fps => {
             // Extract a single composite fingerprint
             return createCompositeFingerprint(prefix, fps.filter(narrower));
         },
@@ -73,4 +62,20 @@ function createCompositeFingerprint(prefix: string, fingerprints: FP[]): FP {
             sha: sha256(JSON.stringify(fingerprints)),
             data: fingerprints,
         };
+}
+
+function applyAll(allFeatures: BaseFeature[]): ApplyFingerprint {
+    return async (p, fp) => {
+        // fp will be our composite fingerprint
+        for (const individualFingerprint of fp.data) {
+            const relevantFeature = allFeatures.find(f => f.selector(individualFingerprint));
+            if (!relevantFeature) {
+                throw new Error(`Internal error: We should not have a fingerprint named '${individualFingerprint.name}'\n ` +
+                    "that we don't know how to apply");
+            }
+            console.log("Applying " + individualFingerprint.name + " with feature " + relevantFeature.displayName);
+            await relevantFeature.apply(p, individualFingerprint);
+        }
+        return true;
+    };
 }

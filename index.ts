@@ -15,6 +15,9 @@
  */
 
 export {
+    AtomicFeature,
+    BaseFeature,
+    DerivedFeature,
     fingerprintSupport,
     forFingerprints,
     simpleImpactHandler,
@@ -72,4 +75,4 @@ export {
     Logback,
 } from "./lib/fingerprints/clojure";
 
-export { derivedFeature } from "./lib/machine/derivedFeature";
+export { atomicFeature } from "./lib/machine/atomicFeature";
