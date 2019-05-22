@@ -14,28 +14,25 @@
  * limitations under the License.
  */
 
-import { FP } from "../../fingerprints";
+import {FP} from "../../fingerprints";
 
+/**
+ * An ideal fingerprint with a given name.
+ */
 export interface PossibleIdeal<FPI extends FP> {
-    ideal: FPI;
-    reason: string;
-    url?: string;
-}
-
-export interface PossibleIdeals<FPI extends FP> {
 
     /**
-     * Ideal found from wider world--e.g. a package repository
+     * The ideal fingerprint instance
      */
-    world?: PossibleIdeal<FPI>;
+    readonly ideal: FPI;
 
     /**
-     * Ideal based on what we've found internally
+     * Reason for the choice
      */
-    fromProjects?: PossibleIdeal<FPI>;
+    readonly reason: string;
 
     /**
-     * Ideals managed internally in an organization
+     * URL, if any, associated with the ideal fingerprint instance.
      */
-    custom?: Array<PossibleIdeal<FPI>>;
+    readonly url?: string;
 }

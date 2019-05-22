@@ -39,7 +39,8 @@ export interface AtomicFeature<FPI extends FP = FP> extends BaseFeature<FPI> {
 
 /**
  * Create a composite feature from the given other features or extractors.
- * Will use a single fingerprint that is made of many others.
+ * Will use a single fingerprint that is made of many others. Ordering is significant:
+ * atomic features can only be computed after normal fingerprints have been calculated.
  * @param featureData identifying data of new composite fingerprint
  * @param narrower function to select fingerprints from the various features that we are interested in
  * @param feature0 first feature to combine
