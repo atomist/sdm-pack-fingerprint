@@ -21,6 +21,7 @@ import {
     Feature,
     FingerprintSelector,
 } from "./fingerprintSupport";
+import {logger} from "@atomist/automation-client";
 
 /**
  * Feature derived from existing fingerprints.
@@ -87,7 +88,8 @@ function applyAll(allFeatures: BaseFeature[]): ApplyFingerprint {
                 throw new Error(`Internal error: We should not have a fingerprint named '${individualFingerprint.name}'\n ` +
                     "that we don't know how to apply");
             }
-            console.log("Applying " + individualFingerprint.name + " with feature " + relevantFeature.displayName);
+            logger.info("Applying fingerprint %s with feature %s",
+                individualFingerprint.name, relevantFeature.displayName);
             await relevantFeature.apply(p, individualFingerprint);
         }
         return true;
