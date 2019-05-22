@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-import {toArray} from "@atomist/sdm-core/lib/util/misc/array";
+import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as assert from "assert";
-import {constructNpmDepsFingerprintName, getNpmDepFingerprint} from "../../lib/fingerprints/npmDeps";
-import {derivedFeature} from "../../lib/machine/derivedFeature";
-import {ExtractFingerprint, Feature} from "../../lib/machine/fingerprintSupport";
+import {
+    constructNpmDepsFingerprintName,
+    getNpmDepFingerprint,
+} from "../../lib/fingerprints/npmDeps";
+import { derivedFeature } from "../../lib/machine/derivedFeature";
+import {
+    ExtractFingerprint,
+    Feature,
+} from "../../lib/machine/fingerprintSupport";
 
 describe("derivedFeature", () => {
 

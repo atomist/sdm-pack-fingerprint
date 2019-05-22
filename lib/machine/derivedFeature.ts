@@ -15,7 +15,12 @@
  */
 
 import {FP, sha256} from "../../fingerprints";
-import {ApplyFingerprint, DerivedFeature, Feature, FingerprintSelector} from "./fingerprintSupport";
+import {
+    ApplyFingerprint,
+    DerivedFeature,
+    Feature,
+    FingerprintSelector,
+} from "./fingerprintSupport";
 
 /**
  * Create a composite feature from the given other features or extractors.
