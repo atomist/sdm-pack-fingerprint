@@ -190,12 +190,7 @@ export interface BaseFeature<FPI extends FP = FP> {
     readonly displayName: string;
 
     /**
-     * Tags that can classify this feature
-     */
-    readonly tags?: string[];
-
-    /**
-     * Is this registration able to manage this fingerprint instance?
+     * Is this feature able to manage this fingerprint instance?
      */
     selector: FingerprintSelector<FPI>;
 
@@ -206,6 +201,10 @@ export interface BaseFeature<FPI extends FP = FP> {
 
     summary?: DiffSummaryFingerprint;
 
+    /**
+     * Functions that can be used to compare fingerprint instances managed by this
+     * feature.
+     */
     comparators?: Array<FingerprintComparator<FPI>>;
 
     /**
