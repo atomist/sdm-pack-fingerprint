@@ -19,7 +19,7 @@ import { FP } from "../../fingerprints";
 /**
  * An ideal for a fingerprint with a given name.
  */
-export interface PossibleIdeal<FPI extends FP> {
+export interface PossibleIdeal<FPI extends FP = FP> {
 
     /**
      * Name fo the fingerprint we were asked to provide an ideal for.
