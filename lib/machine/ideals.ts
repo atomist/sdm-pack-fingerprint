@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {FP} from "../../fingerprints";
+import { FP } from "../../fingerprints";
 
 /**
  * An ideal fingerprint with a given name.

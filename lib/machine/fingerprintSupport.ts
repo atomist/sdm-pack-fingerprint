@@ -84,7 +84,7 @@ import {
     GetAllFpsOnSha,
     GetPushDetails,
 } from "../typings/types";
-import {PossibleIdeal} from "./ideals";
+import { PossibleIdeal } from "./ideals";
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
