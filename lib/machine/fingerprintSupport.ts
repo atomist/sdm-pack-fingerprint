@@ -232,7 +232,7 @@ export interface BaseFeature<FPI extends FP = FP> {
     /**
      * Based on the given fingerprint name and any fingerprints
      * from our organization, suggest ideals
-     * @param fingerprintName name of the fingerprint we're interesting in
+     * @param fingerprintName name of the fingerprint we're interested in
      * order of recommendation strength
      */
     suggestedIdeals?(fingerprintName: string): Promise<Array<PossibleIdeal<FPI>>>;
