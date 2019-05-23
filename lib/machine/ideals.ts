@@ -17,12 +17,18 @@
 import { FP } from "../../fingerprints";
 
 /**
- * An ideal fingerprint with a given name.
+ * An ideal for a fingerprint with a given name.
  */
 export interface PossibleIdeal<FPI extends FP> {
 
     /**
-     * The ideal fingerprint instance
+     * Name fo the fingerprint we were asked to provide an ideal for.
+     */
+    readonly fingerprintName: string;
+
+    /**
+     * The ideal fingerprint instance. May be undefined, indicating that
+     * this fingerprint should be elminated from projects.
      */
     readonly ideal: FPI;
 
