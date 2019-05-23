@@ -23,6 +23,7 @@ import {
 } from "../../fingerprints";
 import { FingerprintRegistration } from "../machine/fingerprintSupport";
 
+
 export const Logback: FingerprintRegistration = {
     extract: p => logbackFingerprints(p.baseDir),
     apply: (p, fp) => applyFingerprint(p.baseDir, fp),
