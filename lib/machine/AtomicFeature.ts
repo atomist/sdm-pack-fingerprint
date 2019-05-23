@@ -37,6 +37,11 @@ export interface AtomicFeature<FPI extends FP = FP> extends BaseFeature<FPI> {
 
 }
 
+export function isAtomicFeature(feature: BaseFeature): feature is AtomicFeature {
+    const maybe = feature as AtomicFeature;
+    return !!maybe.consolidate;
+}
+
 /**
  * Create a composite feature from the given other features or extractors.
  * Will use a single fingerprint that is made of many others. Ordering is significant:

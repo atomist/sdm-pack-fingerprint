@@ -50,3 +50,8 @@ export interface DerivedFeature<SOURCE, FPI extends FP = FP> extends BaseFeature
     necessityTest?: RelevanceTest<SOURCE>;
 
 }
+
+export function isDerivedFeature(feature: BaseFeature): feature is DerivedFeature<any> {
+    const maybe = feature as DerivedFeature<any>;
+    return !!maybe.derive;
+}
