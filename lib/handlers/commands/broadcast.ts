@@ -19,6 +19,7 @@ import {
     logger,
     ParameterType,
 } from "@atomist/automation-client";
+import { broadcastFingerprint } from "@atomist/clj-editors";
 import {
     actionableButton,
     CommandHandlerRegistration,
@@ -32,7 +33,6 @@ import {
     user,
 } from "@atomist/slack-messages";
 import _ = require("lodash");
-import { broadcastFingerprint } from "@atomist/clj-editors";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
 import {
@@ -41,10 +41,10 @@ import {
 } from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
-    name: string,
-    version: string,
-    sha: string,
-    msgId: string): Promise<void> {
+                                  name: string,
+                                  version: string,
+                                  sha: string,
+                                  msgId: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
 
     // always create a new message

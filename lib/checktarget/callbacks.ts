@@ -22,13 +22,6 @@ import {
     SuccessPromise,
 } from "@atomist/automation-client";
 import {
-    findSdmGoalOnCommit,
-    Goal,
-    updateGoal,
-    UpdateSdmGoalParams,
-} from "@atomist/sdm";
-import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
-import {
     checkFingerprintTargets,
     commaSeparatedList,
     Diff,
@@ -38,6 +31,13 @@ import {
     voteResults,
     VoteResults,
 } from "@atomist/clj-editors";
+import {
+    findSdmGoalOnCommit,
+    Goal,
+    updateGoal,
+    UpdateSdmGoalParams,
+} from "@atomist/sdm";
+import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 import { getFPTargets } from "../adhoc/preferences";
 import {
     Feature,

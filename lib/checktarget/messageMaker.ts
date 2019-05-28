@@ -23,6 +23,12 @@ import {
     ParameterType,
 } from "@atomist/automation-client";
 import {
+    Diff,
+    FP,
+    Vote,
+    VoteResults,
+} from "@atomist/clj-editors";
+import {
     actionableButton,
     CommandHandlerRegistration,
     CommandListenerInvocation,
@@ -36,12 +42,6 @@ import {
 } from "@atomist/slack-messages";
 import _ = require("lodash");
 import { Feature } from "../..";
-import {
-    Diff,
-    FP,
-    Vote,
-    VoteResults,
-} from "@atomist/clj-editors";
 import {
     ApplyAllFingerprintsName,
     ApplyTargetFingerprintName,

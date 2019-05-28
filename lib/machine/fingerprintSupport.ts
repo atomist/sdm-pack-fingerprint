@@ -26,6 +26,12 @@ import {
     ReviewComment,
 } from "@atomist/automation-client";
 import {
+    Diff,
+    FP,
+    renderData,
+    Vote,
+} from "@atomist/clj-editors";
+import {
     CommandListenerInvocation,
     ExtensionPack,
     Fingerprint,
@@ -38,12 +44,6 @@ import {
 } from "@atomist/sdm";
 import { PushFields } from "@atomist/sdm-core/lib/typings/types";
 import _ = require("lodash");
-import {
-    Diff,
-    FP,
-    renderData,
-    Vote,
-} from "@atomist/clj-editors";
 import {
     checkFingerprintTarget,
     votes,
@@ -590,8 +590,8 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
-    handlers: RegisterFingerprintImpactHandler[],
-    fpRegistraitons: Feature[]): void {
+                   handlers: RegisterFingerprintImpactHandler[],
+                   fpRegistraitons: Feature[]): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);
