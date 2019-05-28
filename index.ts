@@ -47,7 +47,7 @@ export {
     applyFingerprint,
     renderDiff,
     sha256,
-} from "./fingerprints";
+} from "@atomist/clj-editors";
 export {
     applyDockerBaseFingerprint,
     dockerBaseFingerprint,

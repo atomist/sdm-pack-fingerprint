@@ -15,7 +15,7 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import {FP, sha256} from "../../fingerprints";
+import { FP, sha256 } from "@atomist/clj-editors";
 import {
     ApplyFingerprint,
     BaseFeature,

@@ -42,7 +42,7 @@ import _ = require("lodash");
 import {
     applyFingerprint,
     FP,
-} from "../../../fingerprints/index";
+} from "@atomist/clj-editors";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import { queryPreferences } from "../../adhoc/preferences";
 import {

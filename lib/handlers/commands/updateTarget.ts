@@ -35,7 +35,7 @@ import _ = require("lodash");
 import {
     FP,
     Vote,
-} from "../../../fingerprints/index";
+} from "@atomist/clj-editors";
 import {
     queryFingerprintsByBranchRef,
 } from "../../adhoc/fingerprints";
@@ -226,8 +226,8 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
  * @param channel
  */
 export async function setNewTargetFingerprint(ctx: HandlerContext,
-                                              fp: FP,
-                                              channel: string): Promise<Vote> {
+    fp: FP,
+    channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {

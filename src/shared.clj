@@ -1,1 +1,0 @@
-(defn ^:fingerprint great [] "thing2")

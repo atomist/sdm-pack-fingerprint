@@ -43,7 +43,7 @@ import {
     FP,
     renderData,
     Vote,
-} from "../../fingerprints/index";
+} from "@atomist/clj-editors";
 import {
     checkFingerprintTarget,
     votes,
@@ -451,21 +451,21 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
 async function tallyVotes(vts: Vote[], handlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo): Promise<void> {
     await Promise.all(
         handlers.map(async h => {
-                if (h.ballot) {
-                    await h.ballot(
-                        i.context,
-                        vts,
-                        {
-                            owner: i.push.repo.owner,
-                            repo: i.push.repo.name,
-                            sha: i.push.after.sha,
-                            providerId: info.providerId,
-                            branch: i.push.branch,
-                        },
-                        info.channel,
-                    );
-                }
-            },
+            if (h.ballot) {
+                await h.ballot(
+                    i.context,
+                    vts,
+                    {
+                        owner: i.push.repo.owner,
+                        repo: i.push.repo.name,
+                        sha: i.push.after.sha,
+                        providerId: info.providerId,
+                        branch: i.push.branch,
+                    },
+                    info.channel,
+                );
+            }
+        },
         ),
     );
 }
@@ -590,8 +590,8 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
-                   handlers: RegisterFingerprintImpactHandler[],
-                   fpRegistraitons: Feature[]): void {
+    handlers: RegisterFingerprintImpactHandler[],
+    fpRegistraitons: Feature[]): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);

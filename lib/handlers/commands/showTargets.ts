@@ -31,7 +31,7 @@ import { SlackMessage } from "@atomist/slack-messages";
 import {
     FP,
     renderData,
-} from "../../../fingerprints/index";
+} from "@atomist/clj-editors";
 import {
     getFPTargets,
     queryPreferences,

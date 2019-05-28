@@ -37,7 +37,7 @@ import {
     Vote,
     voteResults,
     VoteResults,
-} from "../../fingerprints/index";
+} from "@atomist/clj-editors";
 import { getFPTargets } from "../adhoc/preferences";
 import {
     Feature,

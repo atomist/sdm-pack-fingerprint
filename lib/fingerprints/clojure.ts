@@ -21,7 +21,7 @@ import {
     depsFingerprints,
     logbackFingerprints,
     renderClojureProjectDiff,
-} from "../../fingerprints";
+} from "@atomist/clj-editors";
 import { Feature } from "../machine/fingerprintSupport";
 
 export const Logback: Feature = {

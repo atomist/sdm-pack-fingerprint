@@ -23,7 +23,7 @@ import * as _ from "lodash";
 import {
     Diff,
     renderDiff,
-} from "../../fingerprints";
+} from "@atomist/clj-editors";
 
 export function comparator(path: string): (a: any, b: any) => number {
     return (a, b) => {

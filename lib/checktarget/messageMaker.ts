@@ -41,7 +41,7 @@ import {
     FP,
     Vote,
     VoteResults,
-} from "../../fingerprints";
+} from "@atomist/clj-editors";
 import {
     ApplyAllFingerprintsName,
     ApplyTargetFingerprintName,
