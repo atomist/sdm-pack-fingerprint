@@ -27,11 +27,11 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 
-import { SlackMessage } from "@atomist/slack-messages";
 import {
     FP,
     renderData,
 } from "@atomist/clj-editors";
+import { SlackMessage } from "@atomist/slack-messages";
 import {
     getFPTargets,
     queryPreferences,

@@ -31,6 +31,10 @@ import {
 } from "@atomist/automation-client/lib/operations/edit/editModes";
 import { EditResult } from "@atomist/automation-client/lib/operations/edit/projectEditor";
 import {
+    applyFingerprint,
+    FP,
+} from "@atomist/clj-editors";
+import {
     CodeTransform,
     CodeTransformRegistration,
     CommandHandlerRegistration,
@@ -39,10 +43,6 @@ import {
 } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
 import _ = require("lodash");
-import {
-    applyFingerprint,
-    FP,
-} from "@atomist/clj-editors";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import { queryPreferences } from "../../adhoc/preferences";
 import {
