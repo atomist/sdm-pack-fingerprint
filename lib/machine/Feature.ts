@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-import { HandlerContext, Project, ReviewComment } from "@atomist/automation-client";
-import { Diff, FP, Vote } from "@atomist/clj-editors";
+import {
+    HandlerContext,
+    Project,
+    ReviewComment,
+} from "@atomist/automation-client";
+import {
+    Diff,
+    FP,
+    Vote,
+} from "@atomist/clj-editors";
 import { GitCoordinate } from "../checktarget/messageMaker";
 import { PossibleIdeal } from "./ideals";
 

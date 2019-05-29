@@ -14,11 +14,32 @@
  * limitations under the License.
  */
 
-import { addressEvent, GraphClient, logger, MessageClient, Project, QueryNoCacheOptions } from "@atomist/automation-client";
-import { Diff, FP, renderData, Vote } from "@atomist/clj-editors";
-import { PushFields, PushImpactListenerInvocation } from "@atomist/sdm";
-import { GetAllFpsOnSha, GetPushDetails } from "../typings/types";
-import { Feature, FingerprintHandler } from "./Feature";
+import {
+    addressEvent,
+    GraphClient,
+    logger,
+    MessageClient,
+    Project,
+    QueryNoCacheOptions,
+} from "@atomist/automation-client";
+import {
+    Diff,
+    FP,
+    renderData,
+    Vote,
+} from "@atomist/clj-editors";
+import {
+    PushFields,
+    PushImpactListenerInvocation,
+} from "@atomist/sdm";
+import {
+    GetAllFpsOnSha,
+    GetPushDetails,
+} from "../typings/types";
+import {
+    Feature,
+    FingerprintHandler,
+} from "./Feature";
 
 async function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, fingerprint: any): Promise<void> {
     const customFPEvent = addressEvent("AtomistFingerprint");
