@@ -22,9 +22,9 @@ import {
     Parameters,
     SlackFileMessage,
 } from "@atomist/automation-client";
+import { renderData } from "@atomist/clj-editors";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
-import { renderData } from "@atomist/clj-editors";
 import {
     queryFingerprintsByBranchRef,
 } from "../../adhoc/fingerprints";

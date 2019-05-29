@@ -18,16 +18,16 @@ import {
     astUtils,
     logger,
 } from "@atomist/automation-client";
+import {
+    FP,
+    renderData,
+    sha256,
+} from "@atomist/clj-editors";
 import { DockerFileParser } from "@atomist/sdm-pack-docker";
 import {
     ApplyFingerprint,
     ExtractFingerprint,
 } from "../..";
-import {
-    FP,
-    renderData,
-    sha256
-} from "@atomist/clj-editors";
 import { Feature } from "../machine/Feature";
 
 /**
