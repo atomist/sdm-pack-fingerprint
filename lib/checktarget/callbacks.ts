@@ -41,6 +41,8 @@ import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 import { getFPTargets } from "../adhoc/preferences";
 import {
     Feature,
+} from "../machine/Feature";
+import {
     FingerprintImpactHandlerConfig,
 } from "../machine/fingerprintSupport";
 import {

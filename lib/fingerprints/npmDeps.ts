@@ -31,7 +31,7 @@ import {
 import {
     DiffSummaryFingerprint,
     Feature,
-} from "../machine/fingerprintSupport";
+} from "../machine/Feature";
 
 /**
  * Construct an npmdep fingerprint from the given library and version
@@ -88,7 +88,7 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
             fingerprints.push(getNpmDepFingerprint(lib, version));
         }
 
-        const coords = {name: jsonData.name, version: jsonData.version};
+        const coords = { name: jsonData.name, version: jsonData.version };
         fingerprints.push(
             {
                 name: "npm-project-coordinates",

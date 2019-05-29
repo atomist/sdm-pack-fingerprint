@@ -47,7 +47,7 @@ import {
     ApplyTargetFingerprintName,
 } from "../handlers/commands/applyFingerprint";
 import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
-import { DiffSummary } from "../machine/fingerprintSupport";
+import { DiffSummary } from "../machine/Feature";
 
 export interface MessageMakerParams {
     ctx: HandlerContext;

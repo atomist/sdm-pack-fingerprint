@@ -15,20 +15,26 @@
  */
 
 export {
-    BaseFeature,
     fingerprintSupport,
     forFingerprints,
     simpleImpactHandler,
     fingerprintImpactHandler,
     FingerprintImpactHandlerConfig,
-    ApplyFingerprint,
-    ExtractFingerprint,
     checkNpmCoordinatesImpactHandler,
-    fingerprintRunner,
     runFingerprints,
+} from "./lib/machine/fingerprintSupport";
+export {
+    BaseFeature,
     Feature,
     FingerprintRegistration,
-} from "./lib/machine/fingerprintSupport";
+    ApplyFingerprint,
+    ExtractFingerprint,
+    DiffSummaryFingerprint,
+} from "./lib/machine/Feature";
+export {
+    fingerprintRunner,
+    FingerprintRunner,
+} from "./lib/machine/runner"
 export {
     renderDiffSnippet,
 } from "./lib/support/util";
@@ -38,15 +44,12 @@ export {
 } from "./lib/checktarget/messageMaker";
 export {
     Diff,
+    DiffData,
     FP,
-    depsFingerprints,
-    logbackFingerprints,
-    cljFunctionFingerprints,
-    renderClojureProjectDiff,
-    renderData,
-    applyFingerprint,
-    renderDiff,
+    Vote,
     sha256,
+    consistentHash,
+    commaSeparatedList,
 } from "@atomist/clj-editors";
 export {
     applyDockerBaseFingerprint,
@@ -68,10 +71,11 @@ export {
     Backpack,
 } from "./lib/fingerprints/backpack";
 export {
-    CljFunctions,
-    LeinMavenDeps,
-    Logback,
-} from "./lib/fingerprints/clojure";
+    MavenDeps,
+} from "./lib/fingerprints/maven";
+export {
+    JsonFile,
+} from "./lib/fingerprints/jsonFiles"
 
 export * from "./lib/machine/AtomicFeature";
 export * from "./lib/machine/DerivedFeature";

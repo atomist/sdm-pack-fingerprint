@@ -25,7 +25,7 @@ import { atomicFeature } from "../../lib/machine/AtomicFeature";
 import {
     ExtractFingerprint,
     Feature,
-} from "../../lib/machine/fingerprintSupport";
+} from "../../lib/machine/Feature";
 
 describe("atomicFeature", () => {
 
@@ -110,8 +110,8 @@ describe("atomicFeature", () => {
             },
         };
         const feature = atomicFeature({
-                displayName: "composite",
-            }, fp => fp.name.endsWith("foo") || fp.name.endsWith("bar"),
+            displayName: "composite",
+        }, fp => fp.name.endsWith("foo") || fp.name.endsWith("bar"),
             f1, f2);
         const consolidated = await feature.consolidate([fp1, fp2]);
         assert(!!consolidated);

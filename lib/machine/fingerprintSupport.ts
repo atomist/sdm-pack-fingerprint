@@ -15,20 +15,13 @@
  */
 
 import {
-    addressEvent,
     editModes,
-    GraphClient,
     HandlerContext,
-    logger,
-    MessageClient,
     Project,
-    QueryNoCacheOptions,
-    ReviewComment,
 } from "@atomist/automation-client";
 import {
     Diff,
     FP,
-    renderData,
     Vote,
 } from "@atomist/clj-editors";
 import {
@@ -42,14 +35,12 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import { PushFields } from "@atomist/sdm-core/lib/typings/types";
 import _ = require("lodash");
 import {
     checkFingerprintTarget,
     votes,
 } from "../checktarget/callbacks";
 import {
-    GitCoordinate,
     IgnoreCommandRegistration,
     MessageMaker,
 } from "../checktarget/messageMaker";
@@ -80,11 +71,8 @@ import {
     SetTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
-import {
-    GetAllFpsOnSha,
-    GetPushDetails,
-} from "../typings/types";
-import { PossibleIdeal } from "./ideals";
+import { Feature, FingerprintHandler } from "./Feature";
+import { fingerprintRunner, FingerprintRunner } from "./runner";
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
@@ -105,61 +93,6 @@ export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactLis
     };
 }
 
-type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
-
-/**
- * Extract fingerprint(s) from the given project.
- * Return undefined or the empty array if no fingerprints found.
- */
-export type ExtractFingerprint<FPI extends FP = FP> = (p: Project) => Promise<FPI | FPI[]>;
-
-export type FingerprintSelector<FPI extends FP = FP> = (fingerprint: Partial<FPI> & { name: string }) => boolean;
-
-/**
- * Apply the given fingerprint to the project
- */
-export type ApplyFingerprint<FPI extends FP = FP> = (p: Project, fp: FPI) => Promise<boolean>;
-
-export interface DiffSummary {
-    title: string;
-    description: string;
-}
-
-export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
-
-/**
- * Handles differences between fingerprints across pushes and between targets.
- * Different strategies can be used to handle PushImpactEventHandlers.
- */
-export interface FingerprintHandler {
-
-    /**
-     * Is this handler able to manage this fingerprint instance?
-     */
-    selector: (name: FP) => boolean;
-
-    /**
-     * Called when shas differ across pushes
-     * @param {HandlerContext} context
-     * @param {Diff} diff
-     * @return {Promise<Vote>}
-     */
-    diffHandler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
-
-    /**
-     * Called when target fingerprint differs from current fingerprint
-     * @param {HandlerContext} context
-     * @param {Diff} diff
-     * @return {Promise<Vote>}
-     */
-    handler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
-
-    /**
-     * For collecting results on all fingerprint diff handlers
-     */
-    ballot?: (context: HandlerContext, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any>;
-}
-
 /**
  * permits customization of EditModes in the FingerprintImpactHandlerConfig
  */
@@ -174,95 +107,6 @@ export interface FingerprintImpactHandlerConfig {
     complianceGoalFailMessage?: string;
     transformPresentation: EditModeMaker;
     messageMaker: MessageMaker;
-}
-
-/**
- * Common properties for all features.
- * Features add the ability to manage a particular type of fingerprint:
- * for example, helping with convergence across an organization and supporting
- * visualization. Features are typically extracted from a Project (see Feature)
- * but may also be built from existing fingerprints (AtomicFeature) or derived from
- * an intermediate representation such as a ProjectAnalysis (DerivedFeature).
- */
-export interface BaseFeature<FPI extends FP = FP> {
-
-    /**
-     * Displayable name of this feature. Used only for reporting.
-     */
-    readonly displayName: string;
-
-    /**
-     * Is this feature able to manage this fingerprint instance?
-     */
-    selector: FingerprintSelector<FPI>;
-
-    /**
-     * Function to apply the given fingerprint instance to a project
-     */
-    apply?: ApplyFingerprint<FPI>;
-
-    summary?: DiffSummaryFingerprint;
-
-    /**
-     * Functions that can be used to compare fingerprint instances managed by this
-     * feature.
-     */
-    comparators?: Array<FingerprintComparator<FPI>>;
-
-    /**
-     * Convert a fingerprint value to a human readable string
-     * fpi.data is a reasonable default
-     */
-    toDisplayableFingerprint?(fpi: FPI): string;
-
-    /**
-     * Convert a fingerprint name such as "npm-project-dep::atomist::automation-client"
-     * to a human readable form such as "npm package @atomist/automation-client"
-     * @param {string} fingerprintName
-     * @return {string}
-     */
-    toDisplayableFingerprintName?(fingerprintName: string): string;
-
-    /**
-     * Validate the feature. Return undefined or the empty array if there are no problems.
-     * @return {Promise<ReviewComment[]>}
-     */
-    validate?(fpi: FPI): Promise<ReviewComment[]>;
-
-    /**
-     * Based on the given fingerprint name and any fingerprints
-     * from our organization, suggest ideals
-     * @param fingerprintName name of the fingerprint we're interested in
-     * order of recommendation strength
-     */
-    suggestedIdeals?(fingerprintName: string): Promise<Array<PossibleIdeal<FPI>>>;
-
-}
-
-/**
- * Feature that extracts fingerprints directly from a Project.
- */
-export interface Feature<FPI extends FP = FP> extends BaseFeature<FPI> {
-
-    /**
-     * Function to extract fingerprint(s) from this project
-     */
-    extract: ExtractFingerprint<FPI>;
-
-}
-
-/**
- * @deprecated use Feature
- */
-export type FingerprintRegistration = Feature;
-
-/**
- * Implemented by types that know how to compare two fingerprints,
- * for example by quality or up-to-dateness
- */
-export interface FingerprintComparator<FPI extends FP = FP> {
-    readonly name: string;
-    comparator: (a: FPI, b: FPI) => number;
 }
 
 /**
@@ -358,189 +202,6 @@ export function simpleImpactHandler(
             selector: forFingerprints(...names),
             diffHandler: handler,
         };
-    };
-}
-
-async function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, fingerprint: any): Promise<void> {
-    const customFPEvent = addressEvent("AtomistFingerprint");
-    const event: any = {
-        ...fingerprint,
-        data: JSON.stringify(fingerprint.data),
-        commitSha: push.after.sha,
-    };
-
-    try {
-        await client.send(event, customFPEvent);
-    } catch (e) {
-        logger.error(`unable to send AtomistFingerprint ${JSON.stringify(fingerprint)}`);
-    }
-}
-
-interface MissingInfo {
-    providerId: string;
-    channel: string;
-}
-
-async function handleDiffs(
-    fp: FP,
-    previous: FP,
-    info: MissingInfo,
-    handlers: FingerprintHandler[],
-    i: PushImpactListenerInvocation): Promise<Vote[]> {
-
-    const diff: Diff = {
-        ...info,
-        from: previous,
-        to: fp,
-        branch: i.push.branch,
-        owner: i.push.repo.owner,
-        repo: i.push.repo.name,
-        sha: i.push.after.sha,
-        data: {
-            from: [],
-            to: [],
-        },
-    };
-    let diffVotes: Vote[] = [];
-    if (previous && fp.sha !== previous.sha) {
-        diffVotes = await Promise.all(
-            handlers
-                .filter(h => h.diffHandler)
-                .filter(h => h.selector(fp))
-                .map(h => h.diffHandler(i.context, diff)));
-    }
-    const currentVotes: Vote[] = await Promise.all(
-        handlers
-            .filter(h => h.handler)
-            .filter(h => h.selector(fp))
-            .map(h => h.handler(i.context, diff)));
-
-    return [].concat(
-        diffVotes,
-        currentVotes,
-    );
-}
-
-async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<Record<string, FP>> {
-    // TODO what about empty queries, and missing fingerprints on previous commit
-    const results: GetAllFpsOnSha.Query = await graphClient.query<GetAllFpsOnSha.Query, GetAllFpsOnSha.Variables>(
-        {
-            name: "GetAllFpsOnSha",
-            options: QueryNoCacheOptions,
-            variables: {
-                sha,
-            },
-        },
-    );
-    return results.Commit[0].analysis.reduce<Record<string, FP>>(
-        (record: Record<string, FP>, fp: GetAllFpsOnSha.Analysis) => {
-            if (fp.name) {
-                record[fp.name] = {
-                    sha: fp.sha,
-                    data: JSON.parse(fp.data),
-                    name: fp.name,
-                    version: "1.0",
-                    abbreviation: "abbrev",
-                };
-            }
-            return record;
-        },
-        {});
-}
-
-async function tallyVotes(vts: Vote[], handlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo): Promise<void> {
-    await Promise.all(
-        handlers.map(async h => {
-            if (h.ballot) {
-                await h.ballot(
-                    i.context,
-                    vts,
-                    {
-                        owner: i.push.repo.owner,
-                        repo: i.push.repo.name,
-                        sha: i.push.after.sha,
-                        providerId: info.providerId,
-                        branch: i.push.branch,
-                    },
-                    info.channel,
-                );
-            }
-        },
-        ),
-    );
-}
-
-async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo> {
-    const results: GetPushDetails.Query = await i.context.graphClient.query<GetPushDetails.Query, GetPushDetails.Variables>(
-        {
-            name: "GetPushDetails",
-            options: QueryNoCacheOptions,
-            variables: {
-                id: i.push.id,
-            },
-        });
-    return {
-        providerId: results.Push[0].repo.org.scmProvider.providerId,
-        channel: results.Push[0].repo.channels[0].name,
-    };
-}
-
-/**
- * Construct our FingerprintRunner for the current registrations
- */
-export function fingerprintRunner(fingerprinters: Feature[], handlers: FingerprintHandler[]): FingerprintRunner {
-    return async (i: PushImpactListenerInvocation) => {
-        const p: Project = i.project;
-        const info: MissingInfo = await missingInfo(i);
-        logger.info(`Missing Info:  ${JSON.stringify(info)}`);
-
-        let previous: Record<string, FP> = {};
-
-        if (!!i.push.before) {
-            previous = await lastFingerprints(
-                i.push.before.sha,
-                i.context.graphClient);
-        }
-        logger.info(`Found ${Object.keys(previous).length} fingerprints`);
-
-        const allFps: FP[] = (await Promise.all(
-            fingerprinters.map(
-                x => x.extract(p),
-            ),
-        )).reduce<FP[]>(
-            (acc, fps) => {
-                if (fps && !(fps instanceof Array)) {
-                    acc.push(fps);
-                    return acc;
-                } else if (fps) {
-                    // TODO does concat return the larger array?
-                    return acc.concat(fps);
-                } else {
-                    logger.warn(`extractor returned something weird ${JSON.stringify(fps)}`);
-                    return acc;
-                }
-            },
-            [],
-        );
-
-        logger.debug(renderData(allFps));
-
-        allFps.forEach(
-            async fp => {
-                await sendCustomEvent(i.context.messageClient, i.push, fp);
-            },
-        );
-
-        const allVotes: Vote[] = (await Promise.all(
-            allFps.map(fp => handleDiffs(fp, previous[fp.name], info, handlers, i)),
-        )).reduce<Vote[]>(
-            (acc, vts) => acc.concat(vts),
-            [],
-        );
-        logger.debug(`Votes:  ${renderData(allVotes)}`);
-        await tallyVotes(allVotes, handlers, i, info);
-
-        return allFps;
     };
 }
 

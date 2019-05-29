@@ -31,7 +31,6 @@ import {
 } from "@atomist/automation-client/lib/operations/edit/editModes";
 import { EditResult } from "@atomist/automation-client/lib/operations/edit/projectEditor";
 import {
-    applyFingerprint,
     FP,
 } from "@atomist/clj-editors";
 import {
@@ -46,8 +45,10 @@ import _ = require("lodash");
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import { queryPreferences } from "../../adhoc/preferences";
 import {
-    EditModeMaker,
     Feature,
+} from "../../machine/Feature";
+import {
+    EditModeMaker,
 } from "../../machine/fingerprintSupport";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
 
@@ -73,11 +74,11 @@ async function pushFingerprint(
             const result: boolean = await registration.apply(p, fp);
             if (!result) {
                 await message(`failure applying fingerprint ${fp.name}`);
+            } else {
+                logger.info(`successfully applied fingerprint ${fp.name}`)
             }
         }
     }
-
-    await applyFingerprint(p.baseDir, fp);
 
     return p;
 }

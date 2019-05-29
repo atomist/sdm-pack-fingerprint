@@ -21,7 +21,7 @@ import {
     BaseFeature,
     Feature,
     FingerprintSelector,
-} from "./fingerprintSupport";
+} from "./Feature";
 
 /**
  * Feature derived from existing fingerprints.

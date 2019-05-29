@@ -21,7 +21,7 @@ import {
     FP,
     sha256,
 } from "../..";
-import { Feature } from "../machine/fingerprintSupport";
+import { Feature } from "../machine/Feature";
 
 export function createFileFingerprint(...filenames: string[]): ExtractFingerprint {
     return async p => {

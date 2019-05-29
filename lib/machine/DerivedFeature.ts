@@ -15,7 +15,7 @@
  */
 
 import { FP } from "@atomist/clj-editors";
-import { BaseFeature } from "./fingerprintSupport";
+import { BaseFeature } from "./Feature";
 
 /**
  * Do we consider that the particular fingerprint is relevant to this project,

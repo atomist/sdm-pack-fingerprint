@@ -22,11 +22,13 @@ import { DockerFileParser } from "@atomist/sdm-pack-docker";
 import {
     ApplyFingerprint,
     ExtractFingerprint,
+} from "../..";
+import {
     FP,
     renderData,
-    sha256,
-} from "../..";
-import { Feature } from "../machine/fingerprintSupport";
+    sha256
+} from "@atomist/clj-editors";
+import { Feature } from "../machine/Feature";
 
 /**
  * Construct a Docker base image fingerprint from the given image and version
@@ -35,7 +37,7 @@ import { Feature } from "../machine/fingerprintSupport";
  * @return {FP}
  */
 export function getDockerBaseFingerprint(image: string, version: string): FP {
-    const data = {image, version};
+    const data = { image, version };
     return {
         name: `docker-base-image-${image}`,
         abbreviation: `dbi-${image}`,

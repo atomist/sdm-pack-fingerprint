@@ -24,7 +24,7 @@ import {
 } from "@atomist/automation-client";
 import { CommandHandlerRegistration } from "@atomist/sdm";
 import { SlackMessage } from "@atomist/slack-messages";
-import { renderData } from "../../..";
+import { renderData } from "@atomist/clj-editors";
 import {
     queryFingerprintsByBranchRef,
 } from "../../adhoc/fingerprints";

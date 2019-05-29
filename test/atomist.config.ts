@@ -49,11 +49,6 @@ import {
     Backpack,
 } from "../lib/fingerprints/backpack";
 import {
-    CljFunctions,
-    LeinMavenDeps,
-    Logback,
-} from "../lib/fingerprints/clojure";
-import {
     DockerFrom,
 } from "../lib/fingerprints/dockerFrom";
 import {
@@ -62,6 +57,9 @@ import {
 import {
     NpmDeps,
 } from "../lib/fingerprints/npmDeps";
+import {
+    MavenDeps,
+} from "../lib/fingerprints/maven";
 import {
     checkNpmCoordinatesImpactHandler,
 } from "../lib/machine/fingerprintSupport";
@@ -147,9 +145,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                     DockerFrom,
                     Backpack,
                     JsonFile,
-                    Logback,
-                    LeinMavenDeps,
-                    CljFunctions,
+                    MavenDeps,
                 ],
             handlers: [
                 checkNpmCoordinatesImpactHandler(),
