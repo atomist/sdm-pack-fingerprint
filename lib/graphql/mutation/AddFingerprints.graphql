@@ -1,0 +1,11 @@
+mutation AddFingerprints($type: String!, $additions: [FingerprintInput!]!) {
+  setCommitFingerprints(
+    add: $additions,
+    branchId: "",
+    commitSha: "",
+    isDefaultBranch: true,
+    isHeadCommit: true,
+    repoId: "",
+    type: $type
+  )
+}

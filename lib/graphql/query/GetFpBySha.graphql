@@ -1,6 +1,6 @@
 query GetFpBySha($sha: String!) {
-  AtomistFingerprint(sha: $sha) {
-    id
+  SourceFingerprint(sha: $sha) {
+    type
     sha
     data
     name

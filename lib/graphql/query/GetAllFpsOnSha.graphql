@@ -1,6 +1,7 @@
 query GetAllFpsOnSha($sha: String!){
 	Commit(sha: $sha) {
     analysis {
+      type
       name
       sha
       data
