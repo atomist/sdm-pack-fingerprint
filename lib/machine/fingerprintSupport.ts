@@ -71,8 +71,14 @@ import {
     SetTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
-import { Feature, FingerprintHandler } from "./Feature";
-import { fingerprintRunner, FingerprintRunner } from "./runner";
+import {
+    Feature,
+    FingerprintHandler,
+} from "./Feature";
+import {
+    fingerprintRunner,
+    FingerprintRunner,
+} from "./runner";
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
