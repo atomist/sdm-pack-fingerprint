@@ -226,8 +226,8 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
  * @param channel
  */
 export async function setNewTargetFingerprint(ctx: HandlerContext,
-    fp: FP,
-    channel: string): Promise<Vote> {
+                                              fp: FP,
+                                              channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {

@@ -39,6 +39,7 @@ import {
     configureSdm,
     createSoftwareDeliveryMachine,
     goalState,
+    goalStateSupport,
 } from "@atomist/sdm-core";
 import {
     fingerprintImpactHandler,
@@ -136,7 +137,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
     sdm.addGeneratorCommand(CljServiceGenerator);
 
     sdm.addExtensionPacks(
-        goalState(),
+        goalStateSupport(),
         fingerprintSupport({
             fingerprintGoal: FingerprintGoal,
             features:

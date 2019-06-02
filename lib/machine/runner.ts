@@ -29,6 +29,7 @@ import {
 import {
     PushImpactListenerInvocation,
 } from "@atomist/sdm";
+import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import {
     GetAllFpsOnSha,
     GetPushDetails,
@@ -37,7 +38,6 @@ import {
     Feature,
     FingerprintHandler,
 } from "./Feature";
-import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 
 interface MissingInfo {
     providerId: string;
