@@ -17,11 +17,16 @@
 import {
     GraphClient,
     QueryNoCacheOptions,
+    logger,
 } from "@atomist/automation-client";
 import {
     FindLinkedReposWithFingerprint,
     GetFpByBranch,
+    AddFingerprints,
+    FingerprintInput,
 } from "../typings/types";
+import { FP } from "@atomist/clj-editors";
+import { PushImpactListenerInvocation } from "@atomist/sdm";
 
 export function findTaggedRepos(graphClient: GraphClient): (name: string) => Promise<any> {
     return async name => {
@@ -54,4 +59,34 @@ export function queryFingerprintsByBranchRef(graphClient: GraphClient):
         });
         return query.Repo[0].branches[0].commit.analysis;
     };
+}
+
+export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, fps: FP[]): Promise<boolean> {
+
+    const additions: FingerprintInput[] = fps.map(x => {
+        return {
+            name: x.name,
+            sha: x.sha,
+            data: x.data,
+        }
+    });
+
+    try {
+        await i.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
+            {
+                mutation: "AddFingerprints",
+                variables: {
+                    additions,
+                    type: "Atomist",
+                    branchId: i.push.branch,
+                    repoId: i.push.repo.name,
+                    sha: i.push.after.sha,
+                }
+            }
+        );
+    } catch (ex) {
+        logger.error(`Error sending Fingerprints: ${ex}`)
+    }
+
+    return true;
 }

@@ -140,7 +140,7 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
                 },
             },
         );
-        const fp: GetFpBySha.AtomistFingerprint = query.AtomistFingerprint[0];
+        const fp: GetFpBySha.SourceFingerprint = query.SourceFingerprint;
         fp.data = JSON.parse(fp.data);
         logger.info(`update target to ${JSON.stringify(fp)}`);
         const fingerprint: FP = {
@@ -226,8 +226,8 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
  * @param channel
  */
 export async function setNewTargetFingerprint(ctx: HandlerContext,
-                                              fp: FP,
-                                              channel: string): Promise<Vote> {
+    fp: FP,
+    channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {

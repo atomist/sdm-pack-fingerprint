@@ -244,6 +244,8 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
             const fingerprints = Array.isArray(options.features) ? options.features : [options.features];
             const handlers = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
 
+            // TODO we can consider switching this to a regular Fulfillable Goal when the action no longer has
+            //      to return a Fingerprints
             if (!!options.fingerprintGoal) {
                 options.fingerprintGoal.with({
                     name: `${options.fingerprintGoal.uniqueName}-fingerprinter`,
@@ -257,8 +259,8 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
-                   handlers: RegisterFingerprintImpactHandler[],
-                   fpRegistraitons: Feature[]): void {
+    handlers: RegisterFingerprintImpactHandler[],
+    fpRegistraitons: Feature[]): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);

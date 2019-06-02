@@ -15,10 +15,8 @@
  */
 
 import {
-    addressEvent,
     GraphClient,
     logger,
-    MessageClient,
     Project,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
@@ -29,7 +27,6 @@ import {
     Vote,
 } from "@atomist/clj-editors";
 import {
-    PushFields,
     PushImpactListenerInvocation,
 } from "@atomist/sdm";
 import {
@@ -40,21 +37,7 @@ import {
     Feature,
     FingerprintHandler,
 } from "./Feature";
-
-async function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, fingerprint: any): Promise<void> {
-    const customFPEvent = addressEvent("AtomistFingerprint");
-    const event: any = {
-        ...fingerprint,
-        data: JSON.stringify(fingerprint.data),
-        commitSha: push.after.sha,
-    };
-
-    try {
-        await client.send(event, customFPEvent);
-    } catch (e) {
-        logger.error(`unable to send AtomistFingerprint ${JSON.stringify(fingerprint)}`);
-    }
-}
+import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 
 interface MissingInfo {
     providerId: string;
@@ -207,11 +190,7 @@ export function fingerprintRunner(fingerprinters: Feature[], handlers: Fingerpri
 
         logger.debug(renderData(allFps));
 
-        allFps.forEach(
-            async fp => {
-                await sendCustomEvent(i.context.messageClient, i.push, fp);
-            },
-        );
+        await sendFingerprintToAtomist(i, allFps);
 
         const allVotes: Vote[] = (await Promise.all(
             allFps.map(fp => handleDiffs(fp, previous[fp.name], info, handlers, i)),
