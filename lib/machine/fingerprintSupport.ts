@@ -25,7 +25,6 @@ import {
     Vote,
 } from "@atomist/clj-editors";
 import {
-    CommandListenerInvocation,
     ExtensionPack,
     Fingerprint,
     FingerprinterResult,
@@ -34,6 +33,7 @@ import {
     PushImpactListener,
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
+    PushAwareParametersInvocation,
 } from "@atomist/sdm";
 import _ = require("lodash");
 import {
@@ -102,7 +102,7 @@ export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactLis
 /**
  * permits customization of EditModes in the FingerprintImpactHandlerConfig
  */
-export type EditModeMaker = (cli: CommandListenerInvocation<ApplyTargetParameters>, project?: Project) => editModes.EditMode;
+export type EditModeMaker = (cli: PushAwareParametersInvocation<ApplyTargetParameters>, project?: Project) => editModes.EditMode;
 
 /**
  * customize the out of the box strategy for monitoring when fingerprints are out
