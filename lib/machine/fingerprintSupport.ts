@@ -30,10 +30,10 @@ import {
     FingerprinterResult,
     Goal,
     metadata,
+    PushAwareParametersInvocation,
     PushImpactListener,
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
-    PushAwareParametersInvocation,
 } from "@atomist/sdm";
 import _ = require("lodash");
 import {
