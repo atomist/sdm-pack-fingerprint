@@ -34,7 +34,7 @@ export {
 export {
     fingerprintRunner,
     FingerprintRunner,
-} from "./lib/machine/runner"
+} from "./lib/machine/runner";
 export {
     renderDiffSnippet,
 } from "./lib/support/util";
@@ -75,7 +75,7 @@ export {
 } from "./lib/fingerprints/maven";
 export {
     JsonFile,
-} from "./lib/fingerprints/jsonFiles"
+} from "./lib/fingerprints/jsonFiles";
 
 export * from "./lib/machine/AtomicFeature";
 export * from "./lib/machine/DerivedFeature";

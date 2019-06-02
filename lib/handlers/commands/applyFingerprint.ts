@@ -75,7 +75,7 @@ async function pushFingerprint(
             if (!result) {
                 await message(`failure applying fingerprint ${fp.name}`);
             } else {
-                logger.info(`successfully applied fingerprint ${fp.name}`)
+                logger.info(`successfully applied fingerprint ${fp.name}`);
             }
         }
     }

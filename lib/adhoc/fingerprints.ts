@@ -36,7 +36,7 @@ export function findTaggedRepos(graphClient: GraphClient): (name: string) => Pro
 
 /**
  * uses GetFpByBranch query
- * 
+ *
  * @param graphClient
  */
 export function queryFingerprintsByBranchRef(graphClient: GraphClient):

@@ -55,11 +55,11 @@ import {
     JsonFile,
 } from "../lib/fingerprints/jsonFiles";
 import {
-    NpmDeps,
-} from "../lib/fingerprints/npmDeps";
-import {
     MavenDeps,
 } from "../lib/fingerprints/maven";
+import {
+    NpmDeps,
+} from "../lib/fingerprints/npmDeps";
 import {
     checkNpmCoordinatesImpactHandler,
 } from "../lib/machine/fingerprintSupport";
