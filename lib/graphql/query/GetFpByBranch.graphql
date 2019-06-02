@@ -3,7 +3,7 @@ query GetFpByBranch($owner: String!, $repo: String!, $branch: String!){
     branches(name: $branch) {
       commit {
         analysis {
-          id
+          type
           name
           sha
           data
