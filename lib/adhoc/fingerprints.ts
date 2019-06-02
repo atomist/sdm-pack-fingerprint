@@ -16,14 +16,14 @@
 
 import {
     GraphClient,
-    QueryNoCacheOptions,
     logger,
+    QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
-    FindLinkedReposWithFingerprint,
-    GetFpByBranch,
     AddFingerprints,
+    FindLinkedReposWithFingerprint,
     FingerprintInput,
+    GetFpByBranch,
 } from "../typings/types";
 import { FP } from "@atomist/clj-editors";
 import { PushImpactListenerInvocation } from "@atomist/sdm";
