@@ -38,7 +38,6 @@ import {
 import {
     configureSdm,
     createSoftwareDeliveryMachine,
-    goalState,
     goalStateSupport,
 } from "@atomist/sdm-core";
 import {
