@@ -1,0 +1,8 @@
+query RepoBranchIds($owner: String!, $repo: String!, $branch: String!) { 
+  Repo(name: $repo, owner: $owner) {
+    id
+    branches(name: $branch) {
+      id
+    }
+  }
+}

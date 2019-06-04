@@ -26,6 +26,7 @@ import {
     FindLinkedReposWithFingerprint,
     FingerprintInput,
     GetFpByBranch,
+    RepoBranchIds,
 } from "../typings/types";
 
 export function findTaggedRepos(graphClient: GraphClient): (name: string) => Promise<any> {
@@ -72,14 +73,26 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
     });
 
     try {
+        logger.info(`get ids for ${i.push.branch}, ${i.push.repo.owner}/${i.push.repo.name}`)
+        const ids: RepoBranchIds.Query = await i.context.graphClient.query<RepoBranchIds.Query, RepoBranchIds.Variables>(
+            {
+                query: "RepoBranchIds",
+                variables: {
+                    branch: i.push.branch,
+                    owner: i.push.repo.owner,
+                    repo: i.push.repo.name,
+                }
+            }
+        )
+        logger.info(`${JSON.stringify(ids)}`);
         await i.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
             {
                 mutation: "AddFingerprints",
                 variables: {
                     additions,
                     type: "Atomist",
-                    branchId: i.push.branch,
-                    repoId: i.push.repo.name,
+                    branchId: ids.Repo[0].branches[0].id,
+                    repoId: ids.Repo[0].id,
                     sha: i.push.after.sha,
                 },
             },
