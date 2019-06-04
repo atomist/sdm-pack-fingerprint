@@ -73,7 +73,7 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
     });
 
     try {
-        logger.info(`get ids for ${i.push.branch}, ${i.push.repo.owner}/${i.push.repo.name}`)
+        logger.info(`get ids for ${i.push.branch}, ${i.push.repo.owner}/${i.push.repo.name}`);
         const ids: RepoBranchIds.Query = await i.context.graphClient.query<RepoBranchIds.Query, RepoBranchIds.Variables>(
             {
                 query: "RepoBranchIds",
@@ -81,9 +81,9 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
                     branch: i.push.branch,
                     owner: i.push.repo.owner,
                     repo: i.push.repo.name,
-                }
-            }
-        )
+                },
+            },
+        );
         logger.info(`${JSON.stringify(ids)}`);
         await i.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
             {
