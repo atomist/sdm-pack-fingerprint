@@ -16,11 +16,17 @@
 
 import {
     GraphClient,
+    logger,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
+import { FP } from "@atomist/clj-editors";
+import { PushImpactListenerInvocation } from "@atomist/sdm";
 import {
+    AddFingerprints,
     FindLinkedReposWithFingerprint,
+    FingerprintInput,
     GetFpByBranch,
+    RepoBranchIds,
 } from "../typings/types";
 
 export function findTaggedRepos(graphClient: GraphClient): (name: string) => Promise<any> {
@@ -34,6 +40,11 @@ export function findTaggedRepos(graphClient: GraphClient): (name: string) => Pro
     };
 }
 
+/**
+ * uses GetFpByBranch query
+ *
+ * @param graphClient
+ */
 export function queryFingerprintsByBranchRef(graphClient: GraphClient):
     (repo: string, owner: string, branch: string) => Promise<GetFpByBranch.Analysis[]> {
 
@@ -49,4 +60,46 @@ export function queryFingerprintsByBranchRef(graphClient: GraphClient):
         });
         return query.Repo[0].branches[0].commit.analysis;
     };
+}
+
+export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, fps: FP[]): Promise<boolean> {
+
+    const additions: FingerprintInput[] = fps.map(x => {
+        return {
+            name: x.name,
+            sha: x.sha,
+            data: JSON.stringify(x.data),
+        };
+    });
+
+    try {
+        logger.info(`get ids for ${i.push.branch}, ${i.push.repo.owner}/${i.push.repo.name}`);
+        const ids: RepoBranchIds.Query = await i.context.graphClient.query<RepoBranchIds.Query, RepoBranchIds.Variables>(
+            {
+                name: "RepoBranchIds",
+                variables: {
+                    branch: i.push.branch,
+                    owner: i.push.repo.owner,
+                    repo: i.push.repo.name,
+                },
+            },
+        );
+        logger.info(`${JSON.stringify(ids)}`);
+        await i.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
+            {
+                name: "AddFingerprints",
+                variables: {
+                    additions,
+                    type: "Atomist",
+                    branchId: ids.Repo[0].branches[0].id,
+                    repoId: ids.Repo[0].id,
+                    sha: i.push.after.sha,
+                },
+            },
+        );
+    } catch (ex) {
+        logger.error(`Error sending Fingerprints: ${ex}`);
+    }
+
+    return true;
 }

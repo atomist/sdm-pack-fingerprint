@@ -38,7 +38,7 @@ import {
 import {
     configureSdm,
     createSoftwareDeliveryMachine,
-    goalState,
+    goalStateSupport,
 } from "@atomist/sdm-core";
 import {
     fingerprintImpactHandler,
@@ -55,11 +55,11 @@ import {
     JsonFile,
 } from "../lib/fingerprints/jsonFiles";
 import {
-    NpmDeps,
-} from "../lib/fingerprints/npmDeps";
-import {
     MavenDeps,
 } from "../lib/fingerprints/maven";
+import {
+    NpmDeps,
+} from "../lib/fingerprints/npmDeps";
 import {
     checkNpmCoordinatesImpactHandler,
 } from "../lib/machine/fingerprintSupport";
@@ -136,7 +136,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
     sdm.addGeneratorCommand(CljServiceGenerator);
 
     sdm.addExtensionPacks(
-        goalState(),
+        goalStateSupport(),
         fingerprintSupport({
             fingerprintGoal: FingerprintGoal,
             features:

@@ -25,12 +25,12 @@ import {
     Vote,
 } from "@atomist/clj-editors";
 import {
-    CommandListenerInvocation,
     ExtensionPack,
     Fingerprint,
     FingerprinterResult,
     Goal,
     metadata,
+    PushAwareParametersInvocation,
     PushImpactListener,
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
@@ -71,8 +71,14 @@ import {
     SetTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
-import { Feature, FingerprintHandler } from "./Feature";
-import { fingerprintRunner, FingerprintRunner } from "./runner";
+import {
+    Feature,
+    FingerprintHandler,
+} from "./Feature";
+import {
+    fingerprintRunner,
+    FingerprintRunner,
+} from "./runner";
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
@@ -96,7 +102,7 @@ export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactLis
 /**
  * permits customization of EditModes in the FingerprintImpactHandlerConfig
  */
-export type EditModeMaker = (cli: CommandListenerInvocation<ApplyTargetParameters>, project?: Project) => editModes.EditMode;
+export type EditModeMaker = (cli: PushAwareParametersInvocation<ApplyTargetParameters>, project?: Project) => editModes.EditMode;
 
 /**
  * customize the out of the box strategy for monitoring when fingerprints are out
@@ -238,6 +244,8 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
             const fingerprints = Array.isArray(options.features) ? options.features : [options.features];
             const handlers = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
 
+            // TODO we can consider switching this to a regular Fulfillable Goal when the action no longer has
+            //      to return a Fingerprints
             if (!!options.fingerprintGoal) {
                 options.fingerprintGoal.with({
                     name: `${options.fingerprintGoal.uniqueName}-fingerprinter`,

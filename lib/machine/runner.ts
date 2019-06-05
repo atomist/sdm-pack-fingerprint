@@ -1,23 +1,43 @@
-import { addressEvent, GraphClient, logger, MessageClient, Project, QueryNoCacheOptions } from "@atomist/automation-client";
-import { Diff, FP, renderData, Vote } from "@atomist/clj-editors";
-import { PushFields, PushImpactListenerInvocation } from "@atomist/sdm";
-import { GetAllFpsOnSha, GetPushDetails } from "../typings/types";
-import { Feature, FingerprintHandler } from "./Feature";
+/*
+ * Copyright © 2019 Atomist, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-async function sendCustomEvent(client: MessageClient, push: PushFields.Fragment, fingerprint: any): Promise<void> {
-    const customFPEvent = addressEvent("AtomistFingerprint");
-    const event: any = {
-        ...fingerprint,
-        data: JSON.stringify(fingerprint.data),
-        commitSha: push.after.sha,
-    };
-
-    try {
-        await client.send(event, customFPEvent);
-    } catch (e) {
-        logger.error(`unable to send AtomistFingerprint ${JSON.stringify(fingerprint)}`);
-    }
-}
+import {
+    GraphClient,
+    logger,
+    Project,
+    QueryNoCacheOptions,
+} from "@atomist/automation-client";
+import {
+    Diff,
+    FP,
+    renderData,
+    Vote,
+} from "@atomist/clj-editors";
+import {
+    PushImpactListenerInvocation,
+} from "@atomist/sdm";
+import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
+import {
+    GetAllFpsOnSha,
+    GetPushDetails,
+} from "../typings/types";
+import {
+    Feature,
+    FingerprintHandler,
+} from "./Feature";
 
 interface MissingInfo {
     providerId: string;
@@ -170,11 +190,7 @@ export function fingerprintRunner(fingerprinters: Feature[], handlers: Fingerpri
 
         logger.debug(renderData(allFps));
 
-        allFps.forEach(
-            async fp => {
-                await sendCustomEvent(i.context.messageClient, i.push, fp);
-            },
-        );
+        await sendFingerprintToAtomist(i, allFps);
 
         const allVotes: Vote[] = (await Promise.all(
             allFps.map(fp => handleDiffs(fp, previous[fp.name], info, handlers, i)),

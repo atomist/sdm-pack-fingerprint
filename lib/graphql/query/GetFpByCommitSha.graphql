@@ -1,7 +1,9 @@
 query GetFPByCommitSha($sha: String!, $name: String!) {
-  AtomistFingerprint(commitSha: $sha, name: $name) {
-    id
-    sha
-    data
+  Commit(sha: $sha) {
+    analysis(name: $name) {
+      name
+      sha
+      data
+    }
   }
 }
