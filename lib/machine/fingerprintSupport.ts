@@ -184,10 +184,18 @@ export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHan
         return {
             selector: forFingerprints("npm-project-coordinates"),
             diffHandler: (ctx, diff) => {
-                return setNewTargetFingerprint(
-                    ctx,
-                    getNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
-                    diff.channel);
+                if (diff.channel) {
+                    return setNewTargetFingerprint(
+                        ctx,
+                        getNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
+                        diff.channel);
+                } else {
+                    return new Promise<Vote>(
+                        function (resolve, reject) {
+                            resolve({ abstain: true });
+                        }
+                    );
+                }
             },
         };
     };
@@ -259,8 +267,8 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
-                   handlers: RegisterFingerprintImpactHandler[],
-                   fpRegistraitons: Feature[]): void {
+    handlers: RegisterFingerprintImpactHandler[],
+    fpRegistraitons: Feature[]): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);

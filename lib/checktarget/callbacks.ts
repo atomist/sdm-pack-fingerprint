@@ -138,13 +138,17 @@ export function votes(config: FingerprintImpactHandlerConfig):
 
         if (result.failed) {
 
-            await config.messageMaker({
-                ctx,
-                msgId: updateableMessage(result.failedVotes[0].fingerprint, coord, channel),
-                channel,
-                voteResults: result,
-                coord,
-            });
+            if (channel) {
+                await config.messageMaker({
+                    ctx,
+                    msgId: updateableMessage(result.failedVotes[0].fingerprint, coord, channel),
+                    channel,
+                    voteResults: result,
+                    coord,
+                });
+            } else {
+                logger.warn(`no linked repo channel.  Not sending target message`);
+            }
 
             goalState = {
                 state: SdmGoalState.failure,

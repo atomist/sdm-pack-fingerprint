@@ -38,6 +38,7 @@ import {
     Feature,
     FingerprintHandler,
 } from "./Feature";
+import _ = require("lodash");
 
 interface MissingInfo {
     providerId: string;
@@ -144,7 +145,7 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
         });
     return {
         providerId: results.Push[0].repo.org.scmProvider.providerId,
-        channel: results.Push[0].repo.channels[0].name,
+        channel: _.get(results, "Push[0].repo.channels[0].name"),
     };
 }
 

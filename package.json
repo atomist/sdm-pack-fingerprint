@@ -24,7 +24,7 @@
     "url": "https://github.com/atomist/sdm-pack-fingerprints/issues"
   },
   "dependencies": {
-    "@atomist/clj-editors": "0.6.5",
+    "@atomist/clj-editors": "*",
     "@atomist/slack-messages": "^1.1.0",
     "@cljs-oss/module-deps": "^1.1.1",
     "dockerfile-ast": "0.0.12",
@@ -39,6 +39,7 @@
     "@atomist/sdm-pack-docker": ">=1.1.0"
   },
   "devDependencies": {
+    "@atomist/clj-editors": "0.6.6",
     "@atomist/automation-client": "^1.5.2",
     "@atomist/sdm": "^1.5.0",
     "@atomist/sdm-core": "^1.5.0",
