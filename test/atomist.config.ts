@@ -46,9 +46,6 @@ import {
     messageMaker,
 } from "..";
 import {
-    Backpack,
-} from "../lib/fingerprints/backpack";
-import {
     DockerFrom,
 } from "../lib/fingerprints/dockerFrom";
 import {
