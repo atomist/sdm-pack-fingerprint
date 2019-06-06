@@ -35,7 +35,7 @@ export function createFileFingerprint(...filenames: string[]): ExtractFingerprin
                     const jsonData = JSON.parse(fileData);
                     fps.push(
                         {
-                            name: `file-${filename}`,
+                            name: `${JsonFile.name}-${filename}`,
                             abbreviation: `file-${filename}`,
                             version: "0.0.1",
                             data: {
@@ -69,10 +69,11 @@ export const applyFileFingerprint: ApplyFingerprint = async (p, fp) => {
 
 export const JsonFile: Feature = {
     displayName: "JSON files",
+    name: "file",
     extract: createFileFingerprint(
         "tslint.json",
         "tsconfig.json"),
     apply: applyFileFingerprint,
-    selector: fp => fp.name.startsWith("file-"),
+    selector: fp => fp.name.startsWith(JsonFile.name),
     toDisplayableFingerprint: fp => fp.name,
 };

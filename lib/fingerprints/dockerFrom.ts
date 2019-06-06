@@ -39,7 +39,7 @@ import { Feature } from "../machine/Feature";
 export function getDockerBaseFingerprint(image: string, version: string): FP {
     const data = { image, version };
     return {
-        name: `docker-base-image-${image}`,
+        name: `${DockerFrom.name}-${image}`,
         abbreviation: `dbi-${image}`,
         version: "0.0.1",
         data,
@@ -92,8 +92,9 @@ export const applyDockerBaseFingerprint: ApplyFingerprint = async (p, fp) => {
 
 export const DockerFrom: Feature = {
     displayName: "Docker base image",
+    name: "docker-base-image",
     apply: applyDockerBaseFingerprint,
     extract: dockerBaseFingerprint,
-    selector: myFp => myFp.name.startsWith("docker-base-image"),
+    selector: myFp => myFp.name.startsWith(DockerFrom.name),
     toDisplayableFingerprint: fp => fp.data.version,
 };

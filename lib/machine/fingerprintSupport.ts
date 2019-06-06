@@ -75,9 +75,7 @@ import {
 } from "./Feature";
 import {
     computeFingerprints,
-    FingerprintComputer,
     fingerprintRunner,
-    FingerprintRunner,
 } from "./runner";
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
@@ -230,12 +228,19 @@ export interface FingerprintOptions {
     handlers: RegisterFingerprintImpactHandler | RegisterFingerprintImpactHandler[];
 }
 
+export interface FingerprintExtensionPack extends ExtensionPack {
+    sendFingerprints: (i: PushImpactListenerInvocation, fps: FP[]) => Promise<FP[]>;
+}
+
 /**
  * Install and configure the fingerprint support in this SDM
  */
-export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
+export function fingerprintSupport(options: FingerprintOptions): FingerprintExtensionPack {
+    let sendFingerprints: (i: PushImpactListenerInvocation, fps: FP[]) => Promise<FP[]>;
+
     return {
         ...metadata(),
+        sendFingerprints,
         configure: (sdm: SoftwareDeliveryMachine) => {
 
             const fingerprints = Array.isArray(options.features) ? options.features : [options.features];
@@ -254,8 +259,12 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
                     },
                 });
             }
-            createRunner = computer => {
-                return fingerprintRunner(fingerprints, handlers.map(h => h(sdm, fingerprints)), computer);
+            sendFingerprints = async (i: PushImpactListenerInvocation, fps: FP[]): Promise<FP[]> => {
+                return (fingerprintRunner(
+                    fingerprints,
+                    handlers.map(h => h(sdm, fingerprints)),
+                    async (a, b) => fps,
+                ))(i);
             };
 
             configure(sdm, handlers, fingerprints);
@@ -263,15 +272,9 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
     };
 }
 
-let createRunner: (computer: FingerprintComputer) => FingerprintRunner;
-
-export function sendFingerprints(i: PushImpactListenerInvocation, fps: FP[]): Promise<FP[]> {
-    return (createRunner(async (x, y) => fps))(i);
-}
-
 function configure(sdm: SoftwareDeliveryMachine,
-                   handlers: RegisterFingerprintImpactHandler[],
-                   fpRegistraitons: Feature[]): void {
+    handlers: RegisterFingerprintImpactHandler[],
+    fpRegistraitons: Feature[]): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);

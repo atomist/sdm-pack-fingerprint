@@ -53,7 +53,7 @@ export function isAtomicFeature(feature: BaseFeature): feature is AtomicFeature 
  */
 export function atomicFeature(
     featureData: Pick<Feature, "displayName" | "summary" |
-        "comparators" | "toDisplayableFingerprint" | "toDisplayableFingerprintName">,
+        "comparators" | "toDisplayableFingerprint" | "toDisplayableFingerprintName" | "name">,
     narrower: FingerprintSelector,
     feature0: Feature,
     ...features: Feature[]): AtomicFeature {

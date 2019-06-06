@@ -35,9 +35,11 @@ describe("atomicFeature", () => {
             selector: () => true,
             extract: async () => fp,
             displayName: "foo",
+            name: "foo",
         };
         const feature = atomicFeature({
             displayName: "composite",
+            name: "composite",
         }, () => false, f1);
         const fingerprinted = await feature.consolidate([fp]);
         assert.strictEqual(fingerprinted, undefined);
@@ -50,9 +52,11 @@ describe("atomicFeature", () => {
             selector: () => true,
             extract: e1,
             displayName: "foo",
+            name: "foo",
         };
         const feature = atomicFeature({
             displayName: "composite",
+            name: "composite",
         }, () => true, f1);
         const fingerprinted = toArray(await feature.consolidate([fp]));
         assert(!!fingerprinted);
@@ -70,9 +74,11 @@ describe("atomicFeature", () => {
             selector: () => true,
             extract: e1,
             displayName: "foo",
+            name: "foo",
         };
         const feature = atomicFeature({
             displayName: "composite",
+            name: "name",
         }, fp => fp.name.endsWith("foo") || fp.name.endsWith("bar"), f1);
         const fingerprinted = toArray(await feature.consolidate([fp1, fp2, fp3]));
         assert(!!fingerprinted);
@@ -95,6 +101,7 @@ describe("atomicFeature", () => {
             selector: fp => fp.name.endsWith("foo"),
             extract: e1,
             displayName: "foo1",
+            name: "foo1",
             apply: async p1 => {
                 await p1.addFile("f1", "content");
                 return true;
@@ -104,6 +111,7 @@ describe("atomicFeature", () => {
             selector: fp => fp.name.endsWith("bar"),
             extract: e2,
             displayName: "bar",
+            name: "bar",
             apply: async p2 => {
                 await p2.addFile("f2", "content");
                 return true;
@@ -111,6 +119,7 @@ describe("atomicFeature", () => {
         };
         const feature = atomicFeature({
             displayName: "composite",
+            name: "composite",
         }, fp => fp.name.endsWith("foo") || fp.name.endsWith("bar"),
             f1, f2);
         const consolidated = await feature.consolidate([fp1, fp2]);

@@ -72,6 +72,11 @@ export interface BaseFeature<FPI extends FP = FP> {
     readonly displayName: string;
 
     /**
+     * prefix for all fingerprints that are emitted by this Feature
+     */
+    readonly name: string;
+
+    /**
      * Is this feature able to manage this fingerprint instance?
      */
     selector: FingerprintSelector<FPI>;

@@ -42,7 +42,7 @@ import {
 export function getNpmDepFingerprint(lib: string, version: string): FP {
     const data = [lib, version];
     return {
-        name: `npm-project-dep::${lib.replace("@", "").replace("/", "::")}`,
+        name: `${NpmDeps.name}-dep::${lib.replace("@", "").replace("/", "::")}`,
         abbreviation: "npmdeps",
         version: "0.0.1",
         data,
@@ -51,7 +51,7 @@ export function getNpmDepFingerprint(lib: string, version: string): FP {
 }
 
 export function constructNpmDepsFingerprintName(lib: string): string {
-    return `npm-project-dep::${lib.replace("@", "").replace("/", "::")}`;
+    return `${NpmDeps.name}-dep::${lib.replace("@", "").replace("/", "::")}`;
 }
 
 /**
@@ -91,8 +91,8 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
         const coords = { name: jsonData.name, version: jsonData.version };
         fingerprints.push(
             {
-                name: "npm-project-coordinates",
-                abbreviation: "npm-project-coords",
+                name: `${NpmDeps.name}-coordinates`,
+                abbreviation: `${NpmDeps.name}-coordinates`,
                 version: "0.0.1",
                 data: coords,
                 sha: sha256(JSON.stringify(coords)),
@@ -137,9 +137,10 @@ export const diffNpmDepsFingerprints: DiffSummaryFingerprint = (diff, target) =>
 
 export const NpmDeps: Feature = {
     displayName: "npm dependencies",
+    name: "npm-project",
     extract: createNpmDepsFingerprints,
     apply: applyNpmDepsFingerprint,
-    selector: fp => fp.name.startsWith("npm-project-dep"),
+    selector: fp => fp.name.startsWith(NpmDeps.name),
     summary: diffNpmDepsFingerprints,
     toDisplayableFingerprint: fp => fp.data[1],
     toDisplayableFingerprintName: deconstructNpmDepsFingerprintName,
