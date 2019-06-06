@@ -143,7 +143,6 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 [
                     NpmDeps,
                     DockerFrom,
-                    Backpack,
                     JsonFile,
                     MavenDeps,
                 ],

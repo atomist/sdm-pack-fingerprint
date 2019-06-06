@@ -36,7 +36,7 @@ export const backpackFingerprint: ExtractFingerprint = async p => {
         const packagejson = JSON.parse(await file.getContent());
 
         // tslint:disable-next-line:no-string-literal
-        const data: any = _.get(packagejson, "backpack-react-scripts.externals");
+        const data: any = _.get(packagejson, "backpack-react-scripts.externals", "");
 
         const fp: FP = {
             name: "backpack-react-scripts",
