@@ -29,6 +29,7 @@ import {
 import {
     PushImpactListenerInvocation,
 } from "@atomist/sdm";
+import _ = require("lodash");
 import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import {
     GetAllFpsOnSha,
@@ -38,7 +39,6 @@ import {
     Feature,
     FingerprintHandler,
 } from "./Feature";
-import _ = require("lodash");
 
 interface MissingInfo {
     providerId: string;
@@ -151,10 +151,39 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
 
 export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
 
+export type FingerprintComputer = (fingerprinters: Feature[], p: Project) => Promise<FP[]>;
+
+export const computeFingerprints: FingerprintComputer = async (fingerprinters, p) => {
+
+    const allFps: FP[] = (await Promise.all(
+        fingerprinters.map(
+            x => x.extract(p),
+        ),
+    )).reduce<FP[]>(
+        (acc, fps) => {
+            if (fps && !(fps instanceof Array)) {
+                acc.push(fps);
+                return acc;
+            } else if (fps) {
+                // TODO does concat return the larger array?
+                return acc.concat(fps);
+            } else {
+                logger.warn(`extractor returned something weird ${JSON.stringify(fps)}`);
+                return acc;
+            }
+        },
+        [],
+    );
+    return allFps;
+};
+
 /**
  * Construct our FingerprintRunner for the current registrations
  */
-export function fingerprintRunner(fingerprinters: Feature[], handlers: FingerprintHandler[]): FingerprintRunner {
+export function fingerprintRunner(
+    fingerprinters: Feature[],
+    handlers: FingerprintHandler[],
+    computer: (fingerprinters: Feature[], p: Project) => Promise<FP[]>): FingerprintRunner {
     return async (i: PushImpactListenerInvocation) => {
         const p: Project = i.project;
         const info: MissingInfo = await missingInfo(i);
@@ -169,25 +198,7 @@ export function fingerprintRunner(fingerprinters: Feature[], handlers: Fingerpri
         }
         logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
-        const allFps: FP[] = (await Promise.all(
-            fingerprinters.map(
-                x => x.extract(p),
-            ),
-        )).reduce<FP[]>(
-            (acc, fps) => {
-                if (fps && !(fps instanceof Array)) {
-                    acc.push(fps);
-                    return acc;
-                } else if (fps) {
-                    // TODO does concat return the larger array?
-                    return acc.concat(fps);
-                } else {
-                    logger.warn(`extractor returned something weird ${JSON.stringify(fps)}`);
-                    return acc;
-                }
-            },
-            [],
-        );
+        const allFps: FP[] = await computer(fingerprinters, p);
 
         logger.debug(renderData(allFps));
 

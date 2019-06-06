@@ -20,6 +20,7 @@ import {
     renderData,
     sha256,
 } from "@atomist/clj-editors";
+import _ = require("lodash");
 import {
     ApplyFingerprint,
     ExtractFingerprint,
@@ -35,13 +36,13 @@ export const backpackFingerprint: ExtractFingerprint = async p => {
         const packagejson = JSON.parse(await file.getContent());
 
         // tslint:disable-next-line:no-string-literal
-        const data: any = packagejson["backpack-react-scripts"]["externals"];
+        const data: any = _.get(packagejson, "backpack-react-scripts.externals");
 
         const fp: FP = {
             name: "backpack-react-scripts",
             abbreviation: "backpack",
             version: "0.0.1",
-            data: packagejson["backpack-react-scripts"].externals,
+            data,
             sha: sha256(JSON.stringify(data)),
         };
 

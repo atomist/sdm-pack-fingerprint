@@ -27,11 +27,9 @@ import {
 import {
     ExtensionPack,
     Fingerprint,
-    FingerprinterResult,
     Goal,
     metadata,
     PushAwareParametersInvocation,
-    PushImpactListener,
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
@@ -76,6 +74,8 @@ import {
     FingerprintHandler,
 } from "./Feature";
 import {
+    computeFingerprints,
+    FingerprintComputer,
     fingerprintRunner,
     FingerprintRunner,
 } from "./runner";
@@ -85,17 +85,6 @@ export function forFingerprints(...s: string[]): (fp: FP) => boolean {
         const m = s.map((n: string) => (fp.name === n))
             .reduce((acc, v) => acc || v);
         return m;
-    };
-}
-
-/**
- * Wrap a FingerprintRunner in a PushImpactListener so we can embed this in an  SDMGoal
- *
- * @param fingerprinter
- */
-export function runFingerprints(fingerprinter: FingerprintRunner): PushImpactListener<FingerprinterResult> {
-    return async (i: PushImpactListenerInvocation) => {
-        return fingerprinter(i);
     };
 }
 
@@ -191,9 +180,9 @@ export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHan
                         diff.channel);
                 } else {
                     return new Promise<Vote>(
-                        function (resolve, reject) {
+                        (resolve, reject) => {
                             resolve({ abstain: true });
-                        }
+                        },
                     );
                 }
             },
@@ -257,18 +246,32 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
             if (!!options.fingerprintGoal) {
                 options.fingerprintGoal.with({
                     name: `${options.fingerprintGoal.uniqueName}-fingerprinter`,
-                    action: runFingerprints(fingerprintRunner(fingerprints, handlers.map(h => h(sdm, fingerprints)))),
+                    action: (i: PushImpactListenerInvocation) => {
+                        return (fingerprintRunner(
+                            fingerprints,
+                            handlers.map(h => h(sdm, fingerprints)),
+                            computeFingerprints))(i);
+                    },
                 });
             }
+            createRunner = computer => {
+                return fingerprintRunner(fingerprints, handlers.map(h => h(sdm, fingerprints)), computer);
+            };
 
             configure(sdm, handlers, fingerprints);
         },
     };
 }
 
+let createRunner: (computer: FingerprintComputer) => FingerprintRunner;
+
+export function sendFingerprints(i: PushImpactListenerInvocation, fps: FP[]): Promise<FP[]> {
+    return (createRunner(async (x, y) => fps))(i);
+}
+
 function configure(sdm: SoftwareDeliveryMachine,
-    handlers: RegisterFingerprintImpactHandler[],
-    fpRegistraitons: Feature[]): void {
+                   handlers: RegisterFingerprintImpactHandler[],
+                   fpRegistraitons: Feature[]): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);
