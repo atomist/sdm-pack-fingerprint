@@ -273,8 +273,8 @@ export function fingerprintSupport(options: FingerprintOptions): FingerprintExte
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
-    handlers: RegisterFingerprintImpactHandler[],
-    fpRegistraitons: Feature[]): void {
+                   handlers: RegisterFingerprintImpactHandler[],
+                   fpRegistraitons: Feature[]): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);
