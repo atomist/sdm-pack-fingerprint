@@ -168,7 +168,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                         messageMaker,
                     },
                 )],
-        },
+            },
         ),
     );
 

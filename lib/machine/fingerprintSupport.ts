@@ -244,7 +244,8 @@ export function fingerprintSupport(options: FingerprintOptions): FingerprintExte
         configure: (sdm: SoftwareDeliveryMachine) => {
 
             const fingerprints = Array.isArray(options.features) ? options.features : [options.features];
-            const handlers = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
+            const handlerRegistrations = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
+            const handlers: FingerprintHandler[] = handlerRegistrations.map(h => h(sdm, fingerprints));
 
             // TODO we can consider switching this to a regular Fulfillable Goal when the action no longer has
             //      to return a Fingerprints
@@ -254,7 +255,7 @@ export function fingerprintSupport(options: FingerprintOptions): FingerprintExte
                     action: (i: PushImpactListenerInvocation) => {
                         return (fingerprintRunner(
                             fingerprints,
-                            handlers.map(h => h(sdm, fingerprints)),
+                            handlers,
                             computeFingerprints))(i);
                     },
                 });
@@ -262,19 +263,19 @@ export function fingerprintSupport(options: FingerprintOptions): FingerprintExte
             sendFingerprints = async (i: PushImpactListenerInvocation, fps: FP[]): Promise<FP[]> => {
                 return (fingerprintRunner(
                     fingerprints,
-                    handlers.map(h => h(sdm, fingerprints)),
+                    handlers,
                     async (a, b) => fps,
                 ))(i);
             };
 
-            configure(sdm, handlers, fingerprints);
+            configure(sdm, handlerRegistrations, fingerprints);
         },
     };
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
-    handlers: RegisterFingerprintImpactHandler[],
-    fpRegistraitons: Feature[]): void {
+                   handlers: RegisterFingerprintImpactHandler[],
+                   fpRegistrations: Feature[]): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);
