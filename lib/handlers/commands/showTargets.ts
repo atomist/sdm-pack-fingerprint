@@ -21,17 +21,16 @@ import {
     Parameters,
     SlackFileMessage,
 } from "@atomist/automation-client";
-import {
-    CommandHandlerRegistration,
-    slackFooter,
-    SoftwareDeliveryMachine,
-} from "@atomist/sdm";
 
 import {
     FP,
     renderData,
 } from "@atomist/clj-editors";
-import { SlackMessage } from "@atomist/slack-messages";
+import {
+    CommandHandlerRegistration,
+    slackQuestionMessage,
+    SoftwareDeliveryMachine,
+} from "@atomist/sdm";
 import {
     fromName,
     getFPTargets,
@@ -83,34 +82,29 @@ export function listFingerprintTargets(sdm: SoftwareDeliveryMachine): CommandHan
                 .map(x => JSON.parse(x.value))
                 .sort(comparator("name"));
 
-            const message: SlackMessage = {
-                attachments: [
-                    {
-                        title: "Select Fingerprint",
-                        text: "Choose one of the current fingerprints to list",
-                        fallback: "Select Fingerprint",
-                        actions: [
-                            menuForCommand(
-                                {
-                                    text: "select fingerprint",
-                                    options: [
-                                        ...fps.map(x => {
-                                            return {
-                                                value: toName(x.type, x.name),
-                                                text: x.name,
-                                            };
-                                        }),
-                                    ],
-                                },
-                                listOneFingerprintTarget(sdm).name,
-                                "fingerprint",
-                                {},
-                            ),
-                        ],
-                        footer: slackFooter(),
-                    },
-                ],
-            };
+            const message = slackQuestionMessage(
+                "Fingerprint Target",
+                `Choose one of the current fingerprints to list`,
+                {
+                    actions: [
+                        menuForCommand(
+                            {
+                                text: "select fingerprint",
+                                options: [
+                                    ...fps.map(x => {
+                                        return {
+                                            value: toName(x.type, x.name),
+                                            text: x.name,
+                                        };
+                                    }),
+                                ],
+                            },
+                            listOneFingerprintTarget(sdm).name,
+                            "fingerprint",
+                            {},
+                        ),
+                    ],
+                });
 
             return cli.addressChannels(message);
         },

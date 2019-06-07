@@ -24,19 +24,17 @@ import {
     SlackFileMessage,
 } from "@atomist/automation-client";
 import { renderData } from "@atomist/clj-editors";
-import { CommandHandlerRegistration } from "@atomist/sdm";
-import { SlackMessage } from "@atomist/slack-messages";
 import {
-    queryFingerprintsByBranchRef,
-} from "../../adhoc/fingerprints";
+    CommandHandlerRegistration,
+    slackQuestionMessage,
+} from "@atomist/sdm";
 import {
     fromName,
     toName,
 } from "../../adhoc/preferences";
+import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
 import { comparator } from "../../support/util";
-import {
-    GetAllFpsOnSha,
-} from "../../typings/types";
+import { GetAllFpsOnSha } from "../../typings/types";
 
 @Parameters()
 export class ListFingerprintParameters {
@@ -111,7 +109,7 @@ function shortenName(s: string): string {
 
 export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParameters> = {
     name: "ListFingerprints",
-    intent: "listFingerprints",
+    intent: ["list fingerprints", "listFingerprints"],
     description: "list the fingerprints on a particular ref",
     paramsMaker: ListFingerprintParameters,
     listener: async cli => {
@@ -124,37 +122,34 @@ export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParamet
             cli.parameters.owner,
             branch);
 
-        const message: SlackMessage = {
-            attachments: [
-                {
-                    text: "Choose one fingerprint",
-                    fallback: "select fingerprint",
-                    actions: [
-                        menuForCommand(
-                            {
-                                text: "select fingerprint",
-                                options: [
-                                    ...fps.sort(comparator("name")).map(x => {
-                                        return {
-                                            value: toName(x.type, x.name),
-                                            text: shortenName(x.name),
-                                        };
-                                    }),
-                                ],
-                            },
-                            ListFingerprint.name,
-                            "fingerprint",
-                            {
-                                owner: cli.parameters.owner,
-                                repo: cli.parameters.repo,
-                                branch,
-                                providerId: cli.parameters.providerId,
-                            },
-                        ),
-                    ],
-                },
-            ],
-        };
+        const message = slackQuestionMessage(
+            "Fingerprint Target",
+            `Choose a fingerprint`,
+            {
+                actions: [
+                    menuForCommand(
+                        {
+                            text: "select fingerprint",
+                            options: [
+                                ...fps.sort(comparator("name")).map(x => {
+                                    return {
+                                        value: toName(x.type, x.name),
+                                        text: shortenName(x.name),
+                                    };
+                                }),
+                            ],
+                        },
+                        ListFingerprint.name,
+                        "fingerprint",
+                        {
+                            owner: cli.parameters.owner,
+                            repo: cli.parameters.repo,
+                            branch,
+                            providerId: cli.parameters.providerId,
+                        },
+                    ),
+                ],
+            });
 
         return cli.addressChannels(message);
     },
