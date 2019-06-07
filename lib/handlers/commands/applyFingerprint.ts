@@ -17,7 +17,6 @@
 import {
     editModes,
     GitProject,
-    guid,
     logger,
     ParameterType,
     Project,
@@ -30,26 +29,24 @@ import {
     AutoMergeMode,
 } from "@atomist/automation-client/lib/operations/edit/editModes";
 import { EditResult } from "@atomist/automation-client/lib/operations/edit/projectEditor";
-import {
-    FP,
-} from "@atomist/clj-editors";
+import { FP } from "@atomist/clj-editors";
 import {
     CodeTransform,
     CodeTransformRegistration,
     CommandHandlerRegistration,
-    slackFooter,
+    slackInfoMessage,
+    slackSuccessMessage,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import { SlackMessage } from "@atomist/slack-messages";
-import _ = require("lodash");
+import {
+    bold,
+    codeLine,
+} from "@atomist/slack-messages";
+import * as _ from "lodash";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import { queryPreferences } from "../../adhoc/preferences";
-import {
-    Feature,
-} from "../../machine/Feature";
-import {
-    EditModeMaker,
-} from "../../machine/fingerprintSupport";
+import { Feature } from "../../machine/Feature";
+import { EditModeMaker } from "../../machine/fingerprintSupport";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
 
 /**
@@ -92,19 +89,9 @@ async function pushFingerprint(
 export function runAllFingerprintAppliers(registrations: Feature[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
-        const message: SlackMessage = {
-            attachments: [
-                {
-                    author_name: "Apply target fingerprint",
-                    author_icon: `https://images.atomist.com/rug/check-circle.gif?gif=${guid()}`,
-                    text: `Applying target fingerprint \`${cli.parameters.fingerprint}\` to ${p.id.owner}/${p.id.repo}`,
-                    mrkdwn_in: ["text"],
-                    color: "#45B254",
-                    fallback: "none",
-                    footer: slackFooter(),
-                },
-            ],
-        };
+        const message = slackInfoMessage(
+            "Apply Fingerprint Target",
+            `Applying fingerprint target ${codeLine(cli.parameters.fingerprint)} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
 
         await cli.addressChannels(message, { id: cli.parameters.msgId });
 
@@ -128,19 +115,9 @@ export function runAllFingerprintAppliers(registrations: Feature[]): CodeTransfo
 function runEveryFingerprintApplication(registrations: Feature[]): CodeTransform<ApplyTargetFingerprintsParameters> {
     return async (p, cli) => {
 
-        const message: SlackMessage = {
-            attachments: [
-                {
-                    author_name: "Apply target fingerprints",
-                    author_icon: `https://images.atomist.com/rug/check-circle.gif?gif=${guid()}`,
-                    text: `Applying target fingerprints \`${cli.parameters.fingerprints}\` to ${p.id.owner}/${p.id.repo}`,
-                    mrkdwn_in: ["text"],
-                    color: "#45B254",
-                    fallback: "none",
-                    footer: slackFooter(),
-                },
-            ],
-        };
+        const message = slackInfoMessage(
+            "Apply Fingerprint Target",
+            `Applying fingerprint target ${codeLine(cli.parameters.fingerprints)} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
 
         await cli.addressChannels(message, { id: cli.parameters.msgId });
 
@@ -182,7 +159,7 @@ export function applyTarget(
 
     return {
         name: ApplyTargetFingerprintName,
-        intent: "applyFingerprint",
+        intent: ["apply fingerprint target", "applyFingerprint"],
         description: "choose to raise a PR on the current project to apply a target fingerprint",
         parameters: {
             msgId: { required: false, displayable: false },
@@ -261,13 +238,13 @@ export function broadcastFingerprintMandate(
                         .filter(repo => _.get(repo, "branches[0].commit.analysis"))
                         .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === fp.name))
                         .map(repo => {
-                            return {
-                                owner: repo.owner,
-                                repo: repo.name,
-                                url: "url",
-                                branch: "master",
-                            };
-                        },
+                                return {
+                                    owner: repo.owner,
+                                    repo: repo.name,
+                                    url: "url",
+                                    branch: "master",
+                                };
+                            },
                         ),
                 );
             }
@@ -313,30 +290,14 @@ export function broadcastFingerprintMandate(
                 },
             );
 
+            const message = slackSuccessMessage(
+                "Boardcast Fingerprint Target",
+                `Sent fingerprint pull request (${codeLine(i.parameters.fingerprint)}) to all impacted repositories
+
+${result.map(x => `${x.target.name} (${x.success})`).join(", ")}`);
+
             // replace the previous message where we chose this action
-            await i.addressChannels(
-                {
-                    attachments: [
-                        {
-                            author_name: "Broadcast Fingerprint Target",
-                            author_icon: `https://images.atomist.com/rug/check-circle.png`,
-                            text: `We have sent a fingerprint PR (${i.parameters.fingerprint}) to all impacted Repos`,
-                            fallback: `Boardcast PR`,
-                            color: "#00cc00",
-                            mrkdwn_in: ["text"],
-                            footer: slackFooter(),
-                        },
-                        {
-                            text: result.map(x => `${x.target.name} (${x.success})`).join(", "),
-                            fallback: `Boardcast PR`,
-                            color: "#00cc00",
-                            mrkdwn_in: ["text"],
-                            footer: slackFooter(),
-                        },
-                    ],
-                },
-                { id: i.parameters.msgId },
-            );
+            await i.addressChannels(message, { id: i.parameters.msgId });
         },
         parameters: {
             msgId: { required: false, displayable: false },

@@ -32,13 +32,11 @@ import {
 import {
     actionableButton,
     CommandHandlerRegistration,
-    slackFooter,
+    slackQuestionMessage,
 } from "@atomist/sdm";
-import { SlackMessage } from "@atomist/slack-messages";
-import _ = require("lodash");
-import {
-    queryFingerprintsByBranchRef,
-} from "../../adhoc/fingerprints";
+import { codeLine } from "@atomist/slack-messages";
+import * as _ from "lodash";
+import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
 import {
     deleteFPTarget,
     setFPTarget,
@@ -77,7 +75,7 @@ export class SetTargetFingerprintFromLatestMasterParameters {
  */
 export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<SetTargetFingerprintFromLatestMasterParameters> = {
     name: "SetTargetFingerprintFromLatestMaster",
-    intent: "setFingerprintGoal",
+    intent: ["set fingerprint target", "setFingerprintGoal"],
     description: "set a new target for a team to consume a particular version",
     paramsMaker: SetTargetFingerprintFromLatestMasterParameters,
     listener: async cli => {
@@ -196,7 +194,7 @@ export class DeleteTargetFingerprintParameters {
 
 export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFingerprintParameters> = {
     name: "DeleteTargetFingerprint",
-    intent: "deleteFingerprintTarget",
+    intent: ["delete fingerprint target", "deleteFingerprintTarget"],
     description: "remove the team target for a particular fingerprint",
     paramsMaker: DeleteTargetFingerprintParameters,
     listener: async cli => {
@@ -228,28 +226,25 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
 export async function setNewTargetFingerprint(ctx: HandlerContext,
                                               fp: FP,
                                               channel: string): Promise<Vote> {
-    const message: SlackMessage = {
-        attachments: [
-            {
-                text: `Shall we update the target version of \`${fp.name}\` to \`${_.get(fp.data, "[1]")}\` for all projects?`,
-                fallback: "none",
-                actions: [
-                    actionableButton<any>(
-                        {
-                            text: "Set Target",
-                        },
-                        SetTargetFingerprint,
-                        {
-                            fp: JSON.stringify(fp),
-                        },
-                    ),
-                ],
-                color: "#ffcc00",
-                footer: slackFooter(),
-                callback_id: "atm-confirm-done",
-            },
-        ],
-    };
+    const message = slackQuestionMessage(
+        "Fingerprint Target",
+        `Shall we update the target version of ${codeLine(fp.name)} to ${codeLine(_.get(fp.data, "[1]"))} for all projects?`,
+        {
+            actions: [
+                actionableButton<any>(
+                    {
+                        text: "Set Target",
+                    },
+                    SetTargetFingerprint,
+                    {
+                        fp: JSON.stringify(fp),
+                    },
+                ),
+            ],
+            callback_id: "atm-confirm-done",
+        },
+    );
+
     await ctx.messageClient.addressChannels(message, channel);
 
     return { abstain: true };
@@ -286,7 +281,7 @@ function shortenName(s: string): string {
  */
 export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistration<SelectTargetFingerprintFromCurrentProjectParameters> = {
     name: "SelectTargetFingerprintFromCurrentProject",
-    intent: ["setFingerprintTarget", "setTargetFingerprint"],
+    intent: ["set fingerprint target", "setFingerprintTarget", "setTargetFingerprint"],
     description: "select a fingerprint in this project to become a target fingerprint",
     paramsMaker: SelectTargetFingerprintFromCurrentProjectParameters,
     listener: async cli => {
@@ -299,37 +294,34 @@ export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistrati
             cli.parameters.owner,
             branch);
 
-        const message: SlackMessage = {
-            attachments: [
-                {
-                    text: "Choose one of the current fingerprints",
-                    fallback: "select fingerprint",
-                    actions: [
-                        menuForCommand(
-                            {
-                                text: "select fingerprint",
-                                options: [
-                                    ...fps.map(x => {
-                                        return {
-                                            value: x.name,
-                                            text: shortenName(x.name),
-                                        };
-                                    }),
-                                ],
-                            },
-                            SetTargetFingerprintFromLatestMaster.name,
-                            "fingerprint",
-                            {
-                                owner: cli.parameters.owner,
-                                repo: cli.parameters.repo,
-                                branch,
-                                providerId: cli.parameters.providerId,
-                            },
-                        ),
-                    ],
-                },
-            ],
-        };
+        const message = slackQuestionMessage(
+            "Fingerprint Target",
+            "Choose one of the current fingerprints:",
+            {
+                actions: [
+                    menuForCommand(
+                        {
+                            text: "select fingerprint",
+                            options: [
+                                ...fps.map(x => {
+                                    return {
+                                        value: x.name,
+                                        text: shortenName(x.name),
+                                    };
+                                }),
+                            ],
+                        },
+                        SetTargetFingerprintFromLatestMaster.name,
+                        "fingerprint",
+                        {
+                            owner: cli.parameters.owner,
+                            repo: cli.parameters.repo,
+                            branch,
+                            providerId: cli.parameters.providerId,
+                        },
+                    ),
+                ],
+            });
 
         return cli.addressChannels(message);
     },
