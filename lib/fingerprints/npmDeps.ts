@@ -42,7 +42,8 @@ import {
 export function getNpmDepFingerprint(lib: string, version: string): FP {
     const data = [lib, version];
     return {
-        name: `${NpmDeps.name}-dep::${lib.replace("@", "").replace("/", "::")}`,
+        type: NpmDeps.name,
+        name: `${constructNpmDepsFingerprintName(lib)}`,
         abbreviation: "npmdeps",
         version: "0.0.1",
         data,
@@ -51,7 +52,7 @@ export function getNpmDepFingerprint(lib: string, version: string): FP {
 }
 
 export function constructNpmDepsFingerprintName(lib: string): string {
-    return `${NpmDeps.name}-dep::${lib.replace("@", "").replace("/", "::")}`;
+    return `${lib.replace("@", "").replace("/", "::")}`;
 }
 
 /**
@@ -60,7 +61,7 @@ export function constructNpmDepsFingerprintName(lib: string): string {
  * @return {string | undefined}
  */
 export function deconstructNpmDepsFingerprintName(fingerprintName: string): string | undefined {
-    const regex = /^npm-project-dep::([^:]+)(::.*)?$/;
+    const regex = /^([^:]+)(::.*)?$/;
     const match = regex.exec(fingerprintName);
     if (!match) {
         return undefined;
@@ -88,11 +89,25 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
             fingerprints.push(getNpmDepFingerprint(lib, version));
         }
 
+        return fingerprints;
+    } else {
+        return undefined;
+    }
+};
+
+export const createNpmCoordinatesFingerprint: ExtractFingerprint = async p => {
+    const file = await p.getFile("package.json");
+
+    if (file) {
+        const jsonData = JSON.parse(await file.getContent());
+
+        const fingerprints: FP[] = [];
+
         const coords = { name: jsonData.name, version: jsonData.version };
         fingerprints.push(
             {
-                name: `${NpmDeps.name}-coordinates`,
-                abbreviation: `${NpmDeps.name}-coordinates`,
+                name: NpmCoordinates.name,
+                abbreviation: NpmCoordinates.name,
                 version: "0.0.1",
                 data: coords,
                 sha: sha256(JSON.stringify(coords)),
@@ -103,6 +118,7 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
     } else {
         return undefined;
     }
+
 };
 
 export const applyNpmDepsFingerprint: ApplyFingerprint = async (p, fp) => {
@@ -135,13 +151,30 @@ export const diffNpmDepsFingerprints: DiffSummaryFingerprint = (diff, target) =>
     };
 };
 
+/* tslint:disable:max-line-length */
+export const diffNpmCoordinatesFingerprints: DiffSummaryFingerprint = (diff, target) => {
+    return {
+        title: "New Package Coordinate Updated",
+        description: `from ${diff.from.data} to ${diff.to.data}`,
+    };
+};
+
 export const NpmDeps: Feature = {
     displayName: "npm dependencies",
-    name: "npm-project",
+    name: "npm-project-deps",
     extract: createNpmDepsFingerprints,
     apply: applyNpmDepsFingerprint,
     selector: fp => fp.name.startsWith(NpmDeps.name),
     summary: diffNpmDepsFingerprints,
     toDisplayableFingerprint: fp => fp.data[1],
     toDisplayableFingerprintName: deconstructNpmDepsFingerprintName,
+};
+
+export const NpmCoordinates: Feature = {
+    displayName: "npm coordinates",
+    name: "npm-project-coordinates",
+    extract: createNpmCoordinatesFingerprint,
+    selector: fp => fp.name.startsWith(NpmCoordinates.name),
+    summary: diffNpmCoordinatesFingerprints,
+    toDisplayableFingerprint: fp => fp.data,
 };

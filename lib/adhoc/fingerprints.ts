@@ -19,12 +19,11 @@ import {
     logger,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
-import { FP } from "@atomist/clj-editors";
+import { FP, partitionByFeature } from "@atomist/clj-editors";
 import { PushImpactListenerInvocation } from "@atomist/sdm";
 import {
     AddFingerprints,
     FindLinkedReposWithFingerprint,
-    FingerprintInput,
     GetFpByBranch,
     RepoBranchIds,
 } from "../typings/types";
@@ -64,16 +63,7 @@ export function queryFingerprintsByBranchRef(graphClient: GraphClient):
 
 export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, fps: FP[]): Promise<boolean> {
 
-    const additions: FingerprintInput[] = fps.map(x => {
-        return {
-            name: x.name,
-            sha: x.sha,
-            data: JSON.stringify(x.data),
-        };
-    });
-
     try {
-        logger.info(`get ids for ${i.push.branch}, ${i.push.repo.owner}/${i.push.repo.name}`);
         const ids: RepoBranchIds.Query = await i.context.graphClient.query<RepoBranchIds.Query, RepoBranchIds.Variables>(
             {
                 name: "RepoBranchIds",
@@ -85,18 +75,24 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
             },
         );
         logger.info(`${JSON.stringify(ids)}`);
-        await i.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
-            {
-                name: "AddFingerprints",
-                variables: {
-                    additions,
-                    type: "Atomist",
-                    branchId: ids.Repo[0].branches[0].id,
-                    repoId: ids.Repo[0].id,
-                    sha: i.push.after.sha,
-                },
-            },
-        );
+
+        await partitionByFeature(fps, async partitioned => {
+            await Promise.all(partitioned.map(async ({ type, additions }) => {
+                logger.info(`upload ${additions.length} fingerprints of type ${type}`);
+                await i.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
+                    {
+                        name: "AddFingerprints",
+                        variables: {
+                            additions,
+                            type,
+                            branchId: ids.Repo[0].branches[0].id,
+                            repoId: ids.Repo[0].id,
+                            sha: i.push.after.sha,
+                        },
+                    },
+                );
+            }));
+        });
     } catch (ex) {
         logger.error(`Error sending Fingerprints: ${ex}`);
     }

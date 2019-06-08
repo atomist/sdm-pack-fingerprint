@@ -252,11 +252,12 @@ export function fingerprintSupport(options: FingerprintOptions): FingerprintExte
             if (!!options.fingerprintGoal) {
                 options.fingerprintGoal.with({
                     name: `${options.fingerprintGoal.uniqueName}-fingerprinter`,
-                    action: (i: PushImpactListenerInvocation) => {
-                        return (fingerprintRunner(
+                    action: async (i: PushImpactListenerInvocation) => {
+                        await (fingerprintRunner(
                             fingerprints,
                             handlers,
                             computeFingerprints))(i);
+                        return [];
                     },
                 });
             }

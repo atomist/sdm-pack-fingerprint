@@ -39,8 +39,8 @@
     "@atomist/sdm-pack-docker": ">=1.1.0"
   },
   "devDependencies": {
-    "@atomist/clj-editors": "0.6.6",
     "@atomist/automation-client": "^1.5.2",
+    "@atomist/clj-editors": "0.6.8",
     "@atomist/sdm": "^1.5.0",
     "@atomist/sdm-core": "^1.5.0",
     "@atomist/sdm-pack-docker": "^1.1.0",

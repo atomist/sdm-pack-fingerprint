@@ -72,6 +72,7 @@ export {
 } from "./lib/fingerprints/backpack";
 export {
     MavenDeps,
+    MavenCoordinates,
 } from "./lib/fingerprints/maven";
 export {
     JsonFile,

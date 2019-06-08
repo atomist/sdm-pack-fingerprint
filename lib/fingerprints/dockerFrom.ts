@@ -39,7 +39,8 @@ import { Feature } from "../machine/Feature";
 export function getDockerBaseFingerprint(image: string, version: string): FP {
     const data = { image, version };
     return {
-        name: `${DockerFrom.name}-${image}`,
+        type: DockerFrom.name,
+        name: image,
         abbreviation: `dbi-${image}`,
         version: "0.0.1",
         data,
