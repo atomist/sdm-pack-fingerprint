@@ -29,7 +29,7 @@ export const MavenDeps: Feature = {
     extract: p => mavenDeps((p as LocalProject).baseDir),
     apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
     selector: fp => {
-        return fp.name.startsWith(MavenDeps.name);
+        return fp.type && fp.type === MavenDeps.name;
     },
     toDisplayableFingerprint: fp => fp.name,
     summary: renderProjectLibDiff,

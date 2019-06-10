@@ -21,6 +21,7 @@ import {
     Parameter,
     Parameters,
     SlackFileMessage,
+    logger,
 } from "@atomist/automation-client";
 import { renderData } from "@atomist/clj-editors";
 import { CommandHandlerRegistration } from "@atomist/sdm";
@@ -28,6 +29,7 @@ import { SlackMessage } from "@atomist/slack-messages";
 import {
     queryFingerprintsByBranchRef,
 } from "../../adhoc/fingerprints";
+import { fromName, toName } from "../../adhoc/preferences";
 import { comparator } from "../../support/util";
 import {
     GetAllFpsOnSha,
@@ -62,6 +64,7 @@ export class ListOneFingerprintParameters {
     @Parameter({ required: true, description: "pull fingerprints from a branch ref" })
     public branch: string;
 
+    // contains the name and type
     @Parameter({ required: true, description: "the fingerprint to render" })
     public fingerprint: string;
 }
@@ -78,7 +81,10 @@ export const ListFingerprint: CommandHandlerRegistration<ListOneFingerprintParam
             cli.parameters.branch,
         );
 
-        const fingerprint: GetAllFpsOnSha.Analysis = fps.find(x => x.name === cli.parameters.fingerprint);
+        const {type, name} = fromName(cli.parameters.fingerprint);
+        logger.info(`searching for ${type} and ${name}`);
+        logger.info(`choose from ${JSON.stringify(fps)}`)
+        const fingerprint: GetAllFpsOnSha.Analysis = fps.find(x => x.name === name && x.type === type);
 
         fingerprint.data = JSON.parse(fingerprint.data);
 
@@ -127,7 +133,7 @@ export const ListFingerprints: CommandHandlerRegistration<ListFingerprintParamet
                                 options: [
                                     ...fps.sort(comparator("name")).map(x => {
                                         return {
-                                            value: x.name,
+                                            value: toName(x.type, x.name),
                                             text: shortenName(x.name),
                                         };
                                     }),

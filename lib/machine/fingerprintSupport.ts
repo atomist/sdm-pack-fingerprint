@@ -80,7 +80,7 @@ import {
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
-        const m = s.map((n: string) => (fp.name === n))
+        const m = s.map((n: string) => (fp.type === n) || (fp.name === n))
             .reduce((acc, v) => acc || v);
         return m;
     };

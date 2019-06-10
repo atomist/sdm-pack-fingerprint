@@ -103,6 +103,7 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
                     sha: fp.sha,
                     data: JSON.parse(fp.data),
                     name: fp.name,
+                    type: fp.type,
                     version: "1.0",
                     abbreviation: "abbrev",
                 };

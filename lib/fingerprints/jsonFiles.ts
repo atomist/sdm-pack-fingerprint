@@ -75,6 +75,6 @@ export const JsonFile: Feature = {
         "tslint.json",
         "tsconfig.json"),
     apply: applyFileFingerprint,
-    selector: fp => fp.name.startsWith(JsonFile.name),
+    selector: fp => fp.type && fp.type === JsonFile.name,
     toDisplayableFingerprint: fp => fp.name,
 };

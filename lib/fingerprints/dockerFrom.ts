@@ -96,6 +96,6 @@ export const DockerFrom: Feature = {
     name: "docker-base-image",
     apply: applyDockerBaseFingerprint,
     extract: dockerBaseFingerprint,
-    selector: myFp => myFp.name.startsWith(DockerFrom.name),
+    selector: myFp => myFp.type && myFp.type === DockerFrom.name,
     toDisplayableFingerprint: fp => fp.data.version,
 };

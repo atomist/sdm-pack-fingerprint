@@ -43,7 +43,7 @@ import {
 import { SlackMessage } from "@atomist/slack-messages";
 import _ = require("lodash");
 import { findTaggedRepos } from "../../adhoc/fingerprints";
-import { queryPreferences } from "../../adhoc/preferences";
+import { fromName, queryPreferences } from "../../adhoc/preferences";
 import {
     Feature,
 } from "../../machine/Feature";
@@ -115,7 +115,8 @@ export function runAllFingerprintAppliers(registrations: Feature[]): CodeTransfo
             registrations,
             await queryPreferences(
                 cli.context.graphClient,
-                cli.parameters.fingerprint));
+                cli.parameters.targettype,
+                cli.parameters.targetname));
     };
 }
 
@@ -144,16 +145,19 @@ function runEveryFingerprintApplication(registrations: Feature[]): CodeTransform
 
         await cli.addressChannels(message, { id: cli.parameters.msgId });
 
+        // TODO fpName is targetName
         await Promise.all(
             cli.parameters.fingerprints.split(",").map(
                 async fpName => {
+                    const {type, name} = fromName(fpName);
                     return pushFingerprint(
                         async (s: string) => cli.addressChannels(s),
                         (p as GitProject),
                         registrations,
                         await queryPreferences(
                             cli.context.graphClient,
-                            fpName));
+                            type,
+                            name));
                 },
             ),
         );
@@ -169,7 +173,8 @@ export interface ApplyTargetParameters extends ParameterType {
 }
 
 export interface ApplyTargetFingerprintParameters extends ApplyTargetParameters {
-    fingerprint: string;
+    targettype: string;
+    targetname: string;
 }
 
 // use where ApplyTargetFingerprint was used
@@ -186,7 +191,8 @@ export function applyTarget(
         description: "choose to raise a PR on the current project to apply a target fingerprint",
         parameters: {
             msgId: { required: false, displayable: false },
-            fingerprint: { required: true },
+            targettype: { required: true },
+            targetname: { required: true },
             body: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
             title: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
             branch: { required: false, displayable: false },
@@ -246,14 +252,13 @@ export function broadcastFingerprintMandate(
 
             const refs: RepoRef[] = [];
 
-            const fp = await queryPreferences(
-                i.context.graphClient,
-                i.parameters.fingerprint);
+            const {type, name} = fromName(i.parameters.fingerprint);
+            const fp = await queryPreferences(i.context.graphClient, type, name);
 
             // start by running
             logger.info(`run all fingerprint transforms for ${i.parameters.fingerprint}: ${fp.name}/${fp.sha}`);
 
-            const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(i.context.graphClient))(i.parameters.fingerprint);
+            const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(i.context.graphClient))(fp.type, fp.name);
 
             if (!!data.Repo) {
                 refs.push(

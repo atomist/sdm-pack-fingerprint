@@ -33,8 +33,10 @@ import {
 } from "@atomist/clj-editors";
 import { SlackMessage } from "@atomist/slack-messages";
 import {
+    fromName,
     getFPTargets,
     queryPreferences,
+    toName,
 } from "../../adhoc/preferences";
 import { comparator } from "../../support/util";
 import { GetFpTargets } from "../../typings/types";
@@ -53,7 +55,8 @@ export function listOneFingerprintTarget(sdm: SoftwareDeliveryMachine): CommandH
         intent: [`list fingerprint target ${sdm.configuration.name.replace("@", "")}`],
         listener: async cli => {
 
-            const fp: FP = await queryPreferences(cli.context.graphClient, cli.parameters.fingerprint);
+            const {type, name} = fromName(cli.parameters.fingerprint);
+            const fp: FP = await queryPreferences(cli.context.graphClient, type, name);
             logger.info(`fps ${renderData(fp)}`);
 
             const message: SlackFileMessage = {
@@ -93,7 +96,7 @@ export function listFingerprintTargets(sdm: SoftwareDeliveryMachine): CommandHan
                                     options: [
                                         ...fps.map(x => {
                                             return {
-                                                value: x.name,
+                                                value: toName(x.type, x.name),
                                                 text: x.name,
                                             };
                                         }),

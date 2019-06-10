@@ -25,6 +25,23 @@ import {
     SetFpTarget,
 } from "../typings/types";
 
+export function toName(type: string, name: string): string {
+    return `${type}::${name}`;
+}
+
+export function fromName(targetName: string): {type: string, name: string} {
+    const regex = new RegExp("(.*)::(.*)");
+    const data = regex.exec(targetName);
+    if (data) {
+        return {
+            type: data[1],
+            name: data[2],
+        };
+    } else {
+        throw new Error(`invalid targetName ${targetName}`);
+    }
+}
+
 /**
  * create a function that can query for a fingerprint target by name (team specific)
  *
@@ -46,19 +63,19 @@ export async function getFPTargets(graphClient: GraphClient): Promise<GetFpTarge
  * @param graphClient
  * @param name
  */
-export async function queryPreferences(graphClient: GraphClient, name: string): Promise<FP> {
+export async function queryPreferences(graphClient: GraphClient, type: string, name: string): Promise<FP> {
     const query: GetFpTargets.Query = await getFPTargets(graphClient);
-    const config: GetFpTargets.TeamConfiguration = query.TeamConfiguration.find(x => x.name === name);
+    const config: GetFpTargets.TeamConfiguration = query.TeamConfiguration.find(x => x.name === toName(type, name));
     return JSON.parse(config.value) as FP;
 }
 
-export function setFPTarget(graphClient: GraphClient): (name: string, value: any) => Promise<SetFpTarget.Mutation> {
-    return (name, value) => {
+export function setFPTarget(graphClient: GraphClient): (type: string, name: string, value: any) => Promise<SetFpTarget.Mutation> {
+    return (type, name, value) => {
         return graphClient.mutate<SetFpTarget.Mutation, SetFpTarget.Variables>(
             {
                 name: "SetFpTarget",
                 variables: {
-                    name,
+                    name: toName(type, name),
                     value: JSON.stringify(value),
                 },
             },
@@ -66,13 +83,13 @@ export function setFPTarget(graphClient: GraphClient): (name: string, value: any
     };
 }
 
-export function deleteFPTarget(graphClient: GraphClient): (name: string) => Promise<SetFpTarget.Mutation> {
-    return name => {
+export function deleteFPTarget(graphClient: GraphClient): (type: string, name: string) => Promise<SetFpTarget.Mutation> {
+    return ( type, name) => {
         return graphClient.mutate<DeleteFpTarget.Mutation, DeleteFpTarget.Variables>(
             {
                 name: "DeleteFpTarget",
                 variables: {
-                    name,
+                    name: toName( type, name),
                 },
             },
         );

@@ -45,7 +45,8 @@ COPY target/dummy.jar dummy.jar
 `;
 
 const expectedResult = {
-    name: "docker-base-image-openjdk",
+    name: "openjdk",
+    type: "docker-base-image"
     abbreviation: "dbi-openjdk",
     version: "0.0.1",
     data: { image: "openjdk", version: "8-alpine"},

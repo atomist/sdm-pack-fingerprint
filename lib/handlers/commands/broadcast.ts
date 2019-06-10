@@ -19,7 +19,10 @@ import {
     logger,
     ParameterType,
 } from "@atomist/automation-client";
-import { broadcastFingerprint } from "@atomist/clj-editors";
+import {
+    broadcastFingerprint,
+    FP,
+} from "@atomist/clj-editors";
 import {
     actionableButton,
     CommandHandlerRegistration,
@@ -34,6 +37,7 @@ import {
 } from "@atomist/slack-messages";
 import _ = require("lodash");
 import { findTaggedRepos } from "../../adhoc/fingerprints";
+import { fromName, toName } from "../../adhoc/preferences";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
 import {
     ApplyTargetFingerprintName,
@@ -41,9 +45,7 @@ import {
 } from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
-                                  name: string,
-                                  version: string,
-                                  sha: string,
+                                  fp: FP,
                                   msgId: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
 
@@ -54,8 +56,8 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
                 [{
                     author_name: "Broadcast Fingerprint Target",
                     author_icon: `https://images.atomist.com/rug/warning-yellow.png`,
-                    text: `Shall we nudge everyone with a PR for the new ${codeLine(`${name}`)} target?`,
-                    fallback: `Boardcast PR for ${name}:${sha}`,
+                    text: `Shall we nudge everyone with a PR for the new ${codeLine(`${toName(fp.type,fp.name)}`)} target?`,
+                    fallback: `Broadcast PR for ${fp.type}::${fp.name}/${fp.sha}`,
                     color: "#ffcc00",
                     mrkdwn_in: ["text"],
                     actions: [
@@ -64,7 +66,11 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
                                 text: "Broadcast Nudge",
                             },
                             BroadcastFingerprintNudge,
-                            { name, version, author, sha, msgId },
+                            {
+                                author,
+                                msgId,
+                                fingerprint: toName(fp.type, fp.name),
+                            },
                         ),
                         buttonForCommand(
                             {
@@ -75,7 +81,7 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
                                 body: "broadcast PR everywhere",
                                 title: "Broadcasting PRs",
                                 branch: "master",
-                                fingerprint: name,
+                                fingerprint: toName(fp.type, fp.name),
                                 msgId,
                             },
                         ),
@@ -92,31 +98,33 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
 // ------------------------------
 
 export interface BroadcastFingerprintNudgeParameters extends ParameterType {
-    name: string;
-    version: string;
+    fingerprint: string;
     sha: string;
     reason: string;
     author: string;
+    msgId?: string;
 }
 
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>): Promise<any> {
+
     const msgId = `broadcastNudge-${cli.parameters.name}-${cli.parameters.sha}`;
+
     return broadcastFingerprint(
-        async (name: string): Promise<FindLinkedReposWithFingerprint.Repo[]> => {
+        async (type: string, name: string): Promise<FindLinkedReposWithFingerprint.Repo[]> => {
             // TODO this in memory filtering should be moved into the query
-            const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(cli.context.graphClient))(name);
-            logger.info(`findTaggedRepos(broadcastNudge)
-            ${JSON.stringify(
-                data.Repo
-                    .filter(repo => _.get(repo, "branches[0].commit.analysis"))
-                    .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name)))}`);
+            const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(cli.context.graphClient))(type, name);
+            logger.info(
+                `findTaggedRepos(broadcastNudge)
+                    ${JSON.stringify(
+                        data.Repo
+                            .filter(repo => _.get(repo, "branches[0].commit.analysis"))
+                            .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name)))}`);
             return data.Repo
                 .filter(repo => _.get(repo, "branches[0].commit.analysis"))
-                .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name));
+                .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name && x.type === type));
         },
         {
-            name: cli.parameters.name,
-            version: cli.parameters.version,
+            ...fromName(cli.parameters.fingerprint),
             sha: cli.parameters.sha,
         },
         (owner: string, repo: string, channel: string) => {
@@ -168,8 +176,7 @@ export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFing
     name: "BroadcastFingerprintNudge",
     description: "message all Channels linked to Repos that contain a particular fingerprint",
     parameters: {
-        name: { required: true },
-        version: { required: true },
+        fingerprint: { required: true },
         sha: {
             required: true,
             description: "sha of fingerprint to broadcast",
@@ -182,6 +189,10 @@ export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFing
         author: {
             required: true,
             description: "author of the Nudge",
+        },
+        msgId: {
+            required: false,
+            displayable: false,
         },
     },
     listener: broadcastNudge,

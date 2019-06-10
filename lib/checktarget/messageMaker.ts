@@ -42,6 +42,7 @@ import {
 } from "@atomist/slack-messages";
 import _ = require("lodash");
 import { Feature } from "../..";
+import { toName } from "../adhoc/preferences";
 import {
     ApplyAllFingerprintsName,
     ApplyTargetFingerprintName,
@@ -133,7 +134,8 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
                 ApplyTargetFingerprintName,
                 {
                     msgId: params.msgId,
-                    fingerprint: vote.fpTarget.name,
+                    targettype: vote.fpTarget.type,
+                    targetname: vote.fpTarget.name,
                     title: `Apply ${vote.fpTarget.name}`,
                     targets: {
                         owner: vote.diff.owner,
@@ -146,8 +148,9 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
                 UpdateTargetFingerprintName,
                 {
                     msgId: params.msgId,
-                    name: vote.fingerprint.name,
-                    sha: vote.fingerprint.sha,
+                    fptype: vote.fingerprint.type,
+                    fpname: vote.fingerprint.name,
+                    fpsha: vote.fingerprint.sha,
                 },
             ),
         ],
@@ -205,7 +208,7 @@ function applyAll(params: MessageMakerParams): Attachment {
                 ApplyAllFingerprintsName,
                 {
                     msgId: params.msgId,
-                    fingerprints: params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(","),
+                    fingerprints: params.voteResults.failedVotes.map(vote => toName(vote.fpTarget.type, vote.fpTarget.name)).join(","),
                     title: `Apply all of \`${params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(", ")}\``,
                     body: params.voteResults.failedVotes.map(prBody).join("\n"),
                     targets: {

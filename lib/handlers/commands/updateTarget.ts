@@ -41,7 +41,9 @@ import {
 } from "../../adhoc/fingerprints";
 import {
     deleteFPTarget,
+    fromName,
     setFPTarget,
+    toName,
 } from "../../adhoc/preferences";
 import {
     GetAllFpsOnSha,
@@ -93,13 +95,22 @@ export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<Se
                 branch,
             },
         });
-        const fp: GetFpByBranch.Analysis = query.Repo[0].branches[0].commit.analysis.find(x => x.name === cli.parameters.fingerprint);
+        const {type, name} = fromName(cli.parameters.fingerprint);
+        const fp: GetFpByBranch.Analysis = query.Repo[0].branches[0].commit.analysis.find(x => x.name === name && x.type === type);
         logger.info(`found sha ${fp.sha}`);
         fp.data = JSON.parse(fp.data);
 
         if (!!fp.sha) {
-            await (setFPTarget(cli.context.graphClient))(fp.name, fp);
-            return askAboutBroadcast(cli, cli.parameters.fingerprint, "version", fp.sha, cli.parameters.msgId);
+            await (setFPTarget(cli.context.graphClient))( fp.type, fp.name, fp);
+            return askAboutBroadcast(
+                cli,
+                {
+                    name: fp.name,
+                    type: fp.type,
+                    data: fp.data,
+                    sha: fp.sha,
+                },
+                cli.parameters.msgId);
         } else {
             return FailurePromise;
         }
@@ -112,18 +123,23 @@ export class UpdateTargetFingerprintParameters {
     @Parameter({ required: false, displayable: false })
     public msgId?: string;
 
+    // sha of fingerprint
     @Parameter({ required: true })
-    public sha: string;
+    public fpsha: string;
 
+    // name is used to store the fingerprint
     @Parameter({ required: true })
-    public name: string;
+    public fpname: string;
+
+    @Parameter({ required: true})
+    public fptype: string;
 }
 
 export const UpdateTargetFingerprintName = "RegisterTargetFingerprint";
 
 /**
  * Used by MessageMaker to implement SetNewTarget
- * (knows the name and sha of the target fingerprint)
+ * (knows the name, type, and sha of the potential target fingerprint)
  */
 export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFingerprintParameters> = {
     name: UpdateTargetFingerprintName,
@@ -136,7 +152,7 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
                 options: QueryNoCacheOptions,
                 name: "GetFpBySha",
                 variables: {
-                    sha: cli.parameters.sha,
+                    sha: cli.parameters.fpsha,
                 },
             },
         );
@@ -145,20 +161,20 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
         logger.info(`update target to ${JSON.stringify(fp)}`);
         const fingerprint: FP = {
             name: fp.name,
+            type: fp.type,
             data: fp.data,
             sha: fp.sha,
-            version: "1.0",
-            abbreviation: "abbreviation",
         };
 
-        await (setFPTarget(cli.context.graphClient))(cli.parameters.name, fingerprint);
-        return askAboutBroadcast(cli, cli.parameters.name, "version", cli.parameters.sha, cli.parameters.msgId);
+        await (setFPTarget(cli.context.graphClient))(cli.parameters.fptype, cli.parameters.fpname, fingerprint);
+        return askAboutBroadcast(cli, fingerprint, cli.parameters.msgId);
     },
 };
 
 @Parameters()
 export class SetTargetFingerprintParameters {
 
+    // fp is the JSONified version of the entire Fingerprint
     @Parameter({ required: true, displayable: false, control: "textarea", pattern: /.*/ })
     public fp: string;
 
@@ -180,14 +196,16 @@ export const SetTargetFingerprint: CommandHandlerRegistration<SetTargetFingerpri
             user: { id: cli.context.source.slack.user.id },
             ...JSON.parse(cli.parameters.fp),
         };
-        await (setFPTarget(cli.context.graphClient))(fp.name, fp);
+        await (setFPTarget(cli.context.graphClient))(fp.type, fp.name, fp);
 
-        return askAboutBroadcast(cli, fp.name, fp.data[1], fp.sha, cli.parameters.msgId);
+        return askAboutBroadcast(cli, fp, cli.parameters.msgId);
     },
 };
 
 @Parameters()
 export class DeleteTargetFingerprintParameters {
+    @Parameter({ required: true })
+    public type: string;
     @Parameter({ required: true })
     public name: string;
     @Parameter({ required: false, displayable: false })
@@ -200,7 +218,7 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
     description: "remove the team target for a particular fingerprint",
     paramsMaker: DeleteTargetFingerprintParameters,
     listener: async cli => {
-        return (deleteFPTarget(cli.context.graphClient))(cli.parameters.name)
+        return (deleteFPTarget(cli.context.graphClient))(cli.parameters.type, cli.parameters.name)
             .then(result => {
                 return {
                     code: 0,
@@ -311,7 +329,7 @@ export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistrati
                                 options: [
                                     ...fps.map(x => {
                                         return {
-                                            value: x.name,
+                                            value: toName(x.type, x.name),
                                             text: shortenName(x.name),
                                         };
                                     }),

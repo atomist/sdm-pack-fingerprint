@@ -31,8 +31,9 @@ import {
     RepoBranchIds,
 } from "../typings/types";
 
-export function findTaggedRepos(graphClient: GraphClient): (name: string) => Promise<any> {
-    return async name => {
+// TODO this is not actually using the new query yet (filtering is happening in memory)
+export function findTaggedRepos(graphClient: GraphClient): (type: string, name: string) => Promise<any> {
+    return async (type, name) => {
         return graphClient.query<FindLinkedReposWithFingerprint.Query, FindLinkedReposWithFingerprint.Variables>(
             {
                 name: "FindLinkedReposWithFingerprint",
@@ -80,6 +81,7 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
         logger.info(`${JSON.stringify(ids)}`);
 
         await partitionByFeature(fps, async partitioned => {
+            logger.info(`total set ${partitioned}`);
             await Promise.all(partitioned.map(async ({ type, additions }) => {
                 logger.info(`upload ${additions.length} fingerprints of type ${type}`);
                 await i.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(

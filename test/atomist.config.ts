@@ -45,6 +45,7 @@ import {
     fingerprintSupport,
     messageMaker,
 } from "..";
+import { Backpack } from "../lib/fingerprints/backpack";
 import {
     DockerFrom,
 } from "../lib/fingerprints/dockerFrom";
@@ -52,10 +53,7 @@ import {
     JsonFile,
 } from "../lib/fingerprints/jsonFiles";
 import {
-    MavenDeps,
-} from "../lib/fingerprints/maven";
-import {
-    NpmDeps,
+    NpmCoordinates, NpmDeps,
 } from "../lib/fingerprints/npmDeps";
 import {
     checkNpmCoordinatesImpactHandler,
@@ -139,9 +137,10 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
             features:
                 [
                     NpmDeps,
+                    NpmCoordinates,
                     DockerFrom,
                     JsonFile,
-                    MavenDeps,
+                    Backpack,
                 ],
             handlers: [
                 checkNpmCoordinatesImpactHandler(),
