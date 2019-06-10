@@ -15,13 +15,13 @@
  */
 
 import {
+    logger,
     MappedParameter,
     MappedParameters,
     menuForCommand,
     Parameter,
     Parameters,
     SlackFileMessage,
-    logger,
 } from "@atomist/automation-client";
 import { renderData } from "@atomist/clj-editors";
 import { CommandHandlerRegistration } from "@atomist/sdm";
@@ -83,7 +83,7 @@ export const ListFingerprint: CommandHandlerRegistration<ListOneFingerprintParam
 
         const {type, name} = fromName(cli.parameters.fingerprint);
         logger.info(`searching for ${type} and ${name}`);
-        logger.info(`choose from ${JSON.stringify(fps)}`)
+        logger.info(`choose from ${JSON.stringify(fps)}`);
         const fingerprint: GetAllFpsOnSha.Analysis = fps.find(x => x.name === name && x.type === type);
 
         fingerprint.data = JSON.parse(fingerprint.data);

@@ -56,7 +56,7 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
                 [{
                     author_name: "Broadcast Fingerprint Target",
                     author_icon: `https://images.atomist.com/rug/warning-yellow.png`,
-                    text: `Shall we nudge everyone with a PR for the new ${codeLine(`${toName(fp.type,fp.name)}`)} target?`,
+                    text: `Shall we nudge everyone with a PR for the new ${codeLine(`${toName(fp.type, fp.name)}`)} target?`,
                     fallback: `Broadcast PR for ${fp.type}::${fp.name}/${fp.sha}`,
                     color: "#ffcc00",
                     mrkdwn_in: ["text"],
