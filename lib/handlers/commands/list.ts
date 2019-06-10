@@ -28,11 +28,11 @@ import {
     CommandHandlerRegistration,
     slackQuestionMessage,
 } from "@atomist/sdm";
+import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
 import {
     fromName,
     toName,
 } from "../../adhoc/preferences";
-import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
 import { comparator } from "../../support/util";
 import { GetAllFpsOnSha } from "../../typings/types";
 
