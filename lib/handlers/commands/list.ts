@@ -29,7 +29,10 @@ import { SlackMessage } from "@atomist/slack-messages";
 import {
     queryFingerprintsByBranchRef,
 } from "../../adhoc/fingerprints";
-import { fromName, toName } from "../../adhoc/preferences";
+import {
+    fromName,
+    toName,
+} from "../../adhoc/preferences";
 import { comparator } from "../../support/util";
 import {
     GetAllFpsOnSha,

@@ -37,7 +37,10 @@ import {
 } from "@atomist/slack-messages";
 import _ = require("lodash");
 import { findTaggedRepos } from "../../adhoc/fingerprints";
-import { fromName, toName } from "../../adhoc/preferences";
+import {
+    fromName,
+    toName,
+} from "../../adhoc/preferences";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
 import {
     ApplyTargetFingerprintName,

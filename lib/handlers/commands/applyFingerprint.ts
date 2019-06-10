@@ -43,7 +43,10 @@ import {
 import { SlackMessage } from "@atomist/slack-messages";
 import _ = require("lodash");
 import { findTaggedRepos } from "../../adhoc/fingerprints";
-import { fromName, queryPreferences } from "../../adhoc/preferences";
+import {
+    fromName,
+    queryPreferences,
+} from "../../adhoc/preferences";
 import {
     Feature,
 } from "../../machine/Feature";

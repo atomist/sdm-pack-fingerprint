@@ -53,7 +53,8 @@ import {
     JsonFile,
 } from "../lib/fingerprints/jsonFiles";
 import {
-    NpmCoordinates, NpmDeps,
+    NpmCoordinates,
+    NpmDeps,
 } from "../lib/fingerprints/npmDeps";
 import {
     checkNpmCoordinatesImpactHandler,
