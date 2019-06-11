@@ -134,8 +134,7 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
                 ApplyTargetFingerprintName,
                 {
                     msgId: params.msgId,
-                    targettype: vote.fpTarget.type,
-                    targetname: vote.fpTarget.name,
+                    targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
                     title: `Apply ${vote.fpTarget.name}`,
                     targets: {
                         owner: vote.diff.owner,

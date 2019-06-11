@@ -95,13 +95,13 @@ export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<Se
                 branch,
             },
         });
-        const {type, name} = fromName(cli.parameters.fingerprint);
+        const { type, name } = fromName(cli.parameters.fingerprint);
         const fp: GetFpByBranch.Analysis = query.Repo[0].branches[0].commit.analysis.find(x => x.name === name && x.type === type);
         logger.info(`found sha ${fp.sha}`);
         fp.data = JSON.parse(fp.data);
 
         if (!!fp.sha) {
-            await (setFPTarget(cli.context.graphClient))( fp.type, fp.name, fp);
+            await (setFPTarget(cli.context.graphClient))(fp.type, fp.name, fp);
             return askAboutBroadcast(
                 cli,
                 {
@@ -131,7 +131,7 @@ export class UpdateTargetFingerprintParameters {
     @Parameter({ required: true })
     public fpname: string;
 
-    @Parameter({ required: true})
+    @Parameter({ required: true })
     public fptype: string;
 }
 
@@ -244,8 +244,8 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
  * @param channel
  */
 export async function setNewTargetFingerprint(ctx: HandlerContext,
-                                              fp: FP,
-                                              channel: string): Promise<Vote> {
+    fp: FP,
+    channel: string): Promise<Vote> {
     const message: SlackMessage = {
         attachments: [
             {

@@ -48,8 +48,8 @@ import {
 } from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
-                                  fp: FP,
-                                  msgId: string): Promise<void> {
+    fp: FP,
+    msgId: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
 
     // always create a new message
@@ -72,6 +72,7 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
                             {
                                 author,
                                 msgId,
+                                sha: fp.sha,
                                 fingerprint: toName(fp.type, fp.name),
                             },
                         ),
@@ -108,6 +109,11 @@ export interface BroadcastFingerprintNudgeParameters extends ParameterType {
     msgId?: string;
 }
 
+/**
+ * send messages to all channels with Repos that might be impacted by this target change
+ * 
+ * @param cli
+ */
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>): Promise<any> {
 
     const msgId = `broadcastNudge-${cli.parameters.name}-${cli.parameters.sha}`;
@@ -119,9 +125,9 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudge
             logger.info(
                 `findTaggedRepos(broadcastNudge)
                     ${JSON.stringify(
-                        data.Repo
-                            .filter(repo => _.get(repo, "branches[0].commit.analysis"))
-                            .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name)))}`);
+                    data.Repo
+                        .filter(repo => _.get(repo, "branches[0].commit.analysis"))
+                        .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name && x.type === type)))}`);
             return data.Repo
                 .filter(repo => _.get(repo, "branches[0].commit.analysis"))
                 .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name && x.type === type));
@@ -131,12 +137,13 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudge
             sha: cli.parameters.sha,
         },
         (owner: string, repo: string, channel: string) => {
+            const { name } = fromName(cli.parameters.fingerprint);
             const message: SlackMessage = {
                 attachments: [
                     {
                         author_name: "Library Update",
                         author_icon: `https://images.atomist.com/rug/warning-yellow.png`,
-                        text: `${user(cli.parameters.author)} has updated the target version of \`${cli.parameters.name}\`.
+                        text: `${user(cli.parameters.author)} has updated the target version of \`${name}\`.
 
 The reason provided is:
 
@@ -146,7 +153,7 @@ ${italic(cli.parameters.reason)}`,
                         color: "#ffcc00",
                     },
                     {
-                        text: `Shall we update project to use the new \`${cli.parameters.name}\` target?`,
+                        text: `Shall we update project to use the new \`${name}\` target?`,
                         fallback: "none",
                         actions: [
                             buttonForCommand(
@@ -156,8 +163,8 @@ ${italic(cli.parameters.reason)}`,
                                 ApplyTargetFingerprintName,
                                 {
                                     msgId,
-                                    fingerprint: cli.parameters.name,
-                                    title: `Updated target for ${cli.parameters.name} to ${cli.parameters.version}`,
+                                    targetfingerprint: cli.parameters.fingerprint,
+                                    title: `Updated target for ${name}`,
                                     body: cli.parameters.reason,
                                 },
                             ),
