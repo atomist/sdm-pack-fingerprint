@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased](https://github.com/atomist/sdm-pack-fingerprints/compare/3.0.8...HEAD)
 
+### Changed
+
+-   Update messages to be consistent with other SDMs. [#74](https://github.com/atomist/sdm-pack-fingerprints/issues/74)
+
 ## [3.0.8](https://github.com/atomist/sdm-pack-fingerprints/compare/3.0.7...3.0.8) - 2019-06-10
 
 ## [3.0.7](https://github.com/atomist/sdm-pack-fingerprints/compare/3.0.6...3.0.7) - 2019-06-06
