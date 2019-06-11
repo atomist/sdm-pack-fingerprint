@@ -29,8 +29,8 @@ export function toName(type: string, name: string): string {
     return `${type}::${name}`;
 }
 
-export function fromName(targetName: string): {type: string, name: string} {
-    const regex = new RegExp("(.*)::(.*)");
+export function fromName(targetName: string): { type: string, name: string } {
+    const regex = new RegExp("(.*?)::(.*)");
     const data = regex.exec(targetName);
     if (data) {
         return {
@@ -84,12 +84,12 @@ export function setFPTarget(graphClient: GraphClient): (type: string, name: stri
 }
 
 export function deleteFPTarget(graphClient: GraphClient): (type: string, name: string) => Promise<SetFpTarget.Mutation> {
-    return ( type, name) => {
+    return (type, name) => {
         return graphClient.mutate<DeleteFpTarget.Mutation, DeleteFpTarget.Variables>(
             {
                 name: "DeleteFpTarget",
                 variables: {
-                    name: toName( type, name),
+                    name: toName(type, name),
                 },
             },
         );

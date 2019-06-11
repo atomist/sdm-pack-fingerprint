@@ -94,19 +94,19 @@ export function runAllFingerprintAppliers(registrations: Feature[]): CodeTransfo
 
         const message = slackInfoMessage(
             "Apply Fingerprint Target",
-            `Applying fingerprint target ${codeLine(cli.parameters.fingerprint)} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
+            `Applying fingerprint target ${codeLine(`${cli.parameters.targetfingerprint}`)} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
 
         await cli.addressChannels(message, { id: cli.parameters.msgId });
 
-        // TODO replace the function to fetch the current FP target by name
+        const { type, name } = fromName(cli.parameters.targetfingerprint);
         return pushFingerprint(
             async (s: string) => cli.addressChannels(s),
             (p as GitProject),
             registrations,
             await queryPreferences(
                 cli.context.graphClient,
-                cli.parameters.targettype,
-                cli.parameters.targetname));
+                type,
+                name));
     };
 }
 
@@ -129,7 +129,7 @@ function runEveryFingerprintApplication(registrations: Feature[]): CodeTransform
         await Promise.all(
             cli.parameters.fingerprints.split(",").map(
                 async fpName => {
-                    const {type, name} = fromName(fpName);
+                    const { type, name } = fromName(fpName);
                     return pushFingerprint(
                         async (s: string) => cli.addressChannels(s),
                         (p as GitProject),
@@ -153,8 +153,7 @@ export interface ApplyTargetParameters extends ParameterType {
 }
 
 export interface ApplyTargetFingerprintParameters extends ApplyTargetParameters {
-    targettype: string;
-    targetname: string;
+    targetfingerprint: string;
 }
 
 // use where ApplyTargetFingerprint was used
@@ -171,8 +170,7 @@ export function applyTarget(
         description: "choose to raise a PR on the current project to apply a target fingerprint",
         parameters: {
             msgId: { required: false, displayable: false },
-            targettype: { required: true },
-            targetname: { required: true },
+            targetfingerprint: { required: true },
             body: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
             title: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
             branch: { required: false, displayable: false },
@@ -232,7 +230,7 @@ export function broadcastFingerprintMandate(
 
             const refs: RepoRef[] = [];
 
-            const {type, name} = fromName(i.parameters.fingerprint);
+            const { type, name } = fromName(i.parameters.fingerprint);
             const fp = await queryPreferences(i.context.graphClient, type, name);
 
             // start by running
@@ -246,13 +244,13 @@ export function broadcastFingerprintMandate(
                         .filter(repo => _.get(repo, "branches[0].commit.analysis"))
                         .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === fp.name))
                         .map(repo => {
-                                return {
-                                    owner: repo.owner,
-                                    repo: repo.name,
-                                    url: "url",
-                                    branch: "master",
-                                };
-                            },
+                            return {
+                                owner: repo.owner,
+                                repo: repo.name,
+                                url: "url",
+                                branch: "master",
+                            };
+                        },
                         ),
                 );
             }
