@@ -27,15 +27,15 @@ import {
     actionableButton,
     CommandHandlerRegistration,
     CommandListenerInvocation,
-    slackFooter,
+    slackQuestionMessage,
+    slackWarningMessage,
 } from "@atomist/sdm";
 import {
     codeLine,
     italic,
-    SlackMessage,
     user,
 } from "@atomist/slack-messages";
-import _ = require("lodash");
+import * as _ from "lodash";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import {
     fromName,
@@ -52,49 +52,42 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
     msgId: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
 
-    // always create a new message
-    return cli.addressChannels(
+    const message = slackQuestionMessage(
+        "Broadcast Fingerprint Target",
+        `Shall we send every affected repository a nudge or pull request for the new  ${codeLine(toName(fp.type, fp.name))} target?`,
         {
-            attachments:
-                [{
-                    author_name: "Broadcast Fingerprint Target",
-                    author_icon: `https://images.atomist.com/rug/warning-yellow.png`,
-                    text: `Shall we nudge everyone with a PR for the new ${codeLine(`${toName(fp.type, fp.name)}`)} target?`,
-                    fallback: `Broadcast PR for ${fp.type}::${fp.name}/${fp.sha}`,
-                    color: "#ffcc00",
-                    mrkdwn_in: ["text"],
-                    actions: [
-                        actionableButton(
-                            {
-                                text: "Broadcast Nudge",
-                            },
-                            BroadcastFingerprintNudge,
-                            {
-                                author,
-                                msgId,
-                                sha: fp.sha,
-                                fingerprint: toName(fp.type, fp.name),
-                            },
-                        ),
-                        buttonForCommand(
-                            {
-                                text: "Broadcast PRs",
-                            },
-                            BroadcastFingerprintMandateName,
-                            {
-                                body: "broadcast PR everywhere",
-                                title: "Broadcasting PRs",
-                                branch: "master",
-                                fingerprint: toName(fp.type, fp.name),
-                                msgId,
-                            },
-                        ),
-                    ],
-                    footer: slackFooter(),
-                }],
+            actions: [
+                actionableButton(
+                    {
+                        text: "Broadcast Nudge",
+                    },
+                    BroadcastFingerprintNudge,
+                    {
+                        author,
+                        msgId,
+                        sha: fp.sha,
+                        fingerprint: toName(fp.type, fp.name),
+                    },
+                ),
+                buttonForCommand(
+                    {
+                        text: "Broadcast PRs",
+                    },
+                    BroadcastFingerprintMandateName,
+                    {
+                        body: "broadcast PR everywhere",
+                        title: "Broadcasting PRs",
+                        branch: "master",
+                        fingerprint: toName(fp.type, fp.name),
+                        msgId,
+                    },
+                ),
+            ],
         },
-        { id: msgId },
     );
+
+    // always create a new message
+    return cli.addressChannels(message, { id: msgId });
 }
 
 // ------------------------------
@@ -138,43 +131,34 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudge
         },
         (owner: string, repo: string, channel: string) => {
             const { name } = fromName(cli.parameters.fingerprint);
-            const message: SlackMessage = {
-                attachments: [
-                    {
-                        author_name: "Library Update",
-                        author_icon: `https://images.atomist.com/rug/warning-yellow.png`,
-                        text: `${user(cli.parameters.author)} has updated the target version of \`${name}\`.
+            const message = slackWarningMessage(
+                "Fingerprint Target",
+                `${user(cli.parameters.author)} has updated the target version of ${codeLine(name)}).
 
 The reason provided is:
 
-${italic(cli.parameters.reason)}`,
-                        fallback: "Fingerprint Update",
-                        mrkdwn_in: ["text"],
-                        color: "#ffcc00",
-                    },
-                    {
-                        text: `Shall we update project to use the new \`${name}\` target?`,
-                        fallback: "none",
-                        actions: [
-                            buttonForCommand(
-                                {
-                                    text: "Update project",
-                                },
-                                ApplyTargetFingerprintName,
-                                {
-                                    msgId,
-                                    targetfingerprint: cli.parameters.fingerprint,
-                                    title: `Updated target for ${name}`,
-                                    body: cli.parameters.reason,
-                                },
-                            ),
-                        ],
-                        color: "#ffcc00",
-                        footer: slackFooter(),
-                        callback_id: "atm-confirm-done",
-                    },
+${italic(cli.parameters.reason)}`, cli.context);
+
+            message.attachments.push({
+                text: `Shall we update repository to use the new ${codeLine(name)} target?`,
+                fallback: `Shall we update repository to use the new ${codeLine(name)} target?`,
+                actions: [
+                    buttonForCommand(
+                        {
+                            text: "Update",
+                        },
+                        ApplyTargetFingerprintName,
+                        {
+                            msgId,
+                            targetfingerprint: cli.parameters.fingerprint,
+                            title: `Updated target for ${name}`,
+                            body: cli.parameters.reason,
+                        },
+                    ),
                 ],
-            };
+                callback_id: "atm-confirm-done",
+            });
+
             // each channel with a repo containing this fingerprint gets a message
             // use the msgId passed in so all the msgIds across the different channels are the same
             return cli.context.messageClient.addressChannels(message, channel, { id: msgId });
