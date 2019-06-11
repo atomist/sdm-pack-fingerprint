@@ -48,8 +48,8 @@ import {
 } from "./applyFingerprint";
 
 export function askAboutBroadcast(cli: CommandListenerInvocation,
-    fp: FP,
-    msgId: string): Promise<void> {
+                                  fp: FP,
+                                  msgId: string): Promise<void> {
     const author = cli.context.source.slack.user.id;
 
     // always create a new message
@@ -111,7 +111,7 @@ export interface BroadcastFingerprintNudgeParameters extends ParameterType {
 
 /**
  * send messages to all channels with Repos that might be impacted by this target change
- * 
+ *
  * @param cli
  */
 function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>): Promise<any> {
