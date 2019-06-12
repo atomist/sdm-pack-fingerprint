@@ -221,14 +221,14 @@ export interface FingerprintOptions {
     /**
      * Optional Fingerprint goal that will get configured.
      * If not provided fingerprints need to be registered manually with the goal.
-     * @deprecated use pushImpact instead
+     * @deprecated use pushImpactGoal instead
      */
     fingerprintGoal?: Fingerprint;
 
     /**
      * Optional PushImpact goal that will get configured
      */
-    pushImpact?: PushImpact;
+    pushImpactGoal?: PushImpact;
 
     /**
      * Features we are managing
@@ -267,8 +267,8 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
                     },
                 });
             }
-            if (!!options.pushImpact) {
-                options.pushImpact.withListener(fingerprintRunner(fingerprints, handlers, computeFingerprints));
+            if (!!options.pushImpactGoal) {
+                options.pushImpactGoal.withListener(fingerprintRunner(fingerprints, handlers, computeFingerprints));
             }
 
             configure(sdm, handlerRegistrations, fingerprints);
