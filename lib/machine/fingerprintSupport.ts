@@ -34,7 +34,7 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import _ = require("lodash");
+import * as _ from "lodash";
 import {
     checkFingerprintTarget,
     votes,

@@ -40,7 +40,7 @@ import {
     bold,
     SlackMessage,
 } from "@atomist/slack-messages";
-import _ = require("lodash");
+import * as _ from "lodash";
 import { Feature } from "../..";
 import { toName } from "../adhoc/preferences";
 import {

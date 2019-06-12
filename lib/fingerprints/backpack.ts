@@ -20,7 +20,7 @@ import {
     renderData,
     sha256,
 } from "@atomist/clj-editors";
-import _ = require("lodash");
+import * as _ from "lodash";
 import {
     ApplyFingerprint,
     ExtractFingerprint,
