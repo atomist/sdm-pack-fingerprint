@@ -21,7 +21,6 @@ export {
     fingerprintImpactHandler,
     FingerprintImpactHandlerConfig,
     checkNpmCoordinatesImpactHandler,
-    FingerprintExtensionPack,
 } from "./lib/machine/fingerprintSupport";
 export {
     BaseFeature,
