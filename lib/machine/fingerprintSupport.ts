@@ -154,7 +154,15 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
         return {
             selector: fp => checkScope(fp, registrations),
             handler: async (ctx, diff) => {
-                const v: Vote = await checkFingerprintTarget(ctx, diff, config, registrations);
+                const v: Vote = await checkFingerprintTarget(
+                    ctx,
+                    diff,
+                    config,
+                    registrations,
+                    async () => {
+                        return diff.targets;
+                    },
+                );
                 return v;
             },
             ballot: votes(config),

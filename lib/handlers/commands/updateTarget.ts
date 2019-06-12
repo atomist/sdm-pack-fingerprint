@@ -150,6 +150,8 @@ export const UpdateTargetFingerprint: CommandHandlerRegistration<UpdateTargetFin
                 options: QueryNoCacheOptions,
                 name: "GetFpBySha",
                 variables: {
+                    type: cli.parameters.fptype,
+                    name: cli.parameters.fpname,
                     sha: cli.parameters.fpsha,
                 },
             },

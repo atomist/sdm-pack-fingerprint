@@ -38,13 +38,13 @@ import {
     UpdateSdmGoalParams,
 } from "@atomist/sdm";
 import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
-import { getFPTargets } from "../adhoc/preferences";
 import {
     Feature,
 } from "../machine/Feature";
 import {
     FingerprintImpactHandlerConfig,
 } from "../machine/fingerprintSupport";
+import { GetFpTargets } from "../typings/types";
 import {
     getDiffSummary,
     GitCoordinate,
@@ -183,17 +183,17 @@ export function votes(config: FingerprintImpactHandlerConfig):
  * @param diff
  * @param config
  * @param registrations
+ * @param targetsQuery
  */
 export async function checkFingerprintTarget(
     ctx: HandlerContext,
     diff: Diff,
     config: FingerprintImpactHandlerConfig,
-    registrations: Feature[]): Promise<any> {
+    registrations: Feature[],
+    targetsQuery: () => Promise<GetFpTargets.Query>): Promise<any> {
 
     return checkFingerprintTargets(
-        () => {
-            return getFPTargets(ctx.graphClient);
-        },
+        targetsQuery,
         fingerprintOutOfSyncCallback(ctx, diff, config, registrations),
         fingerprintInSyncCallback(ctx, diff, config.complianceGoal),
         diff,

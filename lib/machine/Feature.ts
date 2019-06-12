@@ -25,6 +25,7 @@ import {
     Vote,
 } from "@atomist/clj-editors";
 import { GitCoordinate } from "../checktarget/messageMaker";
+import { GetFpTargets } from "../typings/types";
 import { PossibleIdeal } from "./ideals";
 
 /**
@@ -141,6 +142,10 @@ export interface Feature<FPI extends FP = FP> extends BaseFeature<FPI> {
  */
 export type FingerprintRegistration = Feature;
 
+export interface DiffContext extends Diff {
+    targets: GetFpTargets.Query;
+}
+
 /**
  * Handles differences between fingerprints across pushes and between targets.
  * Different strategies can be used to handle PushImpactEventHandlers.
@@ -166,7 +171,7 @@ export interface FingerprintHandler {
      * @param {Diff} diff
      * @return {Promise<Vote>}
      */
-    handler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
+    handler?: (context: HandlerContext, diff: DiffContext) => Promise<Vote>;
 
     /**
      * For collecting results on all fingerprint diff handlers

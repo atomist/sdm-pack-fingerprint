@@ -21,7 +21,6 @@ import {
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
-    Diff,
     FP,
     renderData,
     Vote,
@@ -31,11 +30,14 @@ import {
 } from "@atomist/sdm";
 import _ = require("lodash");
 import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
+import { getFPTargets } from "../adhoc/preferences";
 import {
     GetAllFpsOnSha,
+    GetFpTargets,
     GetPushDetails,
 } from "../typings/types";
 import {
+    DiffContext,
     Feature,
     FingerprintHandler,
 } from "./Feature";
@@ -43,6 +45,7 @@ import {
 interface MissingInfo {
     providerId: string;
     channel: string;
+    targets: GetFpTargets.Query;
 }
 
 async function handleDiffs(
@@ -52,7 +55,7 @@ async function handleDiffs(
     handlers: FingerprintHandler[],
     i: PushImpactListenerInvocation): Promise<Vote[]> {
 
-    const diff: Diff = {
+    const diff: DiffContext = {
         ...info,
         from: previous,
         to: fp,
@@ -144,9 +147,11 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
                 id: i.push.id,
             },
         });
+    const targets = await getFPTargets(i.context.graphClient);
     return {
         providerId: results.Push[0].repo.org.scmProvider.providerId,
         channel: _.get(results, "Push[0].repo.channels[0].name"),
+        targets,
     };
 }
 
