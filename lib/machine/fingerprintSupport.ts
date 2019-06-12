@@ -34,6 +34,7 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
+import _ = require("lodash");
 import {
     checkFingerprintTarget,
     votes,
@@ -75,7 +76,6 @@ import {
     computeFingerprints,
     fingerprintRunner,
 } from "./runner";
-import _ = require("lodash");
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
