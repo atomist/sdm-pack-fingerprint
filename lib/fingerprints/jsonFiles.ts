@@ -14,40 +14,61 @@
  * limitations under the License.
  */
 
-import { logger } from "@atomist/automation-client";
+import {logger} from "@atomist/automation-client";
 import {
     ApplyFingerprint,
     ExtractFingerprint,
     FP,
     sha256,
 } from "../..";
-import { Feature } from "../machine/Feature";
+import {Feature} from "../machine/Feature";
 
+/**
+ * Create fingerprints from JSON files
+ * @param {string} filenames
+ * @return {ExtractFingerprint}
+ */
 export function createFileFingerprint(...filenames: string[]): ExtractFingerprint {
+    return createFilesFingerprint(
+        JsonFile.name,
+        content => JSON.parse(content),
+        ...filenames);
+}
+
+/**
+ * Create fingerprints from JSON files
+ * @param type type of the fingerprint
+ * @param {(content: string) => any} canonicalize
+ * @param {string} filenames
+ * @return {ExtractFingerprint}
+ */
+export function createFilesFingerprint(type: string,
+                                       canonicalize: (content: string) => any,
+                                       ...filenames: string[]): ExtractFingerprint {
     return async p => {
         const fps: FP[] = [];
         await Promise.all(
             filenames.map(async filename => {
-                const file = await p.getFile(filename);
+                    const file = await p.getFile(filename);
 
-                if (file) {
-                    const fileData = await file.getContent();
-                    const jsonData = JSON.parse(fileData);
-                    fps.push(
-                        {
-                            type: JsonFile.name,
-                            name: filename,
-                            abbreviation: `file-${filename}`,
-                            version: "0.0.1",
-                            data: {
-                                content: fileData,
-                                filename,
+                    if (file) {
+                        const content = await file.getContent();
+                        const canonicalized = canonicalize(content);
+                        fps.push(
+                            {
+                                type,
+                                name: filename,
+                                abbreviation: `file-${filename}`,
+                                version: "0.0.1",
+                                data: {
+                                    content,
+                                    filename,
+                                },
+                                sha: sha256(JSON.stringify(canonicalized)),
                             },
-                            sha: sha256(JSON.stringify(jsonData)),
-                        },
-                    );
-                }
-            },
+                        );
+                    }
+                },
             ));
 
         return fps;
@@ -78,3 +99,26 @@ export const JsonFile: Feature = {
     selector: fp => fp.type && fp.type === JsonFile.name,
     toDisplayableFingerprint: fp => fp.name,
 };
+
+/**
+ * Create a feature that handles the given files
+ * @return {Feature}
+ */
+export function filesFeature(opts: {
+                                 displayName: string,
+                                 type: string,
+                                 canonicalize: (content: string) => any,
+                             },
+                             ...files: string[]): Feature {
+    return {
+        displayName: opts.displayName,
+        name: "json-file",
+        extract: createFilesFingerprint(
+            opts.type,
+            opts.canonicalize,
+            ...files),
+        apply: applyFileFingerprint,
+        selector: fp => fp.type === opts.type,
+        toDisplayableFingerprint: fp => fp.name,
+    };
+}
