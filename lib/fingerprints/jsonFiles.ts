@@ -30,7 +30,7 @@ import { Feature } from "../machine/Feature";
  */
 export function createFileFingerprint(...filenames: string[]): ExtractFingerprint {
     return createFilesFingerprint(
-        JsonFile.name,
+        "json-file",
         content => JSON.parse(content),
         ...filenames);
 }
