@@ -30,10 +30,11 @@ import {
     Goal,
     metadata,
     PushAwareParametersInvocation,
+    PushImpact,
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import _ = require("lodash");
+import * as _ from "lodash";
 import {
     checkFingerprintTarget,
     votes,
@@ -50,9 +51,7 @@ import {
     broadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
-import {
-    FingerprintEverything,
-} from "../handlers/commands/fingerprint";
+import { FingerprintEverything } from "../handlers/commands/fingerprint";
 import {
     ListFingerprint,
     ListFingerprints,
@@ -222,8 +221,14 @@ export interface FingerprintOptions {
     /**
      * Optional Fingerprint goal that will get configured.
      * If not provided fingerprints need to be registered manually with the goal.
+     * @deprecated use pushImpactGoal instead
      */
     fingerprintGoal?: Fingerprint;
+
+    /**
+     * Optional PushImpact goal that will get configured
+     */
+    pushImpactGoal?: PushImpact;
 
     /**
      * Features we are managing
@@ -236,27 +241,20 @@ export interface FingerprintOptions {
     handlers: RegisterFingerprintImpactHandler | RegisterFingerprintImpactHandler[];
 }
 
-export interface FingerprintExtensionPack extends ExtensionPack {
-    sendFingerprints: (i: PushImpactListenerInvocation, fps: FP[]) => Promise<FP[]>;
-}
-
 /**
  * Install and configure the fingerprint support in this SDM
  */
-export function fingerprintSupport(options: FingerprintOptions): FingerprintExtensionPack {
-    let sendFingerprints: (i: PushImpactListenerInvocation, fps: FP[]) => Promise<FP[]>;
+export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 
     return {
         ...metadata(),
-        sendFingerprints,
         configure: (sdm: SoftwareDeliveryMachine) => {
 
             const fingerprints = Array.isArray(options.features) ? options.features : [options.features];
             const handlerRegistrations = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
             const handlers: FingerprintHandler[] = handlerRegistrations.map(h => h(sdm, fingerprints));
 
-            // TODO we can consider switching this to a regular Fulfillable Goal when the action no longer has
-            //      to return a Fingerprints
+            // tslint:disable:deprecation
             if (!!options.fingerprintGoal) {
                 options.fingerprintGoal.with({
                     name: `${options.fingerprintGoal.uniqueName}-fingerprinter`,
@@ -269,13 +267,9 @@ export function fingerprintSupport(options: FingerprintOptions): FingerprintExte
                     },
                 });
             }
-            sendFingerprints = async (i: PushImpactListenerInvocation, fps: FP[]): Promise<FP[]> => {
-                return (fingerprintRunner(
-                    fingerprints,
-                    handlers,
-                    async (a, b) => fps,
-                ))(i);
-            };
+            if (!!options.pushImpactGoal) {
+                options.pushImpactGoal.withListener(fingerprintRunner(fingerprints, handlers, computeFingerprints));
+            }
 
             configure(sdm, handlerRegistrations, fingerprints);
         },

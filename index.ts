@@ -21,7 +21,6 @@ export {
     fingerprintImpactHandler,
     FingerprintImpactHandlerConfig,
     checkNpmCoordinatesImpactHandler,
-    FingerprintExtensionPack,
 } from "./lib/machine/fingerprintSupport";
 export {
     BaseFeature,
@@ -68,9 +67,7 @@ export {
     MavenDeps,
     MavenCoordinates,
 } from "./lib/fingerprints/maven";
-export {
-    JsonFile,
-} from "./lib/fingerprints/jsonFiles";
+export * from "./lib/fingerprints/jsonFiles";
 
 export * from "./lib/machine/AtomicFeature";
 export * from "./lib/machine/DerivedFeature";

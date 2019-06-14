@@ -28,7 +28,7 @@ import {
 import {
     PushImpactListenerInvocation,
 } from "@atomist/sdm";
-import _ = require("lodash");
+import * as _ from "lodash";
 import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import { getFPTargets } from "../adhoc/preferences";
 import {
