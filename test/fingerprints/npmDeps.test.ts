@@ -17,8 +17,8 @@
 import * as assert from "assert";
 import {
     constructNpmDepsFingerprintName,
-    deconstructNpmDepsFingerprintName,
     createNpmDepsFingerprints,
+    deconstructNpmDepsFingerprintName,
 } from "../../lib/fingerprints/npmDeps";
 import { InMemoryProject } from "@atomist/automation-client";
 
