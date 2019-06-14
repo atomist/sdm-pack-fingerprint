@@ -18,7 +18,36 @@ import * as assert from "assert";
 import {
     constructNpmDepsFingerprintName,
     deconstructNpmDepsFingerprintName,
+    createNpmDepsFingerprints,
 } from "../../lib/fingerprints/npmDeps";
+import { InMemoryProject } from "@atomist/automation-client";
+
+const dummyPackageJson = `
+{
+    "devDependencies": {
+        "@atomist/sdm-pack": "1.2.3"
+    }
+}
+`;
+
+const dummyPackageJson1 = `
+{
+    "dependencies": {
+        "@atomist/sdm-pack": "1.2.3"
+    }
+}
+`;
+
+const dummyPackageJson2 = `
+{
+    "dependencies": {
+        "@atomist/sdm-pack": "1.2.3"
+    },
+    "devDependencies": {
+        "@atomist/sdm-pack1": "1.2.3"
+    }
+}
+`;
 
 describe("npmDeps", () => {
     it("constructs and deconstructs a fingerprint name", () => {
@@ -58,4 +87,76 @@ describe("npmDeps", () => {
 
         assert.strictEqual(result, undefined);
     });
+
+    it("finds dependencies", async () => {
+        const p = InMemoryProject.from({
+            repo: "foo",
+            sha: "26e18ee3e30c0df0f0f2ff0bc42a4bd08a7024b9",
+            branch: "master",
+            owner: "foo",
+            url: "https://fake.com/foo/foo.git",
+        }, ({ path: "package.json", content: dummyPackageJson1 })) as any;
+
+        const fp = await createNpmDepsFingerprints(p);
+
+        assert.deepEqual(fp, [{
+            abbreviation: "npmdeps",
+            data: ["@atomist/sdm-pack", "1.2.3"],
+            name: "atomist::sdm-pack",
+            sha: "85e02c7662db6dc9907944b58a6f18f380f6b96fc29358ce4a99c0826534a273",
+            type: "npm-project-deps",
+            version: "0.0.1",
+        }]);
+    })
+
+    it("finds dev dependencies", async () => {
+        const p = InMemoryProject.from({
+            repo: "foo",
+            sha: "26e18ee3e30c0df0f0f2ff0bc42a4bd08a7024b9",
+            branch: "master",
+            owner: "foo",
+            url: "https://fake.com/foo/foo.git",
+        }, ({ path: "package.json", content: dummyPackageJson })) as any;
+
+        const fp = await createNpmDepsFingerprints(p);
+
+        assert.deepEqual(fp, [{
+            abbreviation: "npmdeps",
+            data: ["@atomist/sdm-pack", "1.2.3"],
+            name: "atomist::sdm-pack",
+            sha: "85e02c7662db6dc9907944b58a6f18f380f6b96fc29358ce4a99c0826534a273",
+            type: "npm-project-deps",
+            version: "0.0.1",
+        }]);
+    })
+
+    it("finds a combo of both", async () => {
+        const p = InMemoryProject.from({
+            repo: "foo",
+            sha: "26e18ee3e30c0df0f0f2ff0bc42a4bd08a7024b9",
+            branch: "master",
+            owner: "foo",
+            url: "https://fake.com/foo/foo.git",
+        }, ({ path: "package.json", content: dummyPackageJson2 })) as any;
+
+        const fp = await createNpmDepsFingerprints(p);
+
+        assert.deepEqual(fp, [{
+            abbreviation: "npmdeps",
+            data: ["@atomist/sdm-pack", "1.2.3"],
+            name: "atomist::sdm-pack",
+            sha: "85e02c7662db6dc9907944b58a6f18f380f6b96fc29358ce4a99c0826534a273",
+            type: "npm-project-deps",
+            version: "0.0.1",
+        },
+        {
+            abbreviation: "npmdeps",
+            data: ["@atomist/sdm-pack1", "1.2.3"],
+            name: "atomist::sdm-pack1",
+            sha: "e64b18f7eafd583d600974d648d43fa12fcd974293a681031e8ab4cbff2d67c2",
+            type: "npm-project-deps",
+            version: "0.0.1",
+        }]);
+    })
+
 });
