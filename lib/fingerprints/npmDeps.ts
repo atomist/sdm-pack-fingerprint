@@ -22,6 +22,7 @@ import {
     LoggingProgressLog,
     spawnLog,
 } from "@atomist/sdm";
+import _ = require("lodash");
 import {
     ApplyFingerprint,
     ExtractFingerprint,
@@ -32,7 +33,6 @@ import {
     DiffSummaryFingerprint,
     Feature,
 } from "../machine/Feature";
-import _ = require("lodash");
 
 /**
  * Construct an npmdep fingerprint from the given library and version
@@ -82,7 +82,7 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
 
     if (file) {
         const jsonData = JSON.parse(await file.getContent());
-        const dependencies = _.merge(jsonData.dependencies || {}, jsonData.devDependencies || {})
+        const dependencies = _.merge(jsonData.dependencies || {}, jsonData.devDependencies || {});
 
         const fingerprints: FP[] = [];
 

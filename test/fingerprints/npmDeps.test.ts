@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+import { InMemoryProject } from "@atomist/automation-client";
 import * as assert from "assert";
 import {
     constructNpmDepsFingerprintName,
-    deconstructNpmDepsFingerprintName,
     createNpmDepsFingerprints,
+    deconstructNpmDepsFingerprintName,
 } from "../../lib/fingerprints/npmDeps";
-import { InMemoryProject } from "@atomist/automation-client";
 
 const dummyPackageJson = `
 {
@@ -99,7 +99,7 @@ describe("npmDeps", () => {
 
         const fp = await createNpmDepsFingerprints(p);
 
-        assert.deepEqual(fp, [{
+        assert.deepStrictEqual(fp, [{
             abbreviation: "npmdeps",
             data: ["@atomist/sdm-pack", "1.2.3"],
             name: "atomist::sdm-pack",
@@ -107,7 +107,7 @@ describe("npmDeps", () => {
             type: "npm-project-deps",
             version: "0.0.1",
         }]);
-    })
+    });
 
     it("finds dev dependencies", async () => {
         const p = InMemoryProject.from({
@@ -120,7 +120,7 @@ describe("npmDeps", () => {
 
         const fp = await createNpmDepsFingerprints(p);
 
-        assert.deepEqual(fp, [{
+        assert.deepStrictEqual(fp, [{
             abbreviation: "npmdeps",
             data: ["@atomist/sdm-pack", "1.2.3"],
             name: "atomist::sdm-pack",
@@ -128,7 +128,7 @@ describe("npmDeps", () => {
             type: "npm-project-deps",
             version: "0.0.1",
         }]);
-    })
+    });
 
     it("finds a combo of both", async () => {
         const p = InMemoryProject.from({
@@ -141,7 +141,7 @@ describe("npmDeps", () => {
 
         const fp = await createNpmDepsFingerprints(p);
 
-        assert.deepEqual(fp, [{
+        assert.deepStrictEqual(fp, [{
             abbreviation: "npmdeps",
             data: ["@atomist/sdm-pack", "1.2.3"],
             name: "atomist::sdm-pack",
@@ -157,6 +157,6 @@ describe("npmDeps", () => {
             type: "npm-project-deps",
             version: "0.0.1",
         }]);
-    })
+    });
 
 });
