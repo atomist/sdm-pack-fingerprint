@@ -47,9 +47,6 @@ import {
 } from "..";
 import { Backpack } from "../lib/fingerprints/backpack";
 import {
-    DockerFrom,
-} from "../lib/fingerprints/dockerFrom";
-import {
     JsonFile,
 } from "../lib/fingerprints/jsonFiles";
 import {
@@ -139,7 +136,6 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                 [
                     NpmDeps,
                     NpmCoordinates,
-                    DockerFrom,
                     JsonFile,
                     Backpack,
                 ],
@@ -168,7 +164,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
                         messageMaker,
                     },
                 )],
-            },
+        },
         ),
     );
 

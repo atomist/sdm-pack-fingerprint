@@ -136,6 +136,7 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
                     msgId: params.msgId,
                     targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
                     title: `Apply ${vote.fpTarget.name}`,
+                    branch: vote.diff.branch,
                     targets: {
                         owner: vote.diff.owner,
                         repo: vote.diff.repo,

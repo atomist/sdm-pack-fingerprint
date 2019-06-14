@@ -19,7 +19,7 @@ import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as assert from "assert";
 import {
     constructNpmDepsFingerprintName,
-    getNpmDepFingerprint,
+    createNpmDepFingerprint,
 } from "../../lib/fingerprints/npmDeps";
 import { atomicFeature } from "../../lib/machine/AtomicFeature";
 import {
@@ -30,7 +30,7 @@ import {
 describe("atomicFeature", () => {
 
     it("should ignore everything", async () => {
-        const fp = getNpmDepFingerprint("foo", "0.1.0");
+        const fp = createNpmDepFingerprint("foo", "0.1.0");
         const f1: Feature = {
             selector: () => true,
             extract: async () => fp,
@@ -46,7 +46,7 @@ describe("atomicFeature", () => {
     });
 
     it("should accept one", async () => {
-        const fp = getNpmDepFingerprint("foo", "0.1.0");
+        const fp = createNpmDepFingerprint("foo", "0.1.0");
         const e1: ExtractFingerprint = async () => fp;
         const f1: Feature = {
             selector: () => true,
@@ -64,9 +64,9 @@ describe("atomicFeature", () => {
     });
 
     it("should combine two", async () => {
-        const fp1 = getNpmDepFingerprint("foo", "0.1.0");
-        const fp2 = getNpmDepFingerprint("bar", "0.1.0");
-        const fp3 = getNpmDepFingerprint("whatever", "0.1.0");
+        const fp1 = createNpmDepFingerprint("foo", "0.1.0");
+        const fp2 = createNpmDepFingerprint("bar", "0.1.0");
+        const fp3 = createNpmDepFingerprint("whatever", "0.1.0");
         const e1: ExtractFingerprint = async () => [
             fp1, fp2, fp3,
         ];
@@ -89,8 +89,8 @@ describe("atomicFeature", () => {
     });
 
     it("should apply two", async () => {
-        const fp1 = getNpmDepFingerprint("foo", "0.1.0");
-        const fp2 = getNpmDepFingerprint("bar", "0.1.0");
+        const fp1 = createNpmDepFingerprint("foo", "0.1.0");
+        const fp2 = createNpmDepFingerprint("bar", "0.1.0");
         const e1: ExtractFingerprint = async () => [
             fp1,
         ];

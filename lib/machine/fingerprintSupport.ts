@@ -42,7 +42,7 @@ import {
     IgnoreCommandRegistration,
     MessageMaker,
 } from "../checktarget/messageMaker";
-import { getNpmDepFingerprint } from "../fingerprints/npmDeps";
+import { createNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     applyTarget,
     ApplyTargetParameters,
@@ -182,7 +182,7 @@ export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHan
                 if (diff.channel) {
                     return setNewTargetFingerprint(
                         ctx,
-                        getNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
+                        createNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
                         diff.channel);
                 } else {
                     return new Promise<Vote>(

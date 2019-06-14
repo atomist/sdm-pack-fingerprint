@@ -39,7 +39,7 @@ import {
  * @param {string} version
  * @return {FP}
  */
-export function getNpmDepFingerprint(lib: string, version: string): FP {
+export function createNpmDepFingerprint(lib: string, version: string): FP {
     const data = [lib, version];
     return {
         type: NpmDeps.name,
@@ -86,7 +86,7 @@ export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
         const fingerprints: FP[] = [];
 
         for (const [lib, version] of Object.entries(dependencies)) {
-            fingerprints.push(getNpmDepFingerprint(lib, version));
+            fingerprints.push(createNpmDepFingerprint(lib, version));
         }
 
         return fingerprints;

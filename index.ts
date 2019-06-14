@@ -52,12 +52,6 @@ export {
     commaSeparatedList,
 } from "@atomist/clj-editors";
 export {
-    applyDockerBaseFingerprint,
-    dockerBaseFingerprint,
-    DockerFrom,
-    getDockerBaseFingerprint,
-} from "./lib/fingerprints/dockerFrom";
-export {
     constructNpmDepsFingerprintName,
     deconstructNpmDepsFingerprintName,
     diffNpmDepsFingerprints,
