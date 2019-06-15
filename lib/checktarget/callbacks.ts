@@ -57,8 +57,7 @@ import {
 function fingerprintOutOfSyncCallback(
     ctx: HandlerContext,
     diff: Diff,
-    config: FingerprintImpactHandlerConfig,
-    registrations: Feature[],
+    feature: Feature,
 ): (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
 
     return async (text, fpTarget, fingerprint) => {
@@ -71,7 +70,7 @@ function fingerprintOutOfSyncCallback(
             fingerprint,
             fpTarget,
             text,
-            summary: getDiffSummary(diff, fpTarget, registrations),
+            summary: getDiffSummary(diff, fpTarget, feature),
         };
     };
 }
@@ -83,8 +82,7 @@ function fingerprintOutOfSyncCallback(
  * @param diff
  * @param goal
  */
-function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff, goal?: Goal):
-    (fingerprint: FP) => Promise<Vote> {
+function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff): (fingerprint: FP) => Promise<Vote> {
     return async fingerprint => {
         return {
             abstain: false,
@@ -188,14 +186,13 @@ export function votes(config: FingerprintImpactHandlerConfig):
 export async function checkFingerprintTarget(
     ctx: HandlerContext,
     diff: Diff,
-    config: FingerprintImpactHandlerConfig,
-    registrations: Feature[],
+    feature: Feature,
     targetsQuery: () => Promise<GetFpTargets.Query>): Promise<any> {
 
     return checkFingerprintTargets(
         targetsQuery,
-        fingerprintOutOfSyncCallback(ctx, diff, config, registrations),
-        fingerprintInSyncCallback(ctx, diff, config.complianceGoal),
+        fingerprintOutOfSyncCallback(ctx, diff, feature),
+        fingerprintInSyncCallback(ctx, diff),
         diff,
     );
 }

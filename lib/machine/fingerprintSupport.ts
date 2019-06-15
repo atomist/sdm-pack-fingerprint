@@ -19,6 +19,7 @@ import {
     HandlerContext,
     Project,
 } from "@atomist/automation-client";
+import { AutoMergeMethod, AutoMergeMode } from "@atomist/automation-client/lib/operations/edit/editModes";
 import {
     Diff,
     FP,
@@ -70,6 +71,7 @@ import {
 } from "../handlers/commands/updateTarget";
 import {
     Feature,
+    FingerprintDiffHandler,
     FingerprintHandler,
 } from "./Feature";
 import {
@@ -93,6 +95,7 @@ export type EditModeMaker = (cli: PushAwareParametersInvocation<ApplyTargetParam
 /**
  * customize the out of the box strategy for monitoring when fingerprints are out
  * of sync with a target.
+ *
  */
 export interface FingerprintImpactHandlerConfig {
     complianceGoal?: Goal;
@@ -112,10 +115,37 @@ function checkScope(fp: FP, registrations: Feature[]): boolean {
     return inScope;
 }
 
+export const DefaultTargetDiffHandler: FingerprintDiffHandler =
+    async (ctx, diff, feature) => {
+        const v: Vote = await checkFingerprintTarget(
+            ctx,
+            diff,
+            feature,
+            async () => {
+                return diff.targets;
+            },
+        );
+        return v;
+    };
+
+export function diffOnlyHandlerMiddleware(handler: FingerprintDiffHandler): FingerprintDiffHandler {
+    return async (context, diff, feature) => {
+        if (diff.from && diff.to.sha !== diff.from.sha) {
+            return handler(context, diff, feature);
+        } else {
+            return {
+                abstain: true,
+            };
+        }
+    };
+}
+
 /**
  * This configures the registration function for the "target fingerprint" FingerprintHandler.  It's an important one
  * because it's the one that generates messages when fingerprints don't line up with their "target" values.  It does
  * nothing when there's no target set for a workspace.
+ *
+ * @deprecated should be embedded in Features
  *
  * @param config
  */
@@ -127,37 +157,14 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
         //   - TODO:  third is just for resetting
         //   - both use askAboutBroadcast to generate an actionable message pointing at BroadcastFingerprintNudge
 
-        // set a target given using the entire JSON fingerprint payload in a parameter
-        sdm.addCommand(SetTargetFingerprint);
-        // set a different target after noticing that a fingerprint is different from current target
-        sdm.addCommand(UpdateTargetFingerprint);
-        // Bootstrap a fingerprint target by selecting one from current project
-        sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
-        // Bootstrap a fingerprint target from project by name
-        sdm.addCommand(SetTargetFingerprintFromLatestMaster);
-        sdm.addCommand(DeleteTargetFingerprint);
-
-        // standard actionable message embedding ApplyTargetFingerprint
-        sdm.addCommand(BroadcastFingerprintNudge);
-
-        sdm.addCommand(IgnoreCommandRegistration);
-
-        sdm.addCommand(listFingerprintTargets(sdm));
-        sdm.addCommand(listOneFingerprintTarget(sdm));
-
-        sdm.addCodeTransformCommand(applyTarget(sdm, registrations, config.transformPresentation));
-        sdm.addCodeTransformCommand(applyTargets(sdm, registrations, config.transformPresentation));
-
-        sdm.addCommand(broadcastFingerprintMandate(sdm, registrations));
-
         return {
             selector: fp => checkScope(fp, registrations),
-            handler: async (ctx, diff) => {
+            handler: async (ctx, diff, feature) => {
+
                 const v: Vote = await checkFingerprintTarget(
                     ctx,
                     diff,
-                    config,
-                    registrations,
+                    feature,
                     async () => {
                         return diff.targets;
                     },
@@ -172,6 +179,8 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
 /**
  * This creates the registration function for a handler that notices that a package.json version
  * has been updated.
+ *
+ * @deprecated this should be embedded in the NpmDeps Feature
  */
 export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
     return (sdm: SoftwareDeliveryMachine) => {
@@ -198,6 +207,8 @@ export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHan
 /**
  * Utility for creating a registration function for a handler that will just invoke the supplied callback
  * if one of the suppled fingerprints changes
+ *
+ * @deprecated should be embedded in Features
  *
  * @param handler callback
  * @param names set of fingerprint names that should trigger the callback
@@ -237,9 +248,30 @@ export interface FingerprintOptions {
 
     /**
      * Register FingerprintHandler factories to handle fingerprint impacts
+     * @deprecated embed handlers in Features
      */
-    handlers: RegisterFingerprintImpactHandler | RegisterFingerprintImpactHandler[];
+    handlers?: RegisterFingerprintImpactHandler | RegisterFingerprintImpactHandler[];
+
+    transformPresentation?: EditModeMaker;
 }
+
+export const DefaultEditModeMaker: EditModeMaker = (ci, p) => {
+    // name the branch apply-target-fingerprint with a Date
+    // title can be derived from ApplyTargetParameters
+    // body can be derived from ApplyTargetParameters
+    // optional message is undefined here
+    // target branch is hard-coded to master
+    return new editModes.PullRequest(
+        `apply-target-fingerprint-${Date.now()}`,
+        `${ci.parameters.title}`,
+        `> generated by Atomist \`\`\`${ci.parameters.body}\`\`\``,
+        undefined,
+        ci.parameters.branch || "master",
+        {
+            method: AutoMergeMethod.Squash,
+            mode: AutoMergeMode.ApprovedReview,
+        });
+};
 
 /**
  * Install and configure the fingerprint support in this SDM
@@ -271,16 +303,41 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
                 options.pushImpactGoal.withListener(fingerprintRunner(fingerprints, handlers, computeFingerprints));
             }
 
-            configure(sdm, handlerRegistrations, fingerprints);
+            configure(sdm, handlerRegistrations, fingerprints, options.transformPresentation || DefaultEditModeMaker);
         },
     };
 }
 
 function configure(sdm: SoftwareDeliveryMachine,
                    handlers: RegisterFingerprintImpactHandler[],
-                   fpRegistrations: Feature[]): void {
+                   fpRegistrations: Feature[],
+                   editModeMaker: EditModeMaker): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);
     sdm.addCommand(FingerprintEverything);
+
+    // set a target given using the entire JSON fingerprint payload in a parameter
+    sdm.addCommand(SetTargetFingerprint);
+    // set a different target after noticing that a fingerprint is different from current target
+    sdm.addCommand(UpdateTargetFingerprint);
+    // Bootstrap a fingerprint target by selecting one from current project
+    sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
+    // Bootstrap a fingerprint target from project by name
+    sdm.addCommand(SetTargetFingerprintFromLatestMaster);
+    sdm.addCommand(DeleteTargetFingerprint);
+
+    // standard actionable message embedding ApplyTargetFingerprint
+    sdm.addCommand(BroadcastFingerprintNudge);
+
+    sdm.addCommand(IgnoreCommandRegistration);
+
+    sdm.addCommand(listFingerprintTargets(sdm));
+    sdm.addCommand(listOneFingerprintTarget(sdm));
+
+    sdm.addCodeTransformCommand(applyTarget(sdm, fpRegistrations, editModeMaker));
+    sdm.addCodeTransformCommand(applyTargets(sdm, fpRegistrations, editModeMaker));
+
+    sdm.addCommand(broadcastFingerprintMandate(sdm, fpRegistrations));
+
 }

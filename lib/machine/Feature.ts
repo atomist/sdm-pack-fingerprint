@@ -123,6 +123,7 @@ export interface BaseFeature<FPI extends FP = FP> {
      */
     suggestedIdeals?(fingerprintName: string): Promise<Array<PossibleIdeal<FPI>>>;
 
+    workflows?: FingerprintDiffHandler[];
 }
 
 /**
@@ -146,9 +147,12 @@ export interface DiffContext extends Diff {
     targets: GetFpTargets.Query;
 }
 
+export type FingerprintDiffHandler = (context: HandlerContext, diff: DiffContext, feature: Feature) => Promise<Vote>;
+
 /**
  * Handles differences between fingerprints across pushes and between targets.
  * Different strategies can be used to handle PushImpactEventHandlers.
+ *
  */
 export interface FingerprintHandler {
 
@@ -163,7 +167,7 @@ export interface FingerprintHandler {
      * @param {Diff} diff
      * @return {Promise<Vote>}
      */
-    diffHandler?: (context: HandlerContext, diff: Diff) => Promise<Vote>;
+    diffHandler?: FingerprintDiffHandler;
 
     /**
      * Called when target fingerprint differs from current fingerprint
@@ -171,7 +175,7 @@ export interface FingerprintHandler {
      * @param {Diff} diff
      * @return {Promise<Vote>}
      */
-    handler?: (context: HandlerContext, diff: DiffContext) => Promise<Vote>;
+    handler?: FingerprintDiffHandler;
 
     /**
      * For collecting results on all fingerprint diff handlers

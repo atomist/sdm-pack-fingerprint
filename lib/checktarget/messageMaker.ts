@@ -78,13 +78,16 @@ export const updateableMessage: MessageIdMaker = (fingerprint, coordinate: GitCo
 /**
  * get a diff summary if any registrations support one for this Fingerprint type
  */
-export function getDiffSummary(diff: Diff, target: FP, registrations: Feature[]): undefined | DiffSummary {
+export function getDiffSummary(diff: Diff, target: FP, feature: Feature): undefined | DiffSummary {
 
     try {
-        for (const registration of registrations) {
-            if (registration.summary && registration.selector(diff.to)) {
-                return registration.summary(diff, target);
-            }
+        if (feature.summary) {
+            return feature.summary(diff, target);
+        } else {
+            return {
+                title: "Target diff",
+                description: `from ${diff.from.data} to ${diff.to.data}`,
+            };
         }
     } catch (e) {
         logger.warn(`failed to create summary: ${e}`);

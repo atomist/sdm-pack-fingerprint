@@ -53,6 +53,7 @@ async function handleDiffs(
     previous: FP,
     info: MissingInfo,
     handlers: FingerprintHandler[],
+    feature: Feature,
     i: PushImpactListenerInvocation): Promise<Vote[]> {
 
     const diff: DiffContext = {
@@ -74,17 +75,22 @@ async function handleDiffs(
             handlers
                 .filter(h => h.diffHandler)
                 .filter(h => h.selector(fp))
-                .map(h => h.diffHandler(i.context, diff)));
+                .map(h => h.diffHandler(i.context, diff, feature)));
     }
     const currentVotes: Vote[] = await Promise.all(
         handlers
             .filter(h => h.handler)
             .filter(h => h.selector(fp))
-            .map(h => h.handler(i.context, diff)));
+            .map(h => h.handler(i.context, diff, feature)));
+
+    const featureVotes: Vote[] = await Promise.all(
+        feature.workflows.map(h => h(i.context, diff, feature)),
+    );
 
     return [].concat(
         diffVotes,
         currentVotes,
+        featureVotes,
     );
 }
 
@@ -211,7 +217,10 @@ export function fingerprintRunner(
         await sendFingerprintToAtomist(i, allFps);
 
         const allVotes: Vote[] = (await Promise.all(
-            allFps.map(fp => handleDiffs(fp, previous[fp.name], info, handlers, i)),
+            allFps.map(fp => {
+                const fpFeature: Feature = fingerprinters.find(feature => feature.name === (fp.type || fp.name));
+                return handleDiffs(fp, previous[fp.name], info, handlers, fpFeature, i);
+            }),
         )).reduce<Vote[]>(
             (acc, vts) => acc.concat(vts),
             [],

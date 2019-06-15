@@ -28,11 +28,14 @@ import {
     ExtractFingerprint,
     FP,
     sha256,
+    Vote,
 } from "../..";
+import { setNewTargetFingerprint } from "../handlers/commands/updateTarget";
 import {
     DiffSummaryFingerprint,
     Feature,
 } from "../machine/Feature";
+import { DefaultTargetDiffHandler, diffOnlyHandlerMiddleware } from "../machine/fingerprintSupport";
 
 /**
  * Construct an npmdep fingerprint from the given library and version
@@ -43,7 +46,7 @@ import {
 export function createNpmDepFingerprint(lib: string, version: string): FP {
     const data = [lib, version];
     return {
-        type: NpmDeps.name,
+        type: NpmDepsName,
         name: `${constructNpmDepsFingerprintName(lib)}`,
         abbreviation: "npmdeps",
         version: "0.0.1",
@@ -160,15 +163,20 @@ export const diffNpmCoordinatesFingerprints: DiffSummaryFingerprint = (diff, tar
     };
 };
 
+const NpmDepsName = "npm-project-deps";
+
 export const NpmDeps: Feature = {
     displayName: "npm dependencies",
-    name: "npm-project-deps",
+    name: NpmDepsName,
     extract: createNpmDepsFingerprints,
     apply: applyNpmDepsFingerprint,
     selector: fp => fp.type === NpmDeps.name,
     summary: diffNpmDepsFingerprints,
     toDisplayableFingerprint: fp => fp.data[1],
     toDisplayableFingerprintName: deconstructNpmDepsFingerprintName,
+    workflows: [
+        DefaultTargetDiffHandler,
+    ],
 };
 
 export const NpmCoordinates: Feature = {
@@ -178,4 +186,22 @@ export const NpmCoordinates: Feature = {
     selector: fp => fp.name.startsWith(NpmCoordinates.name),
     summary: diffNpmCoordinatesFingerprints,
     toDisplayableFingerprint: fp => fp.data,
+    workflows: [
+        diffOnlyHandlerMiddleware(
+            (ctx, diff, feature) => {
+                if (diff.channel) {
+                    return setNewTargetFingerprint(
+                        ctx,
+                        createNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
+                        diff.channel);
+                } else {
+                    return new Promise<Vote>(
+                        (resolve, reject) => {
+                            resolve({ abstain: true });
+                        },
+                    );
+                }
+            },
+        ),
+    ],
 };
