@@ -35,7 +35,10 @@ import {
     DiffSummaryFingerprint,
     Feature,
 } from "../machine/Feature";
-import { DefaultTargetDiffHandler, diffOnlyHandlerMiddleware } from "../machine/fingerprintSupport";
+import {
+    DefaultTargetDiffHandler,
+    diffOnlyHandlerMiddleware,
+} from "../machine/fingerprintSupport";
 
 /**
  * Construct an npmdep fingerprint from the given library and version
