@@ -24,6 +24,7 @@ import {
     FP,
     Vote,
 } from "@atomist/clj-editors";
+import { SdmContext } from "@atomist/sdm";
 import { GitCoordinate } from "../checktarget/messageMaker";
 import { GetFpTargets } from "../typings/types";
 import { PossibleIdeal } from "./ideals";
@@ -147,7 +148,7 @@ export interface DiffContext extends Diff {
     targets: GetFpTargets.Query;
 }
 
-export type FingerprintDiffHandler = (context: HandlerContext, diff: DiffContext, feature: Feature) => Promise<Vote>;
+export type FingerprintDiffHandler = (context: SdmContext, diff: DiffContext, feature: Feature) => Promise<Vote>;
 
 /**
  * Handles differences between fingerprints across pushes and between targets.

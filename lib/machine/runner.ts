@@ -75,16 +75,16 @@ async function handleDiffs(
             handlers
                 .filter(h => h.diffHandler)
                 .filter(h => h.selector(fp))
-                .map(h => h.diffHandler(i.context, diff, feature)));
+                .map(h => h.diffHandler(i, diff, feature)));
     }
     const currentVotes: Vote[] = await Promise.all(
         handlers
             .filter(h => h.handler)
             .filter(h => h.selector(fp))
-            .map(h => h.handler(i.context, diff, feature)));
+            .map(h => h.handler(i, diff, feature)));
 
     const featureVotes: Vote[] = await Promise.all(
-        feature.workflows.map(h => h(i.context, diff, feature)),
+        feature.workflows.map(h => h(i, diff, feature)),
     );
 
     return [].concat(

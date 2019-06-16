@@ -16,12 +16,10 @@
 
 import {
     editModes,
-    HandlerContext,
     Project,
 } from "@atomist/automation-client";
 import { AutoMergeMethod, AutoMergeMode } from "@atomist/automation-client/lib/operations/edit/editModes";
 import {
-    Diff,
     FP,
     Vote,
 } from "@atomist/clj-editors";
@@ -118,7 +116,7 @@ function checkScope(fp: FP, registrations: Feature[]): boolean {
 export const DefaultTargetDiffHandler: FingerprintDiffHandler =
     async (ctx, diff, feature) => {
         const v: Vote = await checkFingerprintTarget(
-            ctx,
+            ctx.context,
             diff,
             feature,
             async () => {
@@ -162,7 +160,7 @@ export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig)
             handler: async (ctx, diff, feature) => {
 
                 const v: Vote = await checkFingerprintTarget(
-                    ctx,
+                    ctx.context,
                     diff,
                     feature,
                     async () => {
@@ -189,7 +187,7 @@ export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHan
             diffHandler: (ctx, diff) => {
                 if (diff.channel) {
                     return setNewTargetFingerprint(
-                        ctx,
+                        ctx.context,
                         createNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
                         diff.channel);
                 } else {
@@ -200,26 +198,6 @@ export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHan
                     );
                 }
             },
-        };
-    };
-}
-
-/**
- * Utility for creating a registration function for a handler that will just invoke the supplied callback
- * if one of the suppled fingerprints changes
- *
- * @deprecated should be embedded in Features
- *
- * @param handler callback
- * @param names set of fingerprint names that should trigger the callback
- */
-export function simpleImpactHandler(
-    handler: (context: HandlerContext, diff: Diff) => Promise<any>,
-    ...names: string[]): RegisterFingerprintImpactHandler {
-    return (sdm: SoftwareDeliveryMachine) => {
-        return {
-            selector: forFingerprints(...names),
-            diffHandler: handler,
         };
     };
 }

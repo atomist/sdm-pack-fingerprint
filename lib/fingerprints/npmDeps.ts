@@ -191,7 +191,7 @@ export const NpmCoordinates: Feature = {
             (ctx, diff, feature) => {
                 if (diff.channel) {
                     return setNewTargetFingerprint(
-                        ctx,
+                        ctx.context,
                         createNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
                         diff.channel);
                 } else {

@@ -17,7 +17,6 @@
 export {
     fingerprintSupport,
     forFingerprints,
-    simpleImpactHandler,
     fingerprintImpactHandler,
     FingerprintImpactHandlerConfig,
     checkNpmCoordinatesImpactHandler,
