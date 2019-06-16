@@ -18,7 +18,10 @@ import {
     editModes,
     Project,
 } from "@atomist/automation-client";
-import { AutoMergeMethod, AutoMergeMode } from "@atomist/automation-client/lib/operations/edit/editModes";
+import {
+    AutoMergeMethod,
+    AutoMergeMode,
+} from "@atomist/automation-client/lib/operations/edit/editModes";
 import {
     FP,
     Vote,
