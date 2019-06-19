@@ -149,7 +149,7 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
         });
     const targets = await getFPTargets(i.context.graphClient);
     return {
-        providerId: results.Push[0].repo.org.scmProvider.providerId,
+        providerId: _.get(i, "push.repo.org.provider.providerId"),
         channel: _.get(results, "Push[0].repo.channels[0].name"),
         targets,
     };
