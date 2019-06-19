@@ -222,7 +222,6 @@ export function fingerprintRunner(
             logger.warn("Info not available");
         }
 
-
         return allFps;
     };
 }
