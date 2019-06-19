@@ -174,7 +174,6 @@ export const computeFingerprints: FingerprintComputer = async (fingerprinters, p
                 // TODO does concat return the larger array?
                 return acc.concat(fps);
             } else {
-                logger.warn(`extractor returned something weird ${JSON.stringify(fps)}`);
                 return acc;
             }
         },
