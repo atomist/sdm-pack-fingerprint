@@ -192,8 +192,6 @@ export function fingerprintRunner(
     computer: (fingerprinters: Feature[], p: Project) => Promise<FP[]>): FingerprintRunner {
     return async (i: PushImpactListenerInvocation) => {
         const p: Project = i.project;
-        const info: MissingInfo = await missingInfo(i);
-        logger.info(`Missing Info:  ${JSON.stringify(info)}`);
 
         let previous: Record<string, FP> = {};
 
@@ -210,14 +208,20 @@ export function fingerprintRunner(
 
         await sendFingerprintToAtomist(i, allFps);
 
-        const allVotes: Vote[] = (await Promise.all(
-            allFps.map(fp => handleDiffs(fp, previous[fp.name], info, handlers, i)),
-        )).reduce<Vote[]>(
-            (acc, vts) => acc.concat(vts),
-            [],
-        );
-        logger.debug(`Votes:  ${renderData(allVotes)}`);
-        await tallyVotes(allVotes, handlers, i, info);
+        try {
+            const info = await missingInfo(i);
+            const allVotes: Vote[] = (await Promise.all(
+                allFps.map(fp => handleDiffs(fp, previous[fp.name], info, handlers, i)),
+            )).reduce<Vote[]>(
+                (acc, vts) => acc.concat(vts),
+                [],
+            );
+            logger.debug(`Votes:  ${renderData(allVotes)}`);
+            await tallyVotes(allVotes, handlers, i, info);
+        } catch (e) {
+            logger.warn("Info not available");
+        }
+
 
         return allFps;
     };
