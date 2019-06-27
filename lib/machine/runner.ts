@@ -32,7 +32,8 @@ import * as _ from "lodash";
 import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import { getFPTargets } from "../adhoc/preferences";
 import { votes } from "../checktarget/callbacks";
-import { GitCoordinate, messageMaker } from "../checktarget/messageMaker";
+import { messageMaker } from "../checktarget/messageMaker";
+import { GitCoordinate } from "../support/messages";
 import {
     GetAllFpsOnSha,
     GetFpTargets,

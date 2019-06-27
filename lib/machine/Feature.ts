@@ -25,7 +25,7 @@ import {
     Vote,
 } from "@atomist/clj-editors";
 import { SdmContext } from "@atomist/sdm";
-import { GitCoordinate } from "../checktarget/messageMaker";
+import { GitCoordinate } from "../support/messages";
 import { GetFpTargets } from "../typings/types";
 import { PossibleIdeal } from "./ideals";
 

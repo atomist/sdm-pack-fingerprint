@@ -42,6 +42,7 @@ import {
     toName,
 } from "../../adhoc/preferences";
 import { applyToFeature, displayName } from "../../machine/Features";
+import { applyFingerprintTitle } from "../../support/messages";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
 import {
     ApplyTargetFingerprintName,
@@ -78,7 +79,7 @@ export function askAboutBroadcast(
                     },
                     BroadcastFingerprintMandateName,
                     {
-                        body: "broadcast PR everywhere",
+                        body: applyFingerprintTitle(fp),
                         title: "Broadcasting PRs",
                         branch: "master",
                         fingerprint: toName(fp.type, fp.name),

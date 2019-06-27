@@ -44,12 +44,8 @@ import {
 import {
     FingerprintImpactHandlerConfig,
 } from "../machine/fingerprintSupport";
+import { getDiffSummary, GitCoordinate, updateableMessage } from "../support/messages";
 import { GetFpTargets } from "../typings/types";
-import {
-    getDiffSummary,
-    GitCoordinate,
-    updateableMessage,
-} from "./messageMaker";
 
 /**
  * create callback to be used when fingerprint and target are out of sync
