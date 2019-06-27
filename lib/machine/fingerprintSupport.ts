@@ -39,13 +39,11 @@ import {
 import * as _ from "lodash";
 import {
     checkFingerprintTarget,
-    votes,
 } from "../checktarget/callbacks";
 import {
     IgnoreCommandRegistration,
     MessageMaker,
 } from "../checktarget/messageMaker";
-import { createNpmDepFingerprint } from "../fingerprints/npmDeps";
 import {
     applyTarget,
     ApplyTargetParameters,
@@ -53,7 +51,6 @@ import {
     broadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
-import { FingerprintEverything } from "../handlers/commands/fingerprint";
 import {
     ListFingerprint,
     ListFingerprints,
@@ -65,7 +62,6 @@ import {
 import {
     DeleteTargetFingerprint,
     SelectTargetFingerprintFromCurrentProject,
-    setNewTargetFingerprint,
     SetTargetFingerprint,
     SetTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
@@ -75,6 +71,7 @@ import {
     FingerprintDiffHandler,
     FingerprintHandler,
 } from "./Feature";
+import { addFeature } from "./Features";
 import {
     computeFingerprints,
     fingerprintRunner,
@@ -82,9 +79,8 @@ import {
 
 export function forFingerprints(...s: string[]): (fp: FP) => boolean {
     return fp => {
-        const m = s.map((n: string) => (fp.type === n) || (fp.name === n))
+        return s.map(n => (fp.type === n) || (fp.name === n))
             .reduce((acc, v) => acc || v);
-        return m;
     };
 }
 
@@ -111,11 +107,6 @@ export interface FingerprintImpactHandlerConfig {
  */
 export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, registrations: Feature[]) => FingerprintHandler;
 
-function checkScope(fp: FP, registrations: Feature[]): boolean {
-    const inScope: boolean = _.some(registrations, reg => reg.selector(fp));
-    return inScope;
-}
-
 export const DefaultTargetDiffHandler: FingerprintDiffHandler =
     async (ctx, diff, feature) => {
         const v: Vote = await checkFingerprintTarget(
@@ -129,7 +120,12 @@ export const DefaultTargetDiffHandler: FingerprintDiffHandler =
         return v;
     };
 
-export function diffOnlyHandlerMiddleware(handler: FingerprintDiffHandler): FingerprintDiffHandler {
+/**
+ * wrap a FingerprintDiffHandler to only check if the shas have changed
+ *
+ * @param handler the FingerprintDiffHandler to wrap
+ */
+export function diffOnlyHandler(handler: FingerprintDiffHandler): FingerprintDiffHandler {
     return async (context, diff, feature) => {
         if (diff.from && diff.to.sha !== diff.from.sha) {
             return handler(context, diff, feature);
@@ -138,70 +134,6 @@ export function diffOnlyHandlerMiddleware(handler: FingerprintDiffHandler): Fing
                 abstain: true,
             };
         }
-    };
-}
-
-/**
- * This configures the registration function for the "target fingerprint" FingerprintHandler.  It's an important one
- * because it's the one that generates messages when fingerprints don't line up with their "target" values.  It does
- * nothing when there's no target set for a workspace.
- *
- * @deprecated should be embedded in Features
- *
- * @param config
- */
-export function fingerprintImpactHandler(config: FingerprintImpactHandlerConfig): RegisterFingerprintImpactHandler {
-    return (sdm: SoftwareDeliveryMachine, registrations: Feature[]) => {
-        // set goal Fingerprints
-        //   - first can be added as an option when difference is noticed (uses our api to update the fingerprint)
-        //   - second is a default intent
-        //   - TODO:  third is just for resetting
-        //   - both use askAboutBroadcast to generate an actionable message pointing at BroadcastFingerprintNudge
-
-        return {
-            selector: fp => checkScope(fp, registrations),
-            handler: async (ctx, diff, feature) => {
-
-                const v: Vote = await checkFingerprintTarget(
-                    ctx.context,
-                    diff,
-                    feature,
-                    async () => {
-                        return diff.targets;
-                    },
-                );
-                return v;
-            },
-            ballot: votes(config),
-        };
-    };
-}
-
-/**
- * This creates the registration function for a handler that notices that a package.json version
- * has been updated.
- *
- * @deprecated this should be embedded in the NpmDeps Feature
- */
-export function checkNpmCoordinatesImpactHandler(): RegisterFingerprintImpactHandler {
-    return (sdm: SoftwareDeliveryMachine) => {
-        return {
-            selector: forFingerprints("npm-project-coordinates"),
-            diffHandler: (ctx, diff) => {
-                if (diff.channel) {
-                    return setNewTargetFingerprint(
-                        ctx.context,
-                        createNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
-                        diff.channel);
-                } else {
-                    return new Promise<Vote>(
-                        (resolve, reject) => {
-                            resolve({ abstain: true });
-                        },
-                    );
-                }
-            },
-        };
     };
 }
 
@@ -263,9 +195,14 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
         ...metadata(),
         configure: (sdm: SoftwareDeliveryMachine) => {
 
-            const fingerprints = Array.isArray(options.features) ? options.features : [options.features];
-            const handlerRegistrations = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
-            const handlers: FingerprintHandler[] = handlerRegistrations.map(h => h(sdm, fingerprints));
+            const fingerprints: Feature[] = Array.isArray(options.features) ? options.features : [options.features];
+            // const handlerRegistrations: RegisterFingerprintImpactHandler[]
+            //     = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
+            // const handlers: FingerprintHandler[] = handlerRegistrations.map(h => h(sdm, fingerprints));
+            const handlerRegistrations: RegisterFingerprintImpactHandler[] = [];
+            const handlers: FingerprintHandler[] = [];
+
+            fingerprints.map(addFeature);
 
             // tslint:disable:deprecation
             if (!!options.fingerprintGoal) {
@@ -289,14 +226,14 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
     };
 }
 
-function configure(sdm: SoftwareDeliveryMachine,
-                   handlers: RegisterFingerprintImpactHandler[],
-                   fpRegistrations: Feature[],
-                   editModeMaker: EditModeMaker): void {
+function configure(
+    sdm: SoftwareDeliveryMachine,
+    handlers: RegisterFingerprintImpactHandler[],
+    fpRegistrations: Feature[],
+    editModeMaker: EditModeMaker): void {
 
     sdm.addCommand(ListFingerprints);
     sdm.addCommand(ListFingerprint);
-    sdm.addCommand(FingerprintEverything);
 
     // set a target given using the entire JSON fingerprint payload in a parameter
     sdm.addCommand(SetTargetFingerprint);

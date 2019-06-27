@@ -37,15 +37,13 @@ import {
 } from "@atomist/sdm-core";
 import {
     fingerprintSupport,
+    NpmCoordinates,
+    NpmDeps,
 } from "..";
 import { Backpack } from "../lib/fingerprints/backpack";
 import {
     JsonFile,
 } from "../lib/fingerprints/jsonFiles";
-import {
-    NpmCoordinates,
-    NpmDeps,
-} from "../lib/fingerprints/npmDeps";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -93,9 +91,9 @@ const CljServiceGenerator: GeneratorRegistration = {
 //     },
 // };
 
-export const FingerprintGoal = new PushImpact();
+export const featureGoal = new PushImpact();
 const FingerprintingGoals: Goals = goals("check fingerprints")
-    .plan(FingerprintGoal, // complianceGoal
+    .plan(featureGoal, // complianceGoal
     );
 
 export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
@@ -121,7 +119,7 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
     sdm.addExtensionPacks(
         goalStateSupport(),
         fingerprintSupport({
-            pushImpactGoal: FingerprintGoal,
+            pushImpactGoal: featureGoal,
             features:
                 [
                     NpmDeps,

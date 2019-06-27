@@ -34,8 +34,8 @@ import {
     CommandHandlerRegistration,
     slackQuestionMessage,
 } from "@atomist/sdm";
-import { codeLine } from "@atomist/slack-messages";
 import * as _ from "lodash";
+import { Feature } from "../../..";
 import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
 import {
     deleteFPTarget,
@@ -43,6 +43,7 @@ import {
     setFPTarget,
     toName,
 } from "../../adhoc/preferences";
+import { displayName, displayValue } from "../../machine/Features";
 import {
     GetAllFpsOnSha,
     GetFpByBranch,
@@ -243,12 +244,16 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
  * @param fp
  * @param channel
  */
-export async function setNewTargetFingerprint(ctx: HandlerContext,
-                                              fp: FP,
-                                              channel: string): Promise<Vote> {
+export async function setNewTargetFingerprint(
+    ctx: HandlerContext,
+    feature: Feature,
+    fp: FP,
+    channel: string): Promise<Vote> {
+
+    // TODO this FP doesn't necessarily hold an FP with a version
     const message = slackQuestionMessage(
         "Fingerprint Target",
-        `Shall we update the target version of ${codeLine(fp.name)} to ${codeLine(_.get(fp.data, "[1]"))} for all projects?`,
+        `Shall we update the target of ${displayName(feature, fp)} to \`${displayValue(feature, fp)}\` for all projects?`,
         {
             actions: [
                 actionableButton<any>(
@@ -267,6 +272,7 @@ export async function setNewTargetFingerprint(ctx: HandlerContext,
 
     await ctx.messageClient.addressChannels(message, channel);
 
+    // I don't want to vote on whether there was a compliance issue here
     return { abstain: true };
 }
 

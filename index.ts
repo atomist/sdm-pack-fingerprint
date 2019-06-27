@@ -17,9 +17,7 @@
 export {
     fingerprintSupport,
     forFingerprints,
-    fingerprintImpactHandler,
-    FingerprintImpactHandlerConfig,
-    checkNpmCoordinatesImpactHandler,
+    diffOnlyHandler,
 } from "./lib/machine/fingerprintSupport";
 export {
     BaseFeature,
@@ -56,6 +54,7 @@ export {
     applyNpmDepsFingerprint,
     createNpmDepsFingerprints,
     NpmDeps,
+    NpmCoordinates,
 } from "./lib/fingerprints/npmDeps";
 export {
     backpackFingerprint,

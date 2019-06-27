@@ -23,6 +23,7 @@ import {
     ParameterType,
 } from "@atomist/automation-client";
 import {
+    consistentHash,
     Diff,
     FP,
     Vote,
@@ -49,6 +50,7 @@ import {
 } from "../handlers/commands/applyFingerprint";
 import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
 import { DiffSummary } from "../machine/Feature";
+import { applyToFeature, displayName, displayValue } from "../machine/Features";
 
 export interface MessageMakerParams {
     ctx: HandlerContext;
@@ -68,11 +70,11 @@ export interface GitCoordinate {
 
 export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult>;
 
-type MessageIdMaker = (fingerprint: FP, coordinate: GitCoordinate, channel: string) => string;
+type MessageIdMaker = (shas: string[], coordinate: GitCoordinate, channel: string) => string;
 
-export const updateableMessage: MessageIdMaker = (fingerprint, coordinate: GitCoordinate, channel: string) => {
-    // return consistentHash([fingerprint.sha, channel, coordinate.owner, coordinate.repo]);
-    return _.times(20, () => _.random(35).toString(36)).join("");
+export const updateableMessage: MessageIdMaker = (shas, coordinate: GitCoordinate, channel: string) => {
+    return consistentHash([...shas, channel, coordinate.owner, coordinate.repo]);
+    // return _.times(20, () => _.random(35).toString(36)).join("");
 };
 
 /**
@@ -104,11 +106,19 @@ function orDefault<T>(cb: () => T, x: T): T {
     }
 }
 
+function applyFingerprintTitle(vote: Vote): string {
+    try {
+        return `Apply fingerprint ${applyToFeature(vote.fpTarget, displayName)} (${applyToFeature(vote.fpTarget, displayValue)})`;
+    } catch (ex) {
+        return `Apply fingerprint ${vote.fpTarget.name}`;
+    }
+}
+
 function prBody(vote: Vote): string {
     const title: string =
         orDefault(
             () => vote.summary.title,
-            `apply fingerprint ${vote.fpTarget.name}`);
+            applyFingerprintTitle(vote));
     const description: string =
         orDefault(
             () => vote.summary.description,
@@ -138,7 +148,7 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
                 {
                     msgId: params.msgId,
                     targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
-                    title: `Apply ${vote.fpTarget.name}`,
+                    title: applyFingerprintTitle(vote),
                     branch: vote.diff.branch,
                     targets: {
                         owner: vote.diff.owner,

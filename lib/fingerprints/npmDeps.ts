@@ -36,8 +36,7 @@ import {
     Feature,
 } from "../machine/Feature";
 import {
-    DefaultTargetDiffHandler,
-    diffOnlyHandlerMiddleware,
+    DefaultTargetDiffHandler, diffOnlyHandler,
 } from "../machine/fingerprintSupport";
 
 /**
@@ -175,7 +174,7 @@ export const NpmDeps: Feature = {
     apply: applyNpmDepsFingerprint,
     selector: fp => fp.type === NpmDeps.name,
     summary: diffNpmDepsFingerprints,
-    toDisplayableFingerprint: fp => fp.data[1],
+    toDisplayableFingerprint: fp => `version ${fp.data[1]}`,
     toDisplayableFingerprintName: deconstructNpmDepsFingerprintName,
     workflows: [
         DefaultTargetDiffHandler,
@@ -190,11 +189,12 @@ export const NpmCoordinates: Feature = {
     summary: diffNpmCoordinatesFingerprints,
     toDisplayableFingerprint: fp => fp.data,
     workflows: [
-        diffOnlyHandlerMiddleware(
+        diffOnlyHandler(
             (ctx, diff, feature) => {
                 if (diff.channel) {
                     return setNewTargetFingerprint(
                         ctx.context,
+                        NpmDeps,
                         createNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
                         diff.channel);
                 } else {

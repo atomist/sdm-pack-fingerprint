@@ -31,6 +31,8 @@ import {
 import * as _ from "lodash";
 import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import { getFPTargets } from "../adhoc/preferences";
+import { votes } from "../checktarget/callbacks";
+import { GitCoordinate, messageMaker } from "../checktarget/messageMaker";
 import {
     GetAllFpsOnSha,
     GetFpTargets,
@@ -41,13 +43,27 @@ import {
     Feature,
     FingerprintHandler,
 } from "./Feature";
+import { DefaultEditModeMaker } from "./fingerprintSupport";
 
+/**
+ * PushListenerImpactInvocations don't have this info and must be faulted in currently.  This is probably not ideal.
+ */
 interface MissingInfo {
     providerId: string;
     channel: string;
     targets: GetFpTargets.Query;
 }
 
+/**
+ * Give each Feature the opportunity to evaluate the current FP, the previous FP, and any target FP
+ *
+ * @param fp current Fingerprint
+ * @param previous Fingeprint from Push.before (could be nil)
+ * @param info missing info
+ * @param handlers deprecated handlers
+ * @param feature parent Feature for this Fingerprint
+ * @param i PushImpactListenerInvocation
+ */
 async function handleDiffs(
     fp: FP,
     previous: FP,
@@ -83,9 +99,10 @@ async function handleDiffs(
             .filter(h => h.selector(fp))
             .map(h => h.handler(i, diff, feature)));
 
-    const featureVotes: Vote[] = await Promise.all(
-        feature.workflows.map(h => h(i, diff, feature)),
-    );
+    let featureVotes: Vote[] = [];
+    if (feature.workflows) {
+        featureVotes = await Promise.all(feature.workflows.map(h => h(i, diff, feature)));
+    }
 
     return [].concat(
         diffVotes,
@@ -122,26 +139,38 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
         {});
 }
 
+/**
+ * TODO Default PR generation style and message making for target diff handlers probably need to be configurable
+ */
+const targetDiffBallot = votes({
+    transformPresentation: DefaultEditModeMaker,
+    messageMaker,
+});
+
+/**
+ * Delay handling Votes from Feature diff handlers until all of them are available so that
+ * we can build Messages that can report on all target diffs
+ *
+ * @param vts votes from all of the Feature diff handlers
+ * @param handlers deprecated external set of handlers
+ * @param i PushImpactListenerInvocation
+ * @param info missing info
+ */
 async function tallyVotes(vts: Vote[], handlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo): Promise<void> {
-    await Promise.all(
-        handlers.map(async h => {
-            if (h.ballot) {
-                await h.ballot(
-                    i.context,
-                    vts,
-                    {
-                        owner: i.push.repo.owner,
-                        repo: i.push.repo.name,
-                        sha: i.push.after.sha,
-                        providerId: info.providerId,
-                        branch: i.push.branch,
-                    },
-                    info.channel,
-                );
-            }
-        },
-        ),
-    );
+
+    const coordinate: GitCoordinate = {
+        owner: i.push.repo.owner,
+        repo: i.push.repo.name,
+        sha: i.push.after.sha,
+        providerId: info.providerId,
+        branch: i.push.branch,
+    };
+
+    return targetDiffBallot(
+        i.context,
+        vts,
+        coordinate,
+        info.channel);
 }
 
 async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo> {
@@ -214,7 +243,7 @@ export function fingerprintRunner(
 
         logger.debug(renderData(allFps));
 
-        await sendFingerprintToAtomist(i, allFps);
+        await sendFingerprintToAtomist(i, allFps, previous);
 
         const allVotes: Vote[] = (await Promise.all(
             allFps.map(fp => {
@@ -225,7 +254,8 @@ export function fingerprintRunner(
             (acc, vts) => acc.concat(vts),
             [],
         );
-        logger.debug(`Votes:  ${renderData(allVotes)}`);
+
+        logger.info(`Votes:  ${renderData(allVotes)}`);
         await tallyVotes(allVotes, handlers, i, info);
 
         return allFps;
