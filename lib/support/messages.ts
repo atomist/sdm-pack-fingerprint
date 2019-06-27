@@ -15,9 +15,21 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import { consistentHash, Diff, FP, Vote } from "@atomist/clj-editors";
-import { DiffSummary, Feature } from "../machine/Feature";
-import { applyToFeature, displayName, displayValue } from "../machine/Features";
+import {
+    consistentHash,
+    Diff,
+    FP,
+    Vote,
+} from "@atomist/clj-editors";
+import {
+    DiffSummary,
+    Feature,
+} from "../machine/Feature";
+import {
+    applyToFeature,
+    displayName,
+    displayValue,
+} from "../machine/Features";
 import { orDefault } from "./util";
 
 export interface GitCoordinate {
