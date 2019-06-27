@@ -18,6 +18,8 @@ export {
     fingerprintSupport,
     forFingerprints,
     diffOnlyHandler,
+    DefaultTargetDiffHandler,
+    DefaultEditModeMaker,
 } from "./lib/machine/fingerprintSupport";
 export {
     BaseFeature,
