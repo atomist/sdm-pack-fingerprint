@@ -36,7 +36,8 @@ import {
     Feature,
 } from "../machine/Feature";
 import {
-    DefaultTargetDiffHandler, diffOnlyHandler,
+    DefaultTargetDiffHandler,
+    diffOnlyHandler,
 } from "../machine/fingerprintSupport";
 
 /**

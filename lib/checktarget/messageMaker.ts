@@ -50,7 +50,11 @@ import {
 } from "../handlers/commands/applyFingerprint";
 import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
 import { DiffSummary } from "../machine/Feature";
-import { applyToFeature, displayName, displayValue } from "../machine/Features";
+import {
+    applyToFeature,
+    displayName,
+    displayValue,
+} from "../machine/Features";
 
 export interface MessageMakerParams {
     ctx: HandlerContext;

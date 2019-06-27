@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { Feature, FP } from "../..";
+import {
+    Feature,
+    FP,
+} from "../..";
 
 export function displayName(feature: Feature, fp: FP): string {
     if (!!feature.toDisplayableFingerprintName) {
