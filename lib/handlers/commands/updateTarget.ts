@@ -43,7 +43,10 @@ import {
     setFPTarget,
     toName,
 } from "../../adhoc/preferences";
-import { displayName, displayValue } from "../../machine/Features";
+import {
+    displayName,
+    displayValue,
+} from "../../machine/Features";
 import {
     GetAllFpsOnSha,
     GetFpByBranch,
