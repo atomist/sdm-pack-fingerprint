@@ -44,7 +44,11 @@ import {
 import {
     FingerprintImpactHandlerConfig,
 } from "../machine/fingerprintSupport";
-import { getDiffSummary, GitCoordinate, updateableMessage } from "../support/messages";
+import {
+    getDiffSummary,
+    GitCoordinate,
+    updateableMessage,
+} from "../support/messages";
 import { GetFpTargets } from "../typings/types";
 
 /**

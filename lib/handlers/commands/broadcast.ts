@@ -41,7 +41,10 @@ import {
     fromName,
     toName,
 } from "../../adhoc/preferences";
-import { applyToFeature, displayName } from "../../machine/Features";
+import {
+    applyToFeature,
+    displayName,
+} from "../../machine/Features";
 import { applyFingerprintTitle } from "../../support/messages";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
 import {

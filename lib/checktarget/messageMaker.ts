@@ -44,7 +44,11 @@ import {
     ApplyTargetFingerprintName,
 } from "../handlers/commands/applyFingerprint";
 import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
-import { applyFingerprintTitle, GitCoordinate, prBody } from "../support/messages";
+import {
+    applyFingerprintTitle,
+    GitCoordinate,
+    prBody,
+} from "../support/messages";
 import { orDefault } from "../support/util";
 
 export interface MessageMakerParams {
