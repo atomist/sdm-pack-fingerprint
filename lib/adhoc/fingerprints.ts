@@ -79,12 +79,10 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
                 },
             },
         );
-        logger.info(`${JSON.stringify(ids)}`);
 
         await partitionByFeature(fps, async partitioned => {
-            logger.info(`total set ${partitioned}`);
             await Promise.all(partitioned.map(async ({ type, additions }) => {
-                logger.info(`upload ${additions.length} fingerprints of type ${type}`);
+                logger.info(`Upload ${additions.length} fingerprints of type ${type}`);
                 await i.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
                     {
                         name: "AddFingerprints",
@@ -100,7 +98,7 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
             }));
         });
     } catch (ex) {
-        logger.error(`Error sending Fingerprints: ${ex}`);
+        logger.error(`Error sending fingerprints: ${ex.message}`);
     }
 
     return true;

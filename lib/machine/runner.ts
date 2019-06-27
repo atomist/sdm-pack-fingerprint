@@ -185,7 +185,7 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
         });
     const targets = await getFPTargets(i.context.graphClient);
     return {
-        providerId: results.Push[0].repo.org.scmProvider.providerId,
+        providerId: _.get(i, "push.repo.org.provider.providerId"),
         channel: _.get(results, "Push[0].repo.channels[0].name"),
         targets,
     };
@@ -210,7 +210,6 @@ export const computeFingerprints: FingerprintComputer = async (fingerprinters, p
                 // TODO does concat return the larger array?
                 return acc.concat(fps);
             } else {
-                logger.warn(`extractor returned something weird ${JSON.stringify(fps)}`);
                 return acc;
             }
         },
@@ -228,8 +227,6 @@ export function fingerprintRunner(
     computer: (fingerprinters: Feature[], p: Project) => Promise<FP[]>): FingerprintRunner {
     return async (i: PushImpactListenerInvocation) => {
         const p: Project = i.project;
-        const info: MissingInfo = await missingInfo(i);
-        logger.info(`Missing Info:  ${JSON.stringify(info)}`);
 
         let previous: Record<string, FP> = {};
 
@@ -246,18 +243,22 @@ export function fingerprintRunner(
 
         await sendFingerprintToAtomist(i, allFps, previous);
 
-        const allVotes: Vote[] = (await Promise.all(
-            allFps.map(fp => {
-                const fpFeature: Feature = fingerprinters.find(feature => feature.name === (fp.type || fp.name));
-                return handleDiffs(fp, previous[fp.name], info, handlers, fpFeature, i);
-            }),
-        )).reduce<Vote[]>(
-            (acc, vts) => acc.concat(vts),
-            [],
-        );
-
-        logger.info(`Votes:  ${renderData(allVotes)}`);
-        await tallyVotes(allVotes, handlers, i, info);
+        try {
+            const info = await missingInfo(i);
+            const allVotes: Vote[] = (await Promise.all(
+                allFps.map(fp => {
+                    const fpFeature: Feature = fingerprinters.find(feature => feature.name === (fp.type || fp.name));
+                    return handleDiffs(fp, previous[fp.name], info, handlers, fpFeature, i);
+                }),
+            )).reduce<Vote[]>(
+                (acc, vts) => acc.concat(vts),
+                [],
+            );
+            logger.debug(`Votes:  ${renderData(allVotes)}`);
+            await tallyVotes(allVotes, handlers, i, info);
+        } catch (e) {
+            logger.warn("Info not available");
+        }
 
         return allFps;
     };
