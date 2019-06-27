@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@atomist/automation-client": "^1.5.2",
-    "@atomist/clj-editors": "0.7.1",
+    "@atomist/clj-editors": "0.7.4",
     "@atomist/sdm": "^1.5.1",
     "@atomist/sdm-core": "^1.5.2",
     "@types/lodash": "^4.14.134",

@@ -19,12 +19,9 @@ import {
     buttonForCommand,
     HandlerContext,
     HandlerResult,
-    logger,
     ParameterType,
 } from "@atomist/automation-client";
 import {
-    Diff,
-    FP,
     Vote,
     VoteResults,
 } from "@atomist/clj-editors";
@@ -41,14 +38,14 @@ import {
     SlackMessage,
 } from "@atomist/slack-messages";
 import * as _ from "lodash";
-import { Feature } from "../..";
 import { toName } from "../adhoc/preferences";
 import {
     ApplyAllFingerprintsName,
     ApplyTargetFingerprintName,
 } from "../handlers/commands/applyFingerprint";
 import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
-import { DiffSummary } from "../machine/Feature";
+import { applyFingerprintTitle, GitCoordinate, prBody } from "../support/messages";
+import { orDefault } from "../support/util";
 
 export interface MessageMakerParams {
     ctx: HandlerContext;
@@ -58,61 +55,7 @@ export interface MessageMakerParams {
     coord: GitCoordinate;
 }
 
-export interface GitCoordinate {
-    owner: string;
-    repo: string;
-    sha: string;
-    providerId: string;
-    branch?: string;
-}
-
 export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult>;
-
-type MessageIdMaker = (fingerprint: FP, coordinate: GitCoordinate, channel: string) => string;
-
-export const updateableMessage: MessageIdMaker = (fingerprint, coordinate: GitCoordinate, channel: string) => {
-    // return consistentHash([fingerprint.sha, channel, coordinate.owner, coordinate.repo]);
-    return _.times(20, () => _.random(35).toString(36)).join("");
-};
-
-/**
- * get a diff summary if any registrations support one for this Fingerprint type
- */
-export function getDiffSummary(diff: Diff, target: FP, registrations: Feature[]): undefined | DiffSummary {
-
-    try {
-        for (const registration of registrations) {
-            if (registration.summary && registration.selector(diff.to)) {
-                return registration.summary(diff, target);
-            }
-        }
-    } catch (e) {
-        logger.warn(`failed to create summary: ${e}`);
-    }
-
-    return undefined;
-}
-
-function orDefault<T>(cb: () => T, x: T): T {
-    try {
-        return cb();
-    } catch (y) {
-        return x;
-    }
-}
-
-function prBody(vote: Vote): string {
-    const title: string =
-        orDefault(
-            () => vote.summary.title,
-            `apply fingerprint ${vote.fpTarget.name}`);
-    const description: string =
-        orDefault(
-            () => vote.summary.description,
-            `no summary`);
-
-    return `#### ${title}\n${description}`;
-}
 
 /**
  * Message for one case where a Fingerprint target is different from what's in the latest Push.
@@ -135,8 +78,9 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
                 {
                     msgId: params.msgId,
                     targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
-                    title: `Apply ${vote.fpTarget.name}`,
+                    title: applyFingerprintTitle(vote.fpTarget),
                     branch: vote.diff.branch,
+                    body: prBody(vote),
                     targets: {
                         owner: vote.diff.owner,
                         repo: vote.diff.repo,

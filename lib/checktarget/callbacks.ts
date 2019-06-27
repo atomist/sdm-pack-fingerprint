@@ -44,12 +44,8 @@ import {
 import {
     FingerprintImpactHandlerConfig,
 } from "../machine/fingerprintSupport";
+import { getDiffSummary, GitCoordinate, updateableMessage } from "../support/messages";
 import { GetFpTargets } from "../typings/types";
-import {
-    getDiffSummary,
-    GitCoordinate,
-    updateableMessage,
-} from "./messageMaker";
 
 /**
  * create callback to be used when fingerprint and target are out of sync
@@ -57,8 +53,7 @@ import {
 function fingerprintOutOfSyncCallback(
     ctx: HandlerContext,
     diff: Diff,
-    config: FingerprintImpactHandlerConfig,
-    registrations: Feature[],
+    feature: Feature,
 ): (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
 
     return async (text, fpTarget, fingerprint) => {
@@ -66,12 +61,11 @@ function fingerprintOutOfSyncCallback(
             name: fingerprint.name,
             decision: "Against",
             abstain: false,
-            ballot: diff,
             diff,
             fingerprint,
             fpTarget,
             text,
-            summary: getDiffSummary(diff, fpTarget, registrations),
+            summary: getDiffSummary(diff, fpTarget, feature),
         };
     };
 }
@@ -83,14 +77,12 @@ function fingerprintOutOfSyncCallback(
  * @param diff
  * @param goal
  */
-function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff, goal?: Goal):
-    (fingerprint: FP) => Promise<Vote> {
+function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff): (fingerprint: FP) => Promise<Vote> {
     return async fingerprint => {
         return {
             abstain: false,
             name: fingerprint.name,
             decision: "For",
-            ballot: diff,
         };
     };
 }
@@ -122,7 +114,11 @@ async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, pa
 
 /**
  * for target fingerprints, wait until we've seen all of Votes so we can expose both apply and
- * apply all choices
+ * apply all choices.
+ *
+ * only take this action if one of the diff handlers voted Against
+ * skip this if we don't know what channel to use
+ * make the message id unique by the current fingerprint sha, the target sha, the git coordinate and the channel
  *
  * @param config
  */
@@ -141,7 +137,12 @@ export function votes(config: FingerprintImpactHandlerConfig):
             if (channel) {
                 await config.messageMaker({
                     ctx,
-                    msgId: updateableMessage(result.failedVotes[0].fingerprint, coord, channel),
+                    msgId: updateableMessage(
+                        [].concat(
+                            result.failedVotes.map(vote => vote.fingerprint.sha),
+                            result.failedVotes.map(vote => vote.fpTarget.sha)),
+                        coord,
+                        channel),
                     channel,
                     voteResults: result,
                     coord,
@@ -152,13 +153,13 @@ export function votes(config: FingerprintImpactHandlerConfig):
 
             goalState = {
                 state: SdmGoalState.failure,
-                description: `compliance check for ${commaSeparatedList(result.failedFps)} has failed`,
+                description: `compliance check for ${commaSeparatedList(result.failedVotes.map(vote => vote.fingerprint.name))} has failed`,
             };
         } else {
 
             goalState = {
                 state: SdmGoalState.success,
-                description: `compliance check for ${result.successFps.length} fingerprints has passed`,
+                description: `compliance check for ${votes.length} fingerprints has passed`,
             };
         }
 
@@ -188,14 +189,13 @@ export function votes(config: FingerprintImpactHandlerConfig):
 export async function checkFingerprintTarget(
     ctx: HandlerContext,
     diff: Diff,
-    config: FingerprintImpactHandlerConfig,
-    registrations: Feature[],
+    feature: Feature,
     targetsQuery: () => Promise<GetFpTargets.Query>): Promise<any> {
 
     return checkFingerprintTargets(
         targetsQuery,
-        fingerprintOutOfSyncCallback(ctx, diff, config, registrations),
-        fingerprintInSyncCallback(ctx, diff, config.complianceGoal),
+        fingerprintOutOfSyncCallback(ctx, diff, feature),
+        fingerprintInSyncCallback(ctx, diff),
         diff,
     );
 }

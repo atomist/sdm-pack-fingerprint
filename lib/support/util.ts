@@ -41,3 +41,11 @@ export async function renderDiffSnippet(ctx: HandlerContext, diff: Diff): Promis
     };
     return ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }
+
+export function orDefault<T>(cb: () => T, x: T): T {
+    try {
+        return cb();
+    } catch (y) {
+        return x;
+    }
+}

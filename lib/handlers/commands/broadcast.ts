@@ -41,15 +41,19 @@ import {
     fromName,
     toName,
 } from "../../adhoc/preferences";
+import { applyToFeature, displayName } from "../../machine/Features";
+import { applyFingerprintTitle } from "../../support/messages";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
 import {
     ApplyTargetFingerprintName,
     BroadcastFingerprintMandateName,
 } from "./applyFingerprint";
 
-export function askAboutBroadcast(cli: CommandListenerInvocation,
-                                  fp: FP,
-                                  msgId: string): Promise<void> {
+export function askAboutBroadcast(
+    cli: CommandListenerInvocation,
+    fp: FP,
+    msgId: string): Promise<void> {
+
     const author = cli.context.source.slack.user.id;
 
     const message = slackQuestionMessage(
@@ -75,7 +79,7 @@ export function askAboutBroadcast(cli: CommandListenerInvocation,
                     },
                     BroadcastFingerprintMandateName,
                     {
-                        body: "broadcast PR everywhere",
+                        body: applyFingerprintTitle(fp),
                         title: "Broadcasting PRs",
                         branch: "master",
                         fingerprint: toName(fp.type, fp.name),
@@ -100,6 +104,17 @@ export interface BroadcastFingerprintNudgeParameters extends ParameterType {
     reason: string;
     author: string;
     msgId?: string;
+}
+
+function targetUpdateMessage(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>, type: string, name: string): string {
+
+    const displayableName: string = applyToFeature({ type, name, data: {}, sha: "" }, displayName);
+
+    return `${user(cli.parameters.author)} has updated the target version of ${codeLine(displayableName)}.
+
+    The reason provided is:
+
+    ${italic(cli.parameters.reason)}`;
 }
 
 /**
@@ -130,14 +145,8 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudge
             sha: cli.parameters.sha,
         },
         (owner: string, repo: string, channel: string) => {
-            const { name } = fromName(cli.parameters.fingerprint);
-            const message = slackWarningMessage(
-                "Fingerprint Target",
-                `${user(cli.parameters.author)} has updated the target version of ${codeLine(name)}).
-
-The reason provided is:
-
-${italic(cli.parameters.reason)}`, cli.context);
+            const { type, name } = fromName(cli.parameters.fingerprint);
+            const message = slackWarningMessage("Fingerprint Target", targetUpdateMessage(cli, type, name), cli.context);
 
             message.attachments.push({
                 text: `Shall we update repository to use the new ${codeLine(name)} target?`,
@@ -178,6 +187,7 @@ export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFing
         reason: {
             required: true,
             control: "textarea",
+            pattern: /[\s\S]*/,
             description: "always give a reason why we're releasing the nudge",
         },
         author: {
