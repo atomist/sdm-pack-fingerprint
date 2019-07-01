@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import {logger} from "@atomist/automation-client";
+import { logger } from "@atomist/automation-client";
 import {
     ApplyFingerprint, BaseFeature,
     ExtractFingerprint,
     FP,
     sha256,
 } from "../..";
-import {Feature} from "../machine/Feature";
+import { Feature } from "../machine/Feature";
 
 export interface FileFingerprint extends FP {
     data: {
