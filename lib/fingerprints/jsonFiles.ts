@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { logger } from "@atomist/automation-client";
+import {logger} from "@atomist/automation-client";
 import {
     ApplyFingerprint, BaseFeature,
     ExtractFingerprint,
     FP,
     sha256,
 } from "../..";
-import { Feature } from "../machine/Feature";
+import {Feature} from "../machine/Feature";
 
 export interface FileFingerprint extends FP {
     data: {
@@ -114,7 +114,8 @@ export const JsonFile: Feature = {
 export function filesFeature(opts: {
                                  type: string,
                                  canonicalize: (content: string) => any,
-                             } & Pick<BaseFeature, "name" | "displayName" |"toDisplayableFingerprintName" | "toDisplayableFingerprint">,
+                             } & Pick<BaseFeature<FileFingerprint>, "name" | "displayName" |
+                                 "toDisplayableFingerprintName" | "toDisplayableFingerprint">,
                              ...files: string[]): Feature<FileFingerprint> {
     return {
         ...opts,
