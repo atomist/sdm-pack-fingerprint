@@ -16,12 +16,19 @@
 
 import { logger } from "@atomist/automation-client";
 import {
-    ApplyFingerprint,
+    ApplyFingerprint, BaseFeature,
     ExtractFingerprint,
     FP,
     sha256,
 } from "../..";
 import { Feature } from "../machine/Feature";
+
+export interface FileFingerprint extends FP {
+    data: {
+        filename: string;
+        content: string;
+    };
+}
 
 /**
  * Create fingerprints from JSON files
@@ -44,9 +51,9 @@ export function createFileFingerprint(...filenames: string[]): ExtractFingerprin
  */
 export function createFilesFingerprint(type: string,
                                        canonicalize: (content: string) => any,
-                                       ...filenames: string[]): ExtractFingerprint {
+                                       ...filenames: string[]): ExtractFingerprint<FileFingerprint> {
     return async p => {
-        const fps: FP[] = [];
+        const fps: FileFingerprint[] = [];
         await Promise.all(
             filenames.map(async filename => {
                     const file = await p.getFile(filename);
@@ -105,14 +112,12 @@ export const JsonFile: Feature = {
  * @return {Feature}
  */
 export function filesFeature(opts: {
-                                 displayName: string,
                                  type: string,
                                  canonicalize: (content: string) => any,
-                             },
-                             ...files: string[]): Feature {
+                             } & Pick<BaseFeature, "name" | "displayName" |"toDisplayableFingerprintName" | "toDisplayableFingerprint">,
+                             ...files: string[]): Feature<FileFingerprint> {
     return {
-        displayName: opts.displayName,
-        name: "json-file",
+        ...opts,
         extract: createFilesFingerprint(
             opts.type,
             opts.canonicalize,
