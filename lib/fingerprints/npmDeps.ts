@@ -175,7 +175,7 @@ export const NpmDeps: Feature = {
     apply: applyNpmDepsFingerprint,
     selector: fp => fp.type === NpmDeps.name,
     summary: diffNpmDepsFingerprints,
-    toDisplayableFingerprint: fp => `version ${fp.data[1]}`,
+    toDisplayableFingerprint: fp => fp.data[1],
     toDisplayableFingerprintName: deconstructNpmDepsFingerprintName,
     workflows: [
         DefaultTargetDiffHandler,
