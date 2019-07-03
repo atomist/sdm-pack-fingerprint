@@ -42,7 +42,7 @@ export function addFeature(feature: Feature): void {
 }
 
 export function applyToFeature<T>(fp: FP, f: (feature: Feature, fp: FP) => T): T {
-    if (!features.get(fp.type)) {
+    if (!features.get(fp.type || fp.name)) {
         throw new Error(`can not lookup Feature for ${fp.type}::${fp.name}`);
     }
     return f(features.get(fp.type), fp);

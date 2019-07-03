@@ -28,9 +28,6 @@ export const MavenDeps: Feature = {
     name: "maven-project-deps",
     extract: p => mavenDeps((p as LocalProject).baseDir),
     apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
-    selector: fp => {
-        return fp.type && fp.type === MavenDeps.name;
-    },
     toDisplayableFingerprint: fp => fp.name,
     summary: renderProjectLibDiff,
 };
@@ -40,9 +37,6 @@ export const MavenCoordinates: Feature = {
     name: "maven-project-coordinates",
     extract: p => mavenCoordinates((p as LocalProject).baseDir),
     apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
-    selector: fp => {
-        return fp.name.startsWith(MavenCoordinates.name);
-    },
     toDisplayableFingerprint: fp => fp.name,
     summary: (diff, target) => {
         return {

@@ -35,8 +35,6 @@ import { PossibleIdeal } from "./ideals";
  */
 export type ExtractFingerprint<FPI extends FP = FP> = (p: Project) => Promise<FPI | FPI[]>;
 
-export type FingerprintSelector = (fingerprint: FP) => boolean;
-
 /**
  * Apply the given fingerprint to the project
  */
@@ -77,11 +75,6 @@ export interface BaseFeature<FPI extends FP = FP> {
      * prefix for all fingerprints that are emitted by this Feature
      */
     readonly name: string;
-
-    /**
-     * Is this feature able to manage this fingerprint instance?
-     */
-    selector: FingerprintSelector;
 
     /**
      * Function to apply the given fingerprint instance to a project

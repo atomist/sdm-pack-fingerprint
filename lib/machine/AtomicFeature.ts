@@ -20,7 +20,6 @@ import {
     ApplyFingerprint,
     BaseFeature,
     Feature,
-    FingerprintSelector,
 } from "./Feature";
 
 /**
