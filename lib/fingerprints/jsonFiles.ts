@@ -50,8 +50,8 @@ export function createFileFingerprint(...filenames: string[]): ExtractFingerprin
  * @return {ExtractFingerprint}
  */
 export function createFilesFingerprint(type: string,
-    canonicalize: (content: string) => any,
-    ...filenames: string[]): ExtractFingerprint<FileFingerprint> {
+                                       canonicalize: (content: string) => any,
+                                       ...filenames: string[]): ExtractFingerprint<FileFingerprint> {
     return async p => {
         const fps: FileFingerprint[] = [];
         await Promise.all(
@@ -115,7 +115,7 @@ export function filesFeature(opts: {
     canonicalize: (content: string) => any,
 } & Pick<BaseFeature<FileFingerprint>, "name" | "displayName" |
     "toDisplayableFingerprintName" | "toDisplayableFingerprint">,
-    ...files: string[]): Feature<FileFingerprint> {
+                             ...files: string[]): Feature<FileFingerprint> {
     return {
         ...opts,
         extract: createFilesFingerprint(

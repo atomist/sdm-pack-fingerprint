@@ -49,9 +49,9 @@ import {
     queryPreferences,
 } from "../../adhoc/preferences";
 import { Feature } from "../../machine/Feature";
+import { applyToFeature } from "../../machine/Features";
 import { EditModeMaker } from "../../machine/fingerprintSupport";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
-import { applyToFeature } from "../../machine/Features";
 
 /**
  * Call relevant apply functions from Registrations for a Fingerprint
