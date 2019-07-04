@@ -37,7 +37,6 @@ import { GitCoordinate } from "../support/messages";
 import {
     GetAllFpsOnSha,
     GetFpTargets,
-    GetPushDetails,
 } from "../typings/types";
 import {
     DiffContext,
@@ -175,20 +174,29 @@ async function tallyVotes(vts: Vote[], handlers: FingerprintHandler[], i: PushIm
 }
 
 async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo> {
-    const results: GetPushDetails.Query = await i.context.graphClient.query<GetPushDetails.Query, GetPushDetails.Variables>(
-        {
-            name: "GetPushDetails",
-            options: QueryNoCacheOptions,
-            variables: {
-                id: i.push.id,
-            },
-        });
-    const targets = await getFPTargets(i.context.graphClient);
-    return {
+
+    const info = {
         providerId: _.get(i, "push.repo.org.provider.providerId"),
-        channel: _.get(results, "Push[0].repo.channels[0].name"),
-        targets,
+        channel: _.get(i, "push.repo.channels[0].name"),
     };
+
+    if (!!info.providerId && !!i.push.id) {
+        try {
+            const targets = await getFPTargets(i.context.graphClient);
+
+            return {
+                ...info,
+                targets,
+            };
+        } catch (e) {
+            return {
+                ...info,
+                targets: { TeamConfiguration: [] },
+            };
+        }
+    } else {
+        throw new Error(`PushImpactListenerInvocation missing providerId or push id.  Stopping.`);
+    }
 }
 
 export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
