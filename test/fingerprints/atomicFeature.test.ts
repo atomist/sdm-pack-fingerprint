@@ -26,13 +26,13 @@ import {
     ExtractFingerprint,
     Feature,
 } from "../../lib/machine/Feature";
+import { addFeature } from "../../lib/machine/Features";
 
 describe("atomicFeature", () => {
 
     it("should ignore everything", async () => {
         const fp = createNpmDepFingerprint("foo", "0.1.0");
         const f1: Feature = {
-            selector: () => true,
             extract: async () => fp,
             displayName: "foo",
             name: "foo",
@@ -49,7 +49,6 @@ describe("atomicFeature", () => {
         const fp = createNpmDepFingerprint("foo", "0.1.0");
         const e1: ExtractFingerprint = async () => fp;
         const f1: Feature = {
-            selector: () => true,
             extract: e1,
             displayName: "foo",
             name: "foo",
@@ -71,7 +70,6 @@ describe("atomicFeature", () => {
             fp1, fp2, fp3,
         ];
         const f1: Feature = {
-            selector: () => true,
             extract: e1,
             displayName: "foo",
             name: "foo",
@@ -89,27 +87,33 @@ describe("atomicFeature", () => {
     });
 
     it("should apply two", async () => {
-        const fp1 = createNpmDepFingerprint("foo", "0.1.0");
-        const fp2 = createNpmDepFingerprint("bar", "0.1.0");
-        const e1: ExtractFingerprint = async () => [
-            fp1,
-        ];
-        const e2: ExtractFingerprint = async () => [
-            fp2,
-        ];
+        const fp1 = {
+            type: "foo",
+            name: "foo",
+            abbreviation: "npmdeps",
+            version: "0.0.1",
+            data: ["foo", "version"],
+            sha: "",
+        };
+        const fp2 = {
+            type: "bar",
+            name: "bar",
+            abbreviation: "npmdeps",
+            version: "0.0.1",
+            data: ["foo", "version"],
+            sha: "",
+        };
         const f1: Feature = {
-            selector: fp => fp.name.endsWith("foo"),
-            extract: e1,
-            displayName: "foo1",
-            name: "foo1",
+            extract: async () => [fp1],
+            displayName: "foo",
+            name: "foo",
             apply: async p1 => {
                 await p1.addFile("f1", "content");
                 return true;
             },
         };
         const f2: Feature = {
-            selector: fp => fp.name.endsWith("bar"),
-            extract: e2,
+            extract: async () => [fp2],
             displayName: "bar",
             name: "bar",
             apply: async p2 => {
@@ -117,15 +121,28 @@ describe("atomicFeature", () => {
                 return true;
             },
         };
-        const feature = atomicFeature({
-            displayName: "composite",
-            name: "composite",
-        }, fp => fp.name.endsWith("foo") || fp.name.endsWith("bar"),
-            f1, f2);
+        addFeature(f1);
+        addFeature(f2);
+
+        // create Atomic Feature
+        const feature = atomicFeature(
+            {
+                displayName: "composite",
+                name: "composite",
+            },
+            fp => fp.name.endsWith("foo") || fp.name.endsWith("bar"),
+            f1,
+            f2);
+
+        // create consolidated fingerprint for Atomist Feature
         const consolidated = await feature.consolidate([fp1, fp2]);
+
+        // check consolidated fingerprint
         assert(!!consolidated);
         assert(consolidated.name.includes("foo"));
         assert(consolidated.name.includes("bar"));
+
+        // apply consolidated fingerprint and ensure both apply functions run
         const p = InMemoryProject.of();
         await feature.apply(p, consolidated);
         assert(await p.hasFile("f1"));

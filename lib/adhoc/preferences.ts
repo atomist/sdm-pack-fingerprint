@@ -48,13 +48,12 @@ export function fromName(targetName: string): { type: string, name: string } {
  * @param graphClient
  */
 export async function getFPTargets(graphClient: GraphClient): Promise<GetFpTargets.Query> {
-    const query: GetFpTargets.Query = await graphClient.query<GetFpTargets.Query, GetFpTargets.Variables>(
+    return graphClient.query<GetFpTargets.Query, GetFpTargets.Variables>(
         {
             name: "GetFpTargets",
             options: QueryNoCacheOptions,
         },
     );
-    return query;
 }
 
 /**

@@ -56,26 +56,26 @@ export function createFilesFingerprint(type: string,
         const fps: FileFingerprint[] = [];
         await Promise.all(
             filenames.map(async filename => {
-                    const file = await p.getFile(filename);
+                const file = await p.getFile(filename);
 
-                    if (file) {
-                        const content = await file.getContent();
-                        const canonicalized = canonicalize(content);
-                        fps.push(
-                            {
-                                type,
-                                name: filename,
-                                abbreviation: `file-${filename}`,
-                                version: "0.0.1",
-                                data: {
-                                    content,
-                                    filename,
-                                },
-                                sha: sha256(JSON.stringify(canonicalized)),
+                if (file) {
+                    const content = await file.getContent();
+                    const canonicalized = canonicalize(content);
+                    fps.push(
+                        {
+                            type,
+                            name: filename,
+                            abbreviation: `file-${filename}`,
+                            version: "0.0.1",
+                            data: {
+                                content,
+                                filename,
                             },
-                        );
-                    }
-                },
+                            sha: sha256(JSON.stringify(canonicalized)),
+                        },
+                    );
+                }
+            },
             ));
 
         return fps;
@@ -103,7 +103,6 @@ export const JsonFile: Feature = {
         "tslint.json",
         "tsconfig.json"),
     apply: applyFileFingerprint,
-    selector: fp => fp.type && fp.type === JsonFile.name,
     toDisplayableFingerprint: fp => fp.name,
 };
 
@@ -112,10 +111,10 @@ export const JsonFile: Feature = {
  * @return {Feature}
  */
 export function filesFeature(opts: {
-                                 type: string,
-                                 canonicalize: (content: string) => any,
-                             } & Pick<BaseFeature<FileFingerprint>, "name" | "displayName" |
-                                 "toDisplayableFingerprintName" | "toDisplayableFingerprint">,
+    type: string,
+    canonicalize: (content: string) => any,
+} & Pick<BaseFeature<FileFingerprint>, "name" | "displayName" |
+    "toDisplayableFingerprintName" | "toDisplayableFingerprint">,
                              ...files: string[]): Feature<FileFingerprint> {
     return {
         ...opts,
@@ -124,7 +123,6 @@ export function filesFeature(opts: {
             opts.canonicalize,
             ...files),
         apply: applyFileFingerprint,
-        selector: fp => fp.type === opts.type,
         toDisplayableFingerprint: fp => fp.name,
     };
 }

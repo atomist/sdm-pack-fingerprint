@@ -83,6 +83,5 @@ export const Backpack: Feature = {
     name: "backpack-react-scripts",
     extract: backpackFingerprint,
     apply: applyBackpackFingerprint,
-    selector: fp => fp.name === Backpack.name,
     toDisplayableFingerprint: fp => fp.name,
 };

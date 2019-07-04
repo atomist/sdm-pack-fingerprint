@@ -79,11 +79,6 @@ export interface BaseFeature<FPI extends FP = FP> {
     readonly name: string;
 
     /**
-     * Is this feature able to manage this fingerprint instance?
-     */
-    selector: FingerprintSelector;
-
-    /**
      * Function to apply the given fingerprint instance to a project
      */
     apply?: ApplyFingerprint<FPI>;

@@ -49,6 +49,7 @@ import {
     queryPreferences,
 } from "../../adhoc/preferences";
 import { Feature } from "../../machine/Feature";
+import { applyToFeature } from "../../machine/Features";
 import { EditModeMaker } from "../../machine/fingerprintSupport";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";
 
@@ -65,20 +66,20 @@ async function pushFingerprint(
     message: (s: string) => Promise<any>,
     p: GitProject,
     registrations: Feature[],
-    fp: FP): Promise<GitProject> {
+    fingerprint: FP): Promise<GitProject> {
 
-    logger.info(`transform running -- ${fp.name}/${fp.sha} --`);
+    logger.info(`transform running -- ${fingerprint.name}/${fingerprint.sha} --`);
 
-    for (const registration of registrations) {
-        if (registration.apply && registration.selector(fp)) {
-            const result: boolean = await registration.apply(p, fp);
+    await applyToFeature(fingerprint, async (feature, fp) => {
+        if (feature.apply) {
+            const result: boolean = await feature.apply(p, fp);
             if (!result) {
                 await message(`failure applying fingerprint ${fp.name}`);
             } else {
                 logger.info(`successfully applied fingerprint ${fp.name}`);
             }
         }
-    }
+    });
 
     return p;
 }

@@ -173,7 +173,6 @@ export const NpmDeps: Feature = {
     name: NpmDepsName,
     extract: createNpmDepsFingerprints,
     apply: applyNpmDepsFingerprint,
-    selector: fp => fp.type === NpmDeps.name,
     summary: diffNpmDepsFingerprints,
     toDisplayableFingerprint: fp => fp.data[1],
     toDisplayableFingerprintName: deconstructNpmDepsFingerprintName,
@@ -186,7 +185,6 @@ export const NpmCoordinates: Feature = {
     displayName: "npm coordinates",
     name: "npm-project-coordinates",
     extract: createNpmCoordinatesFingerprint,
-    selector: fp => fp.name.startsWith(NpmCoordinates.name),
     summary: diffNpmCoordinatesFingerprints,
     toDisplayableFingerprint: fp => fp.data,
     workflows: [
