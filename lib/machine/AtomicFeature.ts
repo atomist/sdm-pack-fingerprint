@@ -20,7 +20,9 @@ import {
     ApplyFingerprint,
     BaseFeature,
     Feature,
+    FingerprintSelector,
 } from "./Feature";
+import { applyToFeature } from "./Features";
 
 /**
  * Feature derived from existing fingerprints.
@@ -60,7 +62,7 @@ export function atomicFeature(
     const allFeatures = [feature0, ...features];
     const apply: ApplyFingerprint = allFeatures.some(f => !f.apply) ?
         undefined :
-        applyAll(allFeatures);
+        applyAll(allFeatures, narrower);
     return {
         ...featureData,
         apply,
@@ -68,7 +70,6 @@ export function atomicFeature(
             // Extract a single composite fingerprint
             return createCompositeFingerprint(prefix, fps.filter(narrower));
         },
-        selector: fp => fp.name.startsWith(prefix),
     };
 }
 
@@ -84,18 +85,15 @@ function createCompositeFingerprint(prefix: string, fingerprints: FP[]): FP {
         };
 }
 
-function applyAll(allFeatures: BaseFeature[]): ApplyFingerprint {
+function applyAll(allFeatures: BaseFeature[], narrower: FingerprintSelector): ApplyFingerprint {
     return async (p, fp) => {
-        // fp will be our composite fingerprint
+
         for (const individualFingerprint of fp.data) {
-            const relevantFeature = allFeatures.find(f => f.selector(individualFingerprint));
-            if (!relevantFeature) {
-                throw new Error(`Internal error: We should not have a fingerprint named '${individualFingerprint.name}'\n ` +
-                    "that we don't know how to apply");
-            }
-            logger.info("Applying fingerprint %s with feature %s",
-                individualFingerprint.name, relevantFeature.displayName);
-            await relevantFeature.apply(p, individualFingerprint);
+            await applyToFeature(individualFingerprint, async (feature, fingerprint) => {
+                logger.info("Applying fingerprint %s with feature %s",
+                    individualFingerprint.name, feature.displayName);
+                await feature.apply(p, individualFingerprint);
+            });
         }
         return true;
     };

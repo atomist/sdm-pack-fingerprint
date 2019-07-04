@@ -35,6 +35,8 @@ import { PossibleIdeal } from "./ideals";
  */
 export type ExtractFingerprint<FPI extends FP = FP> = (p: Project) => Promise<FPI | FPI[]>;
 
+export type FingerprintSelector = (fingerprint: FP) => boolean;
+
 /**
  * Apply the given fingerprint to the project
  */
