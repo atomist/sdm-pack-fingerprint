@@ -195,7 +195,7 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
             };
         }
     } else {
-        throw new Error(`PushImpactListenerInvocation missing providerId or push id.  Stopping.`);
+        throw new Error(`PushImpactListenerInvocation missing providerId or push id.  Info not available.`);
     }
 }
 
@@ -265,7 +265,7 @@ export function fingerprintRunner(
             logger.debug(`Votes:  ${renderData(allVotes)}`);
             await tallyVotes(allVotes, handlers, i, info);
         } catch (e) {
-            logger.warn("Info not available");
+            logger.warn(`Not handling diffs (${e.message})`);
         }
 
         return allFps;
