@@ -47,7 +47,7 @@ export interface ConcreteIdeal extends Ideal {
 
 export function isConcreteIdeal(ideal: Ideal): ideal is ConcreteIdeal {
     const maybe = ideal as ConcreteIdeal;
-    return !!maybe.ideal;
+    return !!maybe && !!maybe.ideal;
 }
 
 /**
@@ -58,4 +58,12 @@ export interface EliminationIdeal extends Ideal {
     readonly type: string;
     readonly name: string;
 
+}
+
+/**
+ * Return the targeting of this ideal
+ * @param {Ideal} ideal
+ */
+export function idealCoordinates(ideal: Ideal): { type?: string, name: string } {
+    return isConcreteIdeal(ideal) ? ideal.ideal : ideal as EliminationIdeal;
 }
