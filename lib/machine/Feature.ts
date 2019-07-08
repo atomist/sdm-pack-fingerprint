@@ -27,7 +27,7 @@ import {
 import { SdmContext } from "@atomist/sdm";
 import { GitCoordinate } from "../support/messages";
 import { GetFpTargets } from "../typings/types";
-import {Ideal} from "./Ideal";
+import { Ideal } from "./Ideal";
 
 /**
  * Extract fingerprint(s) from the given project.
