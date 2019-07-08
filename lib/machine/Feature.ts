@@ -27,7 +27,7 @@ import {
 import { SdmContext } from "@atomist/sdm";
 import { GitCoordinate } from "../support/messages";
 import { GetFpTargets } from "../typings/types";
-import { PossibleIdeal } from "./ideals";
+import {Ideal} from "./Ideal";
 
 /**
  * Extract fingerprint(s) from the given project.
@@ -112,12 +112,10 @@ export interface BaseFeature<FPI extends FP = FP> {
     validate?(fpi: FPI): Promise<ReviewComment[]>;
 
     /**
-     * Based on the given fingerprint name and any fingerprints
-     * from our organization, suggest ideals
-     * @param fingerprintName name of the fingerprint we're interested in
+     * Based on the given fingerprint type and name, suggest ideals
      * order of recommendation strength
      */
-    suggestedIdeals?(fingerprintName: string): Promise<Array<PossibleIdeal<FPI>>>;
+    suggestedIdeals?(type: string, fingerprintName: string): Promise<Ideal[]>;
 
     workflows?: FingerprintDiffHandler[];
 }

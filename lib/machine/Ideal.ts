@@ -17,21 +17,11 @@
 import { FP } from "@atomist/clj-editors";
 
 /**
- * An ideal for a fingerprint with a given name.
+ * An ideal for a given fingerprint. This may be a concrete
+ * fingerprint instance, or an EliminationIdeal, which means that
+ * the desired state is for all occurrences of this fingerprint to go away.
  */
-export interface PossibleIdeal<FPI extends FP = FP> {
-
-    /**
-     * Name fo the fingerprint we were asked to provide an ideal for.
-     */
-    readonly fingerprintName: string;
-
-    /**
-     * The ideal fingerprint instance. May be undefined, indicating that
-     * this fingerprint should be eliminated from projects.
-     */
-    readonly ideal: FPI;
-
+export interface Ideal {
     /**
      * Reason for the choice
      */
@@ -41,4 +31,31 @@ export interface PossibleIdeal<FPI extends FP = FP> {
      * URL, if any, associated with the ideal fingerprint instance.
      */
     readonly url?: string;
+}
+
+/**
+ * An ideal for a fingerprint with a given name.
+ */
+export interface ConcreteIdeal extends Ideal {
+
+    /**
+     * The ideal fingerprint instance.
+     */
+    readonly ideal: FP;
+
+}
+
+export function isConcreteIdeal(ideal: Ideal): ideal is ConcreteIdeal {
+    const maybe = ideal as ConcreteIdeal;
+    return !!maybe.ideal;
+}
+
+/**
+ * Ideal that says to eliminate fingerprints keyed this way
+ */
+export interface EliminationIdeal extends Ideal {
+
+    readonly type: string;
+    readonly name: string;
+
 }

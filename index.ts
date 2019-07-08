@@ -72,4 +72,4 @@ export * from "./lib/fingerprints/jsonFiles";
 export * from "./lib/machine/AtomicFeature";
 export * from "./lib/machine/DerivedFeature";
 
-export * from "./lib/machine/ideals";
+export * from "./lib/machine/Ideal";
