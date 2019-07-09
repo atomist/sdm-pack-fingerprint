@@ -19,7 +19,6 @@ import {
     CommandHandlerRegistration,
     slackQuestionMessage,
 } from "@atomist/sdm";
-import { ListFingerprints } from "./list";
 
 export const FingerprintMenu: CommandHandlerRegistration = {
     name: "FingerprintMenu",
@@ -34,7 +33,7 @@ export const FingerprintMenu: CommandHandlerRegistration = {
                 actions: [
                     buttonForCommand(
                         { text: "List Fingerprints" },
-                        ListFingerprints.name,
+                        "ListFingerprints",
                         {},
                     ),
                     buttonForCommand(
