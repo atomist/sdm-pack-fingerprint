@@ -68,8 +68,8 @@ export class SetTargetFingerprintFromLatestMasterParameters {
     @Parameter({ required: true })
     public fingerprint: string;
 
-    @Parameter({ required: false })
-    public branch: string;
+    @Parameter({ required: false, displayable: false })
+    public branch: string = "master";
 
     @Parameter({ required: false, displayable: false })
     public msgId?: string;
