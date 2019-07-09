@@ -84,8 +84,8 @@ export function setTargetFingerprintFromLatestMaster(sdm: SoftwareDeliveryMachin
     return {
         name: "SetTargetFingerprintFromLatestMaster",
         intent: [
-          `set fingerprint target ${sdm.configuration.name.replace("@", "")}`,
-          `setFingerprintGoal ${sdm.configuration.name.replace("@", "")}`,
+          `set fingerprint target from master ${sdm.configuration.name.replace("@", "")}`,
+          `setFingerprintGoalFromMaster ${sdm.configuration.name.replace("@", "")}`,
         ],
         description: "set a new target for a team to consume a particular version",
         paramsMaker: SetTargetFingerprintFromLatestMasterParameters,
