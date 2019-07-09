@@ -21,11 +21,6 @@ import {
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
-    FP,
-    renderData,
-    Vote,
-} from "@atomist/clj-editors";
-import {
     PushImpactListenerInvocation,
 } from "@atomist/sdm";
 import * as _ from "lodash";
@@ -33,6 +28,11 @@ import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import { getFPTargets } from "../adhoc/preferences";
 import { votes } from "../checktarget/callbacks";
 import { messageMaker } from "../checktarget/messageMaker";
+import {
+    FP,
+    renderData,
+    Vote,
+} from "../cljEditors.index";
 import { GitCoordinate } from "../support/messages";
 import {
     GetAllFpsOnSha,

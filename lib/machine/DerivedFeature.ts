@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FP } from "@atomist/clj-editors";
+import { FP } from "../cljEditors.index";
 import { BaseFeature } from "./Feature";
 
 /**

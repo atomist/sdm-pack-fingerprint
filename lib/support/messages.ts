@@ -20,7 +20,7 @@ import {
     Diff,
     FP,
     Vote,
-} from "@atomist/clj-editors";
+} from "../cljEditors.index";
 import {
     DiffSummary,
     Feature,

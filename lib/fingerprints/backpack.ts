@@ -15,16 +15,16 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import {
-    FP,
-    renderData,
-    sha256,
-} from "@atomist/clj-editors";
 import * as _ from "lodash";
 import {
     ApplyFingerprint,
     ExtractFingerprint,
 } from "../..";
+import {
+    FP,
+    sha256,
+    renderData,
+} from "../cljEditors.index";
 import { Feature } from "../machine/Feature";
 
 export const backpackFingerprint: ExtractFingerprint = async p => {

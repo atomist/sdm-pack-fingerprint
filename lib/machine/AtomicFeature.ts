@@ -15,7 +15,6 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import { FP, sha256 } from "@atomist/clj-editors";
 import {
     ApplyFingerprint,
     BaseFeature,
@@ -23,6 +22,10 @@ import {
     FingerprintSelector,
 } from "./Feature";
 import { applyToFeature } from "./Features";
+import {
+    FP,
+    sha256,
+} from "../cljEditors.index";
 
 /**
  * Feature derived from existing fingerprints.

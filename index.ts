@@ -40,15 +40,7 @@ export {
     MessageMaker,
     messageMaker,
 } from "./lib/checktarget/messageMaker";
-export {
-    Diff,
-    DiffData,
-    FP,
-    Vote,
-    sha256,
-    consistentHash,
-    commaSeparatedList,
-} from "@atomist/clj-editors";
+export * from "./lib/cljEditors.index";
 export {
     constructNpmDepsFingerprintName,
     deconstructNpmDepsFingerprintName,

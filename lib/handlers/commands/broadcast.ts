@@ -20,10 +20,6 @@ import {
     ParameterType,
 } from "@atomist/automation-client";
 import {
-    broadcastFingerprint,
-    FP,
-} from "@atomist/clj-editors";
-import {
     actionableButton,
     CommandHandlerRegistration,
     CommandListenerInvocation,
@@ -41,6 +37,10 @@ import {
     fromName,
     toName,
 } from "../../adhoc/preferences";
+import {
+    broadcastFingerprint,
+    FP,
+} from "../../cljEditors.index";
 import {
     applyToFeature,
     displayName,

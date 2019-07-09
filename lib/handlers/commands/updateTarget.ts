@@ -26,16 +26,14 @@ import {
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
-    FP,
-    Vote,
-} from "@atomist/clj-editors";
-import {
     actionableButton,
     CommandHandlerRegistration,
     slackQuestionMessage,
 } from "@atomist/sdm";
-import * as _ from "lodash";
-import { Feature } from "../../..";
+import {
+    FP,
+    Vote,
+} from "../../cljEditors.index";
 import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
 import {
     deleteFPTarget,
@@ -53,6 +51,7 @@ import {
     GetFpBySha,
 } from "../../typings/types";
 import { askAboutBroadcast } from "./broadcast";
+import { Feature } from "../../machine/Feature";
 
 @Parameters()
 export class SetTargetFingerprintFromLatestMasterParameters {

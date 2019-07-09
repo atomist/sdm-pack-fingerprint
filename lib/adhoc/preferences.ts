@@ -18,7 +18,7 @@ import {
     GraphClient,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
-import { FP } from "@atomist/clj-editors";
+import { FP } from "../cljEditors.index";
 import {
     DeleteFpTarget,
     GetFpTargets,

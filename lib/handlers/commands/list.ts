@@ -23,7 +23,6 @@ import {
     Parameters,
     SlackFileMessage,
 } from "@atomist/automation-client";
-import { renderData } from "@atomist/clj-editors";
 import {
     CommandHandlerRegistration,
     slackQuestionMessage,
@@ -33,6 +32,7 @@ import {
     fromName,
     toName,
 } from "../../adhoc/preferences";
+import { renderData } from "../../cljEditors.index";
 import { comparator } from "../../support/util";
 import { GetAllFpsOnSha } from "../../typings/types";
 

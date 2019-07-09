@@ -20,7 +20,7 @@ import {
     mavenCoordinates,
     mavenDeps,
     renderProjectLibDiff,
-} from "@atomist/clj-editors";
+} from "../cljEditors.index";
 import { Feature } from "../machine/Feature";
 
 export const MavenDeps: Feature = {

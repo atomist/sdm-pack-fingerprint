@@ -22,17 +22,17 @@ import {
     LoggingProgressLog,
     spawnLog,
 } from "@atomist/sdm";
-import _ = require("lodash");
 import {
-    ApplyFingerprint,
-    ExtractFingerprint,
     FP,
     sha256,
     Vote,
-} from "../..";
+} from "../cljEditors.index";
+import _ = require("lodash");
 import { setNewTargetFingerprint } from "../handlers/commands/updateTarget";
 import {
+    ApplyFingerprint,
     DiffSummaryFingerprint,
+    ExtractFingerprint,
     Feature,
 } from "../machine/Feature";
 import {

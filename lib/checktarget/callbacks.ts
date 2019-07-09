@@ -22,22 +22,22 @@ import {
     SuccessPromise,
 } from "@atomist/automation-client";
 import {
-    checkFingerprintTargets,
-    commaSeparatedList,
-    Diff,
-    FP,
-    renderData,
-    Vote,
-    voteResults,
-    VoteResults,
-} from "@atomist/clj-editors";
-import {
     findSdmGoalOnCommit,
     Goal,
     updateGoal,
     UpdateSdmGoalParams,
 } from "@atomist/sdm";
 import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
+import {
+    commaSeparatedList,
+    Diff,
+    FP,
+    Vote,
+    VoteResults,
+    renderData,
+    voteResults,
+    checkFingerprintTargets,
+} from "../cljEditors.index";
 import {
     Feature,
 } from "../machine/Feature";

@@ -16,12 +16,15 @@
 
 import { logger } from "@atomist/automation-client";
 import {
-    ApplyFingerprint, BaseFeature,
-    ExtractFingerprint,
     FP,
     sha256,
-} from "../..";
-import { Feature } from "../machine/Feature";
+} from "../cljEditors.index";
+import {
+    ApplyFingerprint,
+    BaseFeature,
+    ExtractFingerprint,
+    Feature,
+} from "../machine/Feature";
 
 export interface FileFingerprint extends FP {
     data: {

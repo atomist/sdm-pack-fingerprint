@@ -22,10 +22,6 @@ import {
     ParameterType,
 } from "@atomist/automation-client";
 import {
-    Vote,
-    VoteResults,
-} from "@atomist/clj-editors";
-import {
     actionableButton,
     CommandHandlerRegistration,
     CommandListenerInvocation,
@@ -37,8 +33,11 @@ import {
     bold,
     SlackMessage,
 } from "@atomist/slack-messages";
-import * as _ from "lodash";
 import { toName } from "../adhoc/preferences";
+import {
+    Vote,
+    VoteResults,
+} from "../cljEditors.index";
 import {
     ApplyAllFingerprintsName,
     ApplyTargetFingerprintName,

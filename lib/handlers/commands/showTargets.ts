@@ -21,11 +21,6 @@ import {
     Parameters,
     SlackFileMessage,
 } from "@atomist/automation-client";
-
-import {
-    FP,
-    renderData,
-} from "@atomist/clj-editors";
 import {
     CommandHandlerRegistration,
     slackQuestionMessage,
@@ -37,6 +32,10 @@ import {
     queryPreferences,
     toName,
 } from "../../adhoc/preferences";
+import {
+    FP,
+    renderData,
+} from "../../cljEditors.index";
 import { comparator } from "../../support/util";
 import { GetFpTargets } from "../../typings/types";
 

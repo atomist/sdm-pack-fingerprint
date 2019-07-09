@@ -23,10 +23,6 @@ import {
     AutoMergeMode,
 } from "@atomist/automation-client/lib/operations/edit/editModes";
 import {
-    FP,
-    Vote,
-} from "@atomist/clj-editors";
-import {
     ExtensionPack,
     Fingerprint,
     Goal,
@@ -36,7 +32,6 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import * as _ from "lodash";
 import {
     checkFingerprintTarget,
 } from "../checktarget/callbacks";
@@ -44,6 +39,8 @@ import {
     IgnoreCommandRegistration,
     MessageMaker,
 } from "../checktarget/messageMaker";
+import { FP,
+    Vote } from "../cljEditors.index";
 import {
     applyTarget,
     ApplyTargetParameters,
