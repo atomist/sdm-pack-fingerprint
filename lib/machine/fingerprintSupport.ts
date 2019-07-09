@@ -50,8 +50,8 @@ import {
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import { FingerprintMenu } from "../handlers/commands/fingerprints";
 import {
-    ListFingerprint,
-    ListFingerprints,
+    listFingerprint,
+    listFingerprints,
 } from "../handlers/commands/list";
 import {
     listFingerprintTargets,
@@ -233,8 +233,8 @@ function configure(
     fpRegistrations: Aspect[],
     editModeMaker: EditModeMaker): void {
 
-    sdm.addCommand(ListFingerprints);
-    sdm.addCommand(ListFingerprint);
+    sdm.addCommand(listFingerprints(sdm));
+    sdm.addCommand(listFingerprint(sdm));
 
     // set a target given using the entire JSON fingerprint payload in a parameter
     sdm.addCommand(SetTargetFingerprint);
