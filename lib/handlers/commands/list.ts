@@ -113,7 +113,10 @@ function shortenName(s: string): string {
 export function listFingerprints(sdm: SoftwareDeliveryMachine): CommandHandlerRegistration<ListFingerprintParameters> {
     return {
         name: "ListFingerprints",
-        intent: [`list fingerprints ${sdm.configuration.name.replace("@", "")}`, "listFingerprints"],
+        intent: [
+          `list fingerprints ${sdm.configuration.name.replace("@", "")}`,
+          `listFingerprints ${sdm.configuration.name.replace("@", "")}`,
+        ],
         description: "list the fingerprints on a particular ref",
         paramsMaker: ListFingerprintParameters,
         listener: async cli => {

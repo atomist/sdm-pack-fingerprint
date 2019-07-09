@@ -33,8 +33,8 @@ import {
     actionableButton,
     CommandHandlerRegistration,
     slackQuestionMessage,
+    SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import * as _ from "lodash";
 import { Feature } from "../../..";
 import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
 import {
@@ -79,45 +79,51 @@ export class SetTargetFingerprintFromLatestMasterParameters {
  * bootstraps a Fingerprint from a project
  * looks up the fingerprint before setting it but name of fingerprint is in the parameter list
  */
-export const SetTargetFingerprintFromLatestMaster: CommandHandlerRegistration<SetTargetFingerprintFromLatestMasterParameters> = {
-    name: "SetTargetFingerprintFromLatestMaster",
-    intent: ["set fingerprint target", "setFingerprintGoal"],
-    description: "set a new target for a team to consume a particular version",
-    paramsMaker: SetTargetFingerprintFromLatestMasterParameters,
-    listener: async cli => {
+export function setTargetFingerprintFromLatestMaster(sdm: SoftwareDeliveryMachine):
+  CommandHandlerRegistration<SetTargetFingerprintFromLatestMasterParameters> {
+    return {
+        name: "SetTargetFingerprintFromLatestMaster",
+        intent: [
+          `set fingerprint target ${sdm.configuration.name.replace("@", "")}`,
+          `setFingerprintGoal ${sdm.configuration.name.replace("@", "")}`,
+        ],
+        description: "set a new target for a team to consume a particular version",
+        paramsMaker: SetTargetFingerprintFromLatestMasterParameters,
+        listener: async cli => {
 
-        const branch = cli.parameters.branch || "master";
+            const branch = cli.parameters.branch || "master";
 
-        const query: GetFpByBranch.Query = await cli.context.graphClient.query<GetFpByBranch.Query, GetFpByBranch.Variables>({
-            name: "GetFpByBranch",
-            options: QueryNoCacheOptions,
-            variables: {
-                owner: cli.parameters.owner,
-                repo: cli.parameters.repo,
-                branch,
-            },
-        });
-        const { type, name } = fromName(cli.parameters.fingerprint);
-        const fp: GetFpByBranch.Analysis = query.Repo[0].branches[0].commit.analysis.find(x => x.name === name && x.type === type);
-        logger.info(`found sha ${fp.sha}`);
-        fp.data = JSON.parse(fp.data);
-
-        if (!!fp.sha) {
-            await (setFPTarget(cli.context.graphClient))(fp.type, fp.name, fp);
-            return askAboutBroadcast(
-                cli,
-                {
-                    name: fp.name,
-                    type: fp.type,
-                    data: fp.data,
-                    sha: fp.sha,
+            const query: GetFpByBranch.Query = await cli.context.graphClient.query<GetFpByBranch.Query, GetFpByBranch.Variables>({
+                name: "GetFpByBranch",
+                options: QueryNoCacheOptions,
+                variables: {
+                    owner: cli.parameters.owner,
+                    repo: cli.parameters.repo,
+                    branch,
                 },
-                cli.parameters.msgId);
-        } else {
-            return FailurePromise;
-        }
-    },
-};
+            });
+            const { type, name } = fromName(cli.parameters.fingerprint);
+            const fp: GetFpByBranch.Analysis = query.Repo[0].branches[0].commit.analysis.find(x => x.name === name && x.type === type);
+            logger.info(`found sha ${fp.sha}`);
+            fp.data = JSON.parse(fp.data);
+
+            if (!!fp.sha) {
+                await (setFPTarget(cli.context.graphClient))(fp.type, fp.name, fp);
+                return askAboutBroadcast(
+                  cli,
+                  {
+                      name: fp.name,
+                      type: fp.type,
+                      data: fp.data,
+                      sha: fp.sha,
+                  },
+                  cli.parameters.msgId);
+            } else {
+                return FailurePromise;
+            }
+        },
+    };
+}
 
 @Parameters()
 export class UpdateTargetFingerprintParameters {
@@ -216,34 +222,40 @@ export class DeleteTargetFingerprintParameters {
     public msgId: string;
 }
 
-export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFingerprintParameters> = {
-    name: "DeleteTargetFingerprint",
-    intent: ["delete fingerprint target", "deleteFingerprintTarget"],
-    description: "remove the team target for a particular fingerprint",
-    paramsMaker: DeleteTargetFingerprintParameters,
-    listener: async cli => {
-        return (deleteFPTarget(cli.context.graphClient))(cli.parameters.type, cli.parameters.name)
-            .then(result => {
-                return {
-                    code: 0,
-                    message: `successfully deleted ${cli.parameters.name}`,
-                };
-            })
-            .catch(error => {
-                logger.error(error);
-                return {
-                    code: 1,
-                    message: `failed to delete target`,
-                };
-            });
-    },
-};
+export function deleteTargetFingerprint(sdm: SoftwareDeliveryMachine): CommandHandlerRegistration<DeleteTargetFingerprintParameters> {
+    return {
+        name: "DeleteTargetFingerprint",
+        intent: [
+          `delete fingerprint target ${sdm.configuration.name.replace("@", "")}`,
+          `deleteFingerprintTarget ${sdm.configuration.name.replace("@", "")}`,
+        ],
+        description: "remove the team target for a particular fingerprint",
+        paramsMaker: DeleteTargetFingerprintParameters,
+        listener: async cli => {
+            return (deleteFPTarget(cli.context.graphClient))(cli.parameters.type, cli.parameters.name)
+              .then(result => {
+                  return {
+                      code: 0,
+                      message: `successfully deleted ${cli.parameters.name}`,
+                  };
+              })
+              .catch(error => {
+                  logger.error(error);
+                  return {
+                      code: 1,
+                      message: `failed to delete target`,
+                  };
+              });
+        },
+    };
+}
 
 /**
  * Used in other diff handlers to maybe choose to set a new target because one of them has changed
  * (assumed to be a new message - not updating anything)
  *
  * @param ctx
+ * @param feature
  * @param fp
  * @param channel
  */
@@ -308,27 +320,33 @@ function shortenName(s: string): string {
 /**
  * Bootstrap a fingerprint target by selecting one out of the current set
  */
-export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistration<SelectTargetFingerprintFromCurrentProjectParameters> = {
-    name: "SelectTargetFingerprintFromCurrentProject",
-    intent: ["set fingerprint target", "setFingerprintTarget", "setTargetFingerprint"],
-    description: "select a fingerprint in this project to become a target fingerprint",
-    paramsMaker: SelectTargetFingerprintFromCurrentProjectParameters,
-    listener: async cli => {
+export function selectTargetFingerprintFromCurrentProject(sdm: SoftwareDeliveryMachine):
+  CommandHandlerRegistration<SelectTargetFingerprintFromCurrentProjectParameters> {
+    return {
+        name: "SelectTargetFingerprintFromCurrentProject",
+        intent: [
+          `set fingerprint target ${sdm.configuration.name.replace("@", "")}`,
+          `setFingerprintTarget ${sdm.configuration.name.replace("@", "")}`,
+          `setTargetFingerprint ${sdm.configuration.name.replace("@", "")}`,
+        ],
+        description: "select a fingerprint in this project to become a target fingerprint",
+        paramsMaker: SelectTargetFingerprintFromCurrentProjectParameters,
+        listener: async cli => {
 
-        // this has got to be wrong.  ugh
-        const branch: string = cli.parameters.branch || "master";
+            // this has got to be wrong.  ugh
+            const branch: string = cli.parameters.branch || "master";
 
-        const fps: GetAllFpsOnSha.Analysis[] = await queryFingerprintsByBranchRef(cli.context.graphClient)(
-            cli.parameters.repo,
-            cli.parameters.owner,
-            branch);
+            const fps: GetAllFpsOnSha.Analysis[] = await queryFingerprintsByBranchRef(cli.context.graphClient)(
+              cli.parameters.repo,
+              cli.parameters.owner,
+              branch);
 
-        const message = slackQuestionMessage(
-            "Fingerprint Target",
-            "Choose one of the current fingerprints:",
-            {
-                actions: [
-                    menuForCommand(
+            const message = slackQuestionMessage(
+              "Fingerprint Target",
+              "Choose one of the current fingerprints:",
+              {
+                  actions: [
+                      menuForCommand(
                         {
                             text: "select fingerprint",
                             options: [
@@ -340,7 +358,7 @@ export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistrati
                                 }),
                             ],
                         },
-                        SetTargetFingerprintFromLatestMaster.name,
+                        setTargetFingerprintFromLatestMaster(sdm).name,
                         "fingerprint",
                         {
                             owner: cli.parameters.owner,
@@ -348,10 +366,11 @@ export const SelectTargetFingerprintFromCurrentProject: CommandHandlerRegistrati
                             branch,
                             providerId: cli.parameters.providerId,
                         },
-                    ),
-                ],
-            });
+                      ),
+                  ],
+              });
 
-        return cli.addressChannels(message);
-    },
-};
+            return cli.addressChannels(message);
+        },
+    };
+}
