@@ -30,10 +30,6 @@ import {
     CommandHandlerRegistration,
     slackQuestionMessage,
 } from "@atomist/sdm";
-import {
-    FP,
-    Vote,
-} from "../../cljEditors.index";
 import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
 import {
     deleteFPTarget,
@@ -41,6 +37,11 @@ import {
     setFPTarget,
     toName,
 } from "../../adhoc/preferences";
+import {
+    FP,
+    Vote,
+} from "../../cljEditors.index";
+import { Feature } from "../../machine/Feature";
 import {
     displayName,
     displayValue,
@@ -51,7 +52,6 @@ import {
     GetFpBySha,
 } from "../../typings/types";
 import { askAboutBroadcast } from "./broadcast";
-import { Feature } from "../../machine/Feature";
 
 @Parameters()
 export class SetTargetFingerprintFromLatestMasterParameters {

@@ -29,14 +29,14 @@ import {
 } from "@atomist/sdm";
 import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 import {
+    checkFingerprintTargets,
     commaSeparatedList,
     Diff,
     FP,
+    renderData,
     Vote,
     VoteResults,
-    renderData,
     voteResults,
-    checkFingerprintTargets,
 } from "../cljEditors.index";
 import {
     Feature,

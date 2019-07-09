@@ -22,12 +22,12 @@ import {
     LoggingProgressLog,
     spawnLog,
 } from "@atomist/sdm";
+import _ = require("lodash");
 import {
     FP,
     sha256,
     Vote,
 } from "../cljEditors.index";
-import _ = require("lodash");
 import { setNewTargetFingerprint } from "../handlers/commands/updateTarget";
 import {
     ApplyFingerprint,

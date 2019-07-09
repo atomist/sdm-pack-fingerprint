@@ -22,8 +22,8 @@ import {
 } from "../..";
 import {
     FP,
-    sha256,
     renderData,
+    sha256,
 } from "../cljEditors.index";
 import { Feature } from "../machine/Feature";
 
