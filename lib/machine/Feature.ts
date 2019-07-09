@@ -20,9 +20,11 @@ import {
     ReviewComment,
 } from "@atomist/automation-client";
 import { SdmContext } from "@atomist/sdm";
-import { Diff,
+import {
+    Diff,
     FP,
-    Vote} from "../cljEditors.index";
+    Vote,
+} from "../cljEditors.index";
 import { GitCoordinate } from "../support/messages";
 import { GetFpTargets } from "../typings/types";
 import { Ideal } from "./Ideal";

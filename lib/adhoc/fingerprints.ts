@@ -20,8 +20,10 @@ import {
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import { PushImpactListenerInvocation } from "@atomist/sdm";
-import { FP,
-    partitionByFeature } from "../cljEditors.index";
+import {
+    FP,
+    partitionByFeature,
+} from "../cljEditors.index";
 import {
     AddFingerprints,
     FindLinkedReposWithFingerprint,

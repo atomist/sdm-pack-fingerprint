@@ -39,8 +39,10 @@ import {
     IgnoreCommandRegistration,
     MessageMaker,
 } from "../checktarget/messageMaker";
-import { FP,
-    Vote } from "../cljEditors.index";
+import {
+    FP,
+    Vote,
+} from "../cljEditors.index";
 import {
     applyTarget,
     ApplyTargetParameters,

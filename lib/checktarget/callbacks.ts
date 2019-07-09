@@ -35,8 +35,8 @@ import {
     FP,
     renderData,
     Vote,
-    VoteResults,
     voteResults,
+    VoteResults,
 } from "../cljEditors.index";
 import {
     Feature,
