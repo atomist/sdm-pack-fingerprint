@@ -33,7 +33,6 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
-import * as _ from "lodash";
 import {
     checkFingerprintTarget,
 } from "../checktarget/callbacks";
@@ -58,10 +57,10 @@ import {
     listOneFingerprintTarget,
 } from "../handlers/commands/showTargets";
 import {
-    DeleteTargetFingerprint,
-    SelectTargetFingerprintFromCurrentProject,
+    deleteTargetFingerprint,
+    selectTargetFingerprintFromCurrentProject,
     SetTargetFingerprint,
-    SetTargetFingerprintFromLatestMaster,
+    setTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
 import {
@@ -241,10 +240,10 @@ function configure(
     // set a different target after noticing that a fingerprint is different from current target
     sdm.addCommand(UpdateTargetFingerprint);
     // Bootstrap a fingerprint target by selecting one from current project
-    sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
+    sdm.addCommand(selectTargetFingerprintFromCurrentProject(sdm));
     // Bootstrap a fingerprint target from project by name
-    sdm.addCommand(SetTargetFingerprintFromLatestMaster);
-    sdm.addCommand(DeleteTargetFingerprint);
+    sdm.addCommand(setTargetFingerprintFromLatestMaster(sdm));
+    sdm.addCommand(deleteTargetFingerprint(sdm));
 
     // standard actionable message embedding ApplyTargetFingerprint
     sdm.addCommand(BroadcastFingerprintNudge);
