@@ -65,7 +65,12 @@ export class SetTargetFingerprintFromLatestMasterParameters {
     @MappedParameter(MappedParameters.GitHubRepositoryProvider)
     public providerId: string;
 
-    @Parameter({ required: true })
+    @Parameter({
+        required: true,
+        pattern: /[\w-]+::[\w-]+/,
+        description: `Please enter the fingerprint (format type::name)`,
+        displayName: `Please enter the fingerprint (format type::name)`,
+    })
     public fingerprint: string;
 
     @Parameter({ required: false, displayable: false })
