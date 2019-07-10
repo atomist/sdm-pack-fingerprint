@@ -35,7 +35,10 @@ import {
 } from "@atomist/sdm";
 import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 import {
-    Diff, Feature, FP, Vote,
+    Diff,
+    Feature,
+    FP,
+    Vote,
 } from "../machine/Feature";
 import {
     FingerprintImpactHandlerConfig,
