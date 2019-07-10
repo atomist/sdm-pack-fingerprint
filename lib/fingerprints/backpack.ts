@@ -24,7 +24,10 @@ import {
     ApplyFingerprint,
     ExtractFingerprint,
 } from "../..";
-import { Feature, FP } from "../machine/Feature";
+import {
+    Feature,
+    FP,
+} from "../machine/Feature";
 
 export const backpackFingerprint: ExtractFingerprint = async p => {
 

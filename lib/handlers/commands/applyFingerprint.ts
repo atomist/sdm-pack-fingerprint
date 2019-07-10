@@ -47,7 +47,10 @@ import {
     fromName,
     queryPreferences,
 } from "../../adhoc/preferences";
-import { Feature, FP } from "../../machine/Feature";
+import {
+    Feature,
+    FP,
+} from "../../machine/Feature";
 import { applyToFeature } from "../../machine/Features";
 import { EditModeMaker } from "../../machine/fingerprintSupport";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";

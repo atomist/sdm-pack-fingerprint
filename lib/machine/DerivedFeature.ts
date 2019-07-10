@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { BaseFeature, FP } from "./Feature";
+import {
+    BaseFeature,
+    FP,
+} from "./Feature";
 
 /**
  * Do we consider that the particular fingerprint is relevant to this project,

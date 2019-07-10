@@ -39,7 +39,10 @@ import {
     setFPTarget,
     toName,
 } from "../../adhoc/preferences";
-import { FP, Vote } from "../../machine/Feature";
+import {
+    FP,
+    Vote,
+} from "../../machine/Feature";
 import {
     displayName,
     displayValue,
