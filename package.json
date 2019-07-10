@@ -27,10 +27,7 @@
     "@atomist/clj-editors": "0.7.5",
     "@atomist/slack-messages": "^1.1.1",
     "@cljs-oss/module-deps": "^1.1.1",
-    "dockerfile-ast": "0.0.16",
-    "lodash": "^4.17.11",
-    "semver": "^6.1.1",
-    "xml-js": "^1.6.11"
+    "lodash": "^4.17.11"
   },
   "peerDependencies": {
     "@atomist/automation-client": ">=1.6.0",

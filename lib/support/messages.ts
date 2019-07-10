@@ -47,6 +47,14 @@ export const updateableMessage: MessageIdMaker = (shas, coordinate: GitCoordinat
     // return _.times(20, () => _.random(35).toString(36)).join("");
 };
 
+function displayFingerprint(feature: Feature, fp: FP): string {
+    if (feature.toDisplayableFingerprint) {
+        return feature.toDisplayableFingerprint(fp);
+    } else {
+        return JSON.stringify(fp.data);
+    }
+}
+
 /**
  * get a diff summary if any registrations support one for this Fingerprint type
  */
@@ -58,7 +66,7 @@ export function getDiffSummary(diff: Diff, target: FP, feature: Feature): undefi
         } else {
             return {
                 title: "Target diff",
-                description: `from ${diff.from.data} to ${diff.to.data}`,
+                description: `from ${displayFingerprint(feature, diff.from)} to ${displayFingerprint(feature, diff.to)}`,
             };
         }
     } catch (e) {
