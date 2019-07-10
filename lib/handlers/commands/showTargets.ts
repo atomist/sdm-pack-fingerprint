@@ -23,7 +23,6 @@ import {
 } from "@atomist/automation-client";
 
 import {
-    FP,
     renderData,
 } from "@atomist/clj-editors";
 import {
@@ -37,6 +36,7 @@ import {
     queryPreferences,
     toName,
 } from "../../adhoc/preferences";
+import { FP } from "../../machine/Feature";
 import { comparator } from "../../support/util";
 import { GetFpTargets } from "../../typings/types";
 
@@ -54,7 +54,7 @@ export function listOneFingerprintTarget(sdm: SoftwareDeliveryMachine): CommandH
         intent: [`list fingerprint target ${sdm.configuration.name.replace("@", "")}`],
         listener: async cli => {
 
-            const {type, name} = fromName(cli.parameters.fingerprint);
+            const { type, name } = fromName(cli.parameters.fingerprint);
             const fp: FP = await queryPreferences(cli.context.graphClient, type, name);
             logger.info(`fps ${renderData(fp)}`);
 

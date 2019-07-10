@@ -21,7 +21,6 @@ import {
 } from "@atomist/automation-client";
 import {
     broadcastFingerprint,
-    FP,
 } from "@atomist/clj-editors";
 import {
     actionableButton,
@@ -41,6 +40,7 @@ import {
     fromName,
     toName,
 } from "../../adhoc/preferences";
+import { FP } from "../../machine/Feature";
 import {
     applyToFeature,
     displayName,

@@ -28,6 +28,9 @@ export {
     ApplyFingerprint,
     ExtractFingerprint,
     DiffSummaryFingerprint,
+    FP,
+    Vote,
+    Diff,
 } from "./lib/machine/Feature";
 export {
     fingerprintRunner,
@@ -41,10 +44,6 @@ export {
     messageMaker,
 } from "./lib/checktarget/messageMaker";
 export {
-    Diff,
-    DiffData,
-    FP,
-    Vote,
     sha256,
     consistentHash,
     commaSeparatedList,

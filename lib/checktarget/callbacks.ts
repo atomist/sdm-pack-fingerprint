@@ -24,12 +24,8 @@ import {
 import {
     checkFingerprintTargets,
     commaSeparatedList,
-    Diff,
-    FP,
     renderData,
-    Vote,
     voteResults,
-    VoteResults,
 } from "@atomist/clj-editors";
 import {
     findSdmGoalOnCommit,
@@ -39,7 +35,7 @@ import {
 } from "@atomist/sdm";
 import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 import {
-    Feature,
+    Diff, Feature, FP, Vote,
 } from "../machine/Feature";
 import {
     FingerprintImpactHandlerConfig,
@@ -129,9 +125,9 @@ async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, pa
 export function votes(config: FingerprintImpactHandlerConfig):
     (ctx: HandlerContext, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any> {
 
-    return async (ctx, vs, coord, channel) => {
+    return async (ctx, vs: Vote[], coord, channel) => {
 
-        const result: VoteResults = voteResults(vs);
+        const result = voteResults<Vote>(vs);
 
         let goalState;
         logger.debug(`ballot result ${renderData(result)} for ${renderData(vs)} and ${coord}`);

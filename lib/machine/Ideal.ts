@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FP } from "@atomist/clj-editors";
+import { FP } from "./Feature";
 
 /**
  * An ideal for a given fingerprint. This may be a concrete

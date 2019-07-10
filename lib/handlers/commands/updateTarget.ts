@@ -26,10 +26,6 @@ import {
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
-    FP,
-    Vote,
-} from "@atomist/clj-editors";
-import {
     actionableButton,
     CommandHandlerRegistration,
     slackQuestionMessage,
@@ -43,6 +39,7 @@ import {
     setFPTarget,
     toName,
 } from "../../adhoc/preferences";
+import { FP, Vote } from "../../machine/Feature";
 import {
     displayName,
     displayValue,

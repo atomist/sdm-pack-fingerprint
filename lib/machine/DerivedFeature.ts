@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { FP } from "@atomist/clj-editors";
-import { BaseFeature } from "./Feature";
+import { BaseFeature, FP } from "./Feature";
 
 /**
  * Do we consider that the particular fingerprint is relevant to this project,

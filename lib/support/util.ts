@@ -19,11 +19,11 @@ import {
     SlackFileMessage,
 } from "@atomist/automation-client";
 import {
-    Diff,
     renderDiff,
 } from "@atomist/clj-editors";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
+import { Diff } from "../machine/Feature";
 
 export function comparator(path: string): (a: any, b: any) => number {
     return (a, b) => {

@@ -21,9 +21,7 @@ import {
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import {
-    FP,
     renderData,
-    Vote,
 } from "@atomist/clj-editors";
 import {
     PushImpactListenerInvocation,
@@ -42,6 +40,8 @@ import {
     DiffContext,
     Feature,
     FingerprintHandler,
+    FP,
+    Vote,
 } from "./Feature";
 import { DefaultEditModeMaker } from "./fingerprintSupport";
 

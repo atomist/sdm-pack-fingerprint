@@ -16,7 +16,6 @@
 
 import { logger } from "@atomist/automation-client";
 import {
-    FP,
     renderData,
     sha256,
 } from "@atomist/clj-editors";
@@ -25,7 +24,7 @@ import {
     ApplyFingerprint,
     ExtractFingerprint,
 } from "../..";
-import { Feature } from "../machine/Feature";
+import { Feature, FP } from "../machine/Feature";
 
 export const backpackFingerprint: ExtractFingerprint = async p => {
 

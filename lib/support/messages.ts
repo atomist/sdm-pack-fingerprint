@@ -17,13 +17,13 @@
 import { logger } from "@atomist/automation-client";
 import {
     consistentHash,
-    Diff,
-    FP,
-    Vote,
 } from "@atomist/clj-editors";
 import {
+    Diff,
     DiffSummary,
     Feature,
+    FP,
+    Vote,
 } from "../machine/Feature";
 import {
     applyToFeature,

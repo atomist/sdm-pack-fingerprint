@@ -22,10 +22,6 @@ import {
     ParameterType,
 } from "@atomist/automation-client";
 import {
-    Vote,
-    VoteResults,
-} from "@atomist/clj-editors";
-import {
     actionableButton,
     CommandHandlerRegistration,
     CommandListenerInvocation,
@@ -44,6 +40,7 @@ import {
     ApplyTargetFingerprintName,
 } from "../handlers/commands/applyFingerprint";
 import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
+import { Vote } from "../machine/Feature";
 import {
     applyFingerprintTitle,
     GitCoordinate,
@@ -53,7 +50,7 @@ import { orDefault } from "../support/util";
 
 export interface MessageMakerParams {
     ctx: HandlerContext;
-    voteResults: VoteResults;
+    voteResults: { failed: boolean, failedVotes: Vote[] };
     msgId: string;
     channel: string;
     coord: GitCoordinate;

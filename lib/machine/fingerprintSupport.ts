@@ -23,10 +23,6 @@ import {
     AutoMergeMode,
 } from "@atomist/automation-client/lib/operations/edit/editModes";
 import {
-    FP,
-    Vote,
-} from "@atomist/clj-editors";
-import {
     ExtensionPack,
     Fingerprint,
     Goal,
@@ -70,6 +66,8 @@ import {
     Feature,
     FingerprintDiffHandler,
     FingerprintHandler,
+    FP,
+    Vote,
 } from "./Feature";
 import { addFeature } from "./Features";
 import {

@@ -19,15 +19,33 @@ import {
     Project,
     ReviewComment,
 } from "@atomist/automation-client";
-import {
-    Diff,
-    FP,
-    Vote,
-} from "@atomist/clj-editors";
 import { SdmContext } from "@atomist/sdm";
 import { GitCoordinate } from "../support/messages";
 import { GetFpTargets } from "../typings/types";
 import { Ideal } from "./Ideal";
+
+export interface FP { type?: string; name: string; sha: string; data: any; version?: string; abbreviation?: string; }
+export interface Vote {
+    abstain: boolean;
+    decision?: string;
+    name?: string;
+    fingerprint?: FP;
+    fpTarget?: FP;
+    diff?: Diff;
+    text?: string;
+    summary?: { title: string, description: string };
+}
+export interface Diff {
+    from: FP;
+    to: FP;
+    data: { from: any[], to: any[] };
+    owner: string;
+    repo: string;
+    sha: string;
+    providerId: string;
+    channel: string;
+    branch: string;
+}
 
 /**
  * Extract fingerprint(s) from the given project.

@@ -29,7 +29,6 @@ import {
     AutoMergeMode,
 } from "@atomist/automation-client/lib/operations/edit/editModes";
 import { EditResult } from "@atomist/automation-client/lib/operations/edit/projectEditor";
-import { FP } from "@atomist/clj-editors";
 import {
     CodeTransform,
     CodeTransformRegistration,
@@ -48,7 +47,7 @@ import {
     fromName,
     queryPreferences,
 } from "../../adhoc/preferences";
-import { Feature } from "../../machine/Feature";
+import { Feature, FP } from "../../machine/Feature";
 import { applyToFeature } from "../../machine/Features";
 import { EditModeMaker } from "../../machine/fingerprintSupport";
 import { FindLinkedReposWithFingerprint } from "../../typings/types";

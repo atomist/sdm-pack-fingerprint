@@ -15,12 +15,13 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import { FP, sha256 } from "@atomist/clj-editors";
+import { sha256 } from "@atomist/clj-editors";
 import {
     ApplyFingerprint,
     BaseFeature,
     Feature,
     FingerprintSelector,
+    FP,
 } from "./Feature";
 import { applyToFeature } from "./Features";
 
