@@ -31,7 +31,7 @@ export {
     FP,
     Vote,
     Diff,
-    TypedFingerprint,
+    TypedFP,
 } from "./lib/machine/Feature";
 export {
     fingerprintRunner,

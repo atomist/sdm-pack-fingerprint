@@ -62,7 +62,7 @@ export interface Diff {
 /**
  * Fingerprint that has a typed data payload
  */
-export interface TypedFingerprint<T> extends FP {
+export interface TypedFP<T> extends FP {
     data: T;
 }
 
