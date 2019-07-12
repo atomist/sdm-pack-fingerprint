@@ -26,18 +26,22 @@ import { PushImpactListenerInvocation } from "@atomist/sdm";
 import { FP } from "../machine/Feature";
 import {
     AddFingerprints,
-    FindLinkedReposWithFingerprint,
+    FindOtherRepos,
     GetFpByBranch,
     RepoBranchIds,
 } from "../typings/types";
 
 // TODO this is not actually using the new query yet (filtering is happening in memory)
-export function findTaggedRepos(graphClient: GraphClient): (type: string, name: string) => Promise<any> {
+export function findTaggedRepos(graphClient: GraphClient): (type: string, name: string) => Promise<FindOtherRepos.Query> {
     return async (type, name) => {
-        return graphClient.query<FindLinkedReposWithFingerprint.Query, FindLinkedReposWithFingerprint.Variables>(
+        return graphClient.query<FindOtherRepos.Query, FindOtherRepos.Variables>(
             {
                 name: "FindLinkedReposWithFingerprint",
                 options: QueryNoCacheOptions,
+                variables: {
+                    type,
+                    name,
+                },
             },
         );
     };

@@ -53,7 +53,7 @@ import {
 } from "../../machine/Feature";
 import { applyToFeature } from "../../machine/Features";
 import { EditModeMaker } from "../../machine/fingerprintSupport";
-import { FindLinkedReposWithFingerprint } from "../../typings/types";
+import { FindOtherRepos } from "../../typings/types";
 
 /**
  * Call relevant apply functions from Registrations for a Fingerprint
@@ -239,17 +239,20 @@ export function broadcastFingerprintMandate(
             // start by running
             logger.info(`run all fingerprint transforms for ${i.parameters.fingerprint}: ${fp.name}/${fp.sha}`);
 
-            const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(i.context.graphClient))(fp.type, fp.name);
+            const data: FindOtherRepos.Query = await (findTaggedRepos(i.context.graphClient))(fp.type, fp.name);
 
-            if (!!data.Repo) {
+            if (!!data.headCommitsWithFingerprint) {
                 refs.push(
-                    ...data.Repo
-                        .filter(repo => _.get(repo, "branches[0].commit.analysis"))
-                        .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === fp.name))
-                        .map(repo => {
+                    ...data.headCommitsWithFingerprint
+                        .filter(repo => repo.analysis.some(x => {
+                            return x.type === fp.type &&
+                                x.name === fp.name &&
+                                x.sha !== fp.sha;
+                        }))
+                        .map(x => {
                             return {
-                                owner: repo.owner,
-                                repo: repo.name,
+                                owner: x.repo.owner,
+                                repo: x.repo.name,
                                 url: "url",
                                 branch: "master",
                             };

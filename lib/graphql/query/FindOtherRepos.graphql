@@ -1,5 +1,5 @@
-query FindOtherRepos {
-  headCommitsWithFingerprint {
+query FindOtherRepos($type: String!, $name: String!) {
+  headCommitsWithFingerprint(type: $type, name: $name) {
     commit {
       id
       sha
@@ -9,6 +9,9 @@ query FindOtherRepos {
     repo {
       name
       owner
+      channels {
+        name
+      }
     }
     branch {
       name
