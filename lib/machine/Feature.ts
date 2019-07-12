@@ -19,12 +19,23 @@ import {
     Project,
     ReviewComment,
 } from "@atomist/automation-client";
-import { SdmContext } from "@atomist/sdm";
-import { GitCoordinate } from "../support/messages";
-import { GetFpTargets } from "../typings/types";
-import { Ideal } from "./Ideal";
+import {SdmContext} from "@atomist/sdm";
+import {GitCoordinate} from "../support/messages";
+import {GetFpTargets} from "../typings/types";
+import {Ideal} from "./Ideal";
 
-export interface FP { type?: string; name: string; sha: string; data: any; version?: string; abbreviation?: string; }
+/**
+ * Fingerprint interface
+ */
+export interface FP {
+    type?: string;
+    name: string;
+    sha: string;
+    data: any;
+    version?: string;
+    abbreviation?: string;
+}
+
 export interface Vote {
     abstain: boolean;
     decision?: string;
@@ -35,6 +46,7 @@ export interface Vote {
     text?: string;
     summary?: { title: string, description: string };
 }
+
 export interface Diff {
     from: FP;
     to: FP;
@@ -45,6 +57,13 @@ export interface Diff {
     providerId: string;
     channel: string;
     branch: string;
+}
+
+/**
+ * Fingerprint that has a typed data payload
+ */
+export interface TypedFingerprint<T> extends FP {
+    data: T;
 }
 
 /**
