@@ -97,6 +97,17 @@ export interface BaseFeature<FPI extends FP = FP> {
     readonly name: string;
 
     /**
+     * Link to documentation for this Feature. This can help people
+     * understand the results graphs and results from the analysis
+     * enabled here.
+     *
+     * You might provide a link to the typedoc for Features you define,
+     * or an internal page describing why you created this and what
+     * people can do about their results.
+     */
+    readonly documentationUrl?: string;
+
+    /**
      * Function to apply the given fingerprint instance to a project
      */
     apply?: ApplyFingerprint<FPI>;
