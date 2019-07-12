@@ -46,11 +46,11 @@ import {
     displayName,
 } from "../../machine/Features";
 import { applyFingerprintTitle } from "../../support/messages";
-import { FindLinkedReposWithFingerprint } from "../../typings/types";
 import {
     ApplyTargetFingerprintName,
     BroadcastFingerprintMandateName,
 } from "./applyFingerprint";
+import { FindOtherRepos } from "../../typings/types";
 
 export function askAboutBroadcast(
     cli: CommandListenerInvocation,
@@ -120,6 +120,13 @@ function targetUpdateMessage(cli: CommandListenerInvocation<BroadcastFingerprint
     ${italic(cli.parameters.reason)}`;
 }
 
+interface FingerprintedRepo {
+    name: string;
+    owner: string;
+    channels: FindOtherRepos.Channels[];
+    branches: [{ commit: { analysis: FindOtherRepos.Analysis[] } }?];
+}
+
 /**
  * send messages to all channels with Repos that might be impacted by this target change
  *
@@ -130,18 +137,29 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudge
     const msgId = `broadcastNudge-${cli.parameters.name}-${cli.parameters.sha}`;
 
     return broadcastFingerprint(
-        async (type: string, name: string): Promise<FindLinkedReposWithFingerprint.Repo[]> => {
-            // TODO this in memory filtering should be moved into the query
-            const data: FindLinkedReposWithFingerprint.Query = await (findTaggedRepos(cli.context.graphClient))(type, name);
+        async (type: string, name: string): Promise<FingerprintedRepo[]> => {
+
+            const data: FindOtherRepos.Query = await (findTaggedRepos(cli.context.graphClient))(type, name);
             logger.info(
-                `findTaggedRepos(broadcastNudge)
-                    ${JSON.stringify(
-                    data.Repo
-                        .filter(repo => _.get(repo, "branches[0].commit.analysis"))
-                        .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name && x.type === type)))}`);
-            return data.Repo
-                .filter(repo => _.get(repo, "branches[0].commit.analysis"))
-                .filter(repo => repo.branches[0].commit.analysis.some(x => x.name === name && x.type === type));
+                `findTaggedRepos(broadcastNudge) ${
+                JSON.stringify(
+                    data.headCommitsWithFingerprint,
+                    // .filter(
+                    //     repo => repo.analysis.some(x => {
+                    //         return x.type === fp.type &&
+                    //             x.name === fp.name &&
+                    //             x.sha !== fp.sha;
+                    //     }))
+                )
+                }`);
+            return data.headCommitsWithFingerprint.map(x => {
+                return {
+                    name: x.repo.name,
+                    owner: x.repo.owner,
+                    channels: x.repo.channels,
+                    branches: [{ commit: { analysis: x.analysis } }],
+                };
+            });
         },
         {
             ...fromName(cli.parameters.fingerprint),
