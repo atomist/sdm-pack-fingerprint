@@ -46,11 +46,11 @@ import {
     displayName,
 } from "../../machine/Features";
 import { applyFingerprintTitle } from "../../support/messages";
+import { FindOtherRepos } from "../../typings/types";
 import {
     ApplyTargetFingerprintName,
     BroadcastFingerprintMandateName,
 } from "./applyFingerprint";
-import { FindOtherRepos } from "../../typings/types";
 
 export function askAboutBroadcast(
     cli: CommandListenerInvocation,
