@@ -63,7 +63,7 @@ import {
     UpdateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
 import {
-    Feature,
+    Aspect,
     FingerprintDiffHandler,
     FingerprintHandler,
     FP,
@@ -103,7 +103,7 @@ export interface FingerprintImpactHandlerConfig {
  * Setting up a PushImpactHandler to handle different strategies (FingerprintHandlers) involves giving them the opportunity
  * to configure the sdm, and they'll need all of the current active Features.
  */
-export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, registrations: Feature[]) => FingerprintHandler;
+export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, registrations: Aspect[]) => FingerprintHandler;
 
 export const DefaultTargetDiffHandler: FingerprintDiffHandler =
     async (ctx, diff, feature) => {
@@ -145,6 +145,7 @@ export interface FingerprintOptions {
      * If not provided fingerprints need to be registered manually with the goal.
      * @deprecated use pushImpactGoal instead
      */
+    // tslint:disable:deprecation
     fingerprintGoal?: Fingerprint;
 
     /**
@@ -155,7 +156,7 @@ export interface FingerprintOptions {
     /**
      * Features we are managing
      */
-    features: Feature | Feature[];
+    features: Aspect | Aspect[];
 
     /**
      * Register FingerprintHandler factories to handle fingerprint impacts
@@ -193,7 +194,7 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
         ...metadata(),
         configure: (sdm: SoftwareDeliveryMachine) => {
 
-            const fingerprints: Feature[] = Array.isArray(options.features) ? options.features : [options.features];
+            const fingerprints: Aspect[] = Array.isArray(options.features) ? options.features : [options.features];
             // const handlerRegistrations: RegisterFingerprintImpactHandler[]
             //     = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
             // const handlers: FingerprintHandler[] = handlerRegistrations.map(h => h(sdm, fingerprints));
@@ -227,7 +228,7 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 function configure(
     sdm: SoftwareDeliveryMachine,
     handlers: RegisterFingerprintImpactHandler[],
-    fpRegistrations: Feature[],
+    fpRegistrations: Aspect[],
     editModeMaker: EditModeMaker): void {
 
     sdm.addCommand(ListFingerprints);

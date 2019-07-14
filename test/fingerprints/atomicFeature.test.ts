@@ -23,8 +23,8 @@ import {
 } from "../../lib/fingerprints/npmDeps";
 import { atomicFeature } from "../../lib/machine/AtomicFeature";
 import {
+    Aspect,
     ExtractFingerprint,
-    Feature,
 } from "../../lib/machine/Feature";
 import { addFeature } from "../../lib/machine/Features";
 
@@ -32,7 +32,7 @@ describe("atomicFeature", () => {
 
     it("should ignore everything", async () => {
         const fp = createNpmDepFingerprint("foo", "0.1.0");
-        const f1: Feature = {
+        const f1: Aspect = {
             extract: async () => fp,
             displayName: "foo",
             name: "foo",
@@ -48,7 +48,7 @@ describe("atomicFeature", () => {
     it("should accept one", async () => {
         const fp = createNpmDepFingerprint("foo", "0.1.0");
         const e1: ExtractFingerprint = async () => fp;
-        const f1: Feature = {
+        const f1: Aspect = {
             extract: e1,
             displayName: "foo",
             name: "foo",
@@ -69,7 +69,7 @@ describe("atomicFeature", () => {
         const e1: ExtractFingerprint = async () => [
             fp1, fp2, fp3,
         ];
-        const f1: Feature = {
+        const f1: Aspect = {
             extract: e1,
             displayName: "foo",
             name: "foo",
@@ -103,7 +103,7 @@ describe("atomicFeature", () => {
             data: ["foo", "version"],
             sha: "",
         };
-        const f1: Feature = {
+        const f1: Aspect = {
             extract: async () => [fp1],
             displayName: "foo",
             name: "foo",
@@ -112,7 +112,7 @@ describe("atomicFeature", () => {
                 return true;
             },
         };
-        const f2: Feature = {
+        const f2: Aspect = {
             extract: async () => [fp2],
             displayName: "bar",
             name: "bar",

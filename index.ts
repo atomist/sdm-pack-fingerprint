@@ -22,9 +22,8 @@ export {
     DefaultEditModeMaker,
 } from "./lib/machine/fingerprintSupport";
 export {
-    BaseFeature,
-    Feature,
-    FingerprintRegistration,
+    BaseAspect,
+    Aspect,
     ApplyFingerprint,
     ExtractFingerprint,
     DiffSummaryFingerprint,

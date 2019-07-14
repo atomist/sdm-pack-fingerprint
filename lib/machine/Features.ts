@@ -15,11 +15,11 @@
  */
 
 import {
-    Feature,
+    Aspect,
     FP,
 } from "../..";
 
-export function displayName(feature: Feature, fp: FP): string {
+export function displayName(feature: Aspect, fp: FP): string {
     if (!!feature.toDisplayableFingerprintName) {
         return `${feature.toDisplayableFingerprintName(fp.name)}`;
     } else {
@@ -27,7 +27,7 @@ export function displayName(feature: Feature, fp: FP): string {
     }
 }
 
-export function displayValue(feature: Feature, fp: FP): string {
+export function displayValue(feature: Aspect, fp: FP): string {
     if (!!feature.toDisplayableFingerprint) {
         return `${feature.toDisplayableFingerprint(fp)}`;
     } else {
@@ -35,13 +35,13 @@ export function displayValue(feature: Feature, fp: FP): string {
     }
 }
 
-const features = new Map<string, Feature>();
+const features = new Map<string, Aspect>();
 
-export function addFeature(feature: Feature): void {
+export function addFeature(feature: Aspect): void {
     features.set(feature.name, feature);
 }
 
-export function applyToFeature<T>(fp: FP, f: (feature: Feature, fp: FP) => T): T {
+export function applyToFeature<T>(fp: FP, f: (feature: Aspect, fp: FP) => T): T {
     if (!features.get(fp.type || fp.name)) {
         throw new Error(`can not lookup Feature for ${fp.type}::${fp.name}`);
     }

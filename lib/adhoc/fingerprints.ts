@@ -36,7 +36,7 @@ export function findTaggedRepos(graphClient: GraphClient): (type: string, name: 
     return async (type, name) => {
         return graphClient.query<FindOtherRepos.Query, FindOtherRepos.Variables>(
             {
-                name: "FindLinkedReposWithFingerprint",
+                name: "FindOtherRepos",
                 options: QueryNoCacheOptions,
                 variables: {
                     type,

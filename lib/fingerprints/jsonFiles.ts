@@ -16,12 +16,12 @@
 
 import { logger } from "@atomist/automation-client";
 import {
-    ApplyFingerprint, BaseFeature,
+    ApplyFingerprint, BaseAspect,
     ExtractFingerprint,
     FP,
     sha256,
 } from "../..";
-import { Feature } from "../machine/Feature";
+import { Aspect } from "../machine/Feature";
 
 export interface FileFingerprint extends FP {
     data: {
@@ -96,7 +96,7 @@ export const applyFileFingerprint: ApplyFingerprint = async (p, fp) => {
     }
 };
 
-export const JsonFile: Feature = {
+export const JsonFile: Aspect = {
     displayName: "JSON files",
     name: "json-file",
     extract: createFileFingerprint(
@@ -113,9 +113,9 @@ export const JsonFile: Feature = {
 export function filesFeature(opts: {
     type: string,
     canonicalize: (content: string) => any,
-} & Pick<BaseFeature<FileFingerprint>, "name" | "displayName" |
+} & Pick<BaseAspect<FileFingerprint>, "name" | "displayName" |
     "toDisplayableFingerprintName" | "toDisplayableFingerprint">,
-                             ...files: string[]): Feature<FileFingerprint> {
+                             ...files: string[]): Aspect<FileFingerprint> {
     return {
         ...opts,
         extract: createFilesFingerprint(
