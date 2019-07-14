@@ -18,8 +18,8 @@ import { logger } from "@atomist/automation-client";
 import { sha256 } from "@atomist/clj-editors";
 import {
     ApplyFingerprint,
-    BaseFeature,
-    Feature,
+    Aspect,
+    BaseAspect,
     FingerprintSelector,
     FP,
 } from "./Feature";
@@ -30,7 +30,7 @@ import { applyToFeature } from "./Features";
  * Surfaces as a single fingerprint. Implementations must
  * also support atomic application.
  */
-export interface AtomicFeature<FPI extends FP = FP> extends BaseFeature<FPI> {
+export interface AtomicFeature<FPI extends FP = FP> extends BaseAspect<FPI> {
 
     /**
      * Function to extract fingerprint(s) from this project
@@ -39,7 +39,7 @@ export interface AtomicFeature<FPI extends FP = FP> extends BaseFeature<FPI> {
 
 }
 
-export function isAtomicFeature(feature: BaseFeature): feature is AtomicFeature {
+export function isAtomicFeature(feature: BaseAspect): feature is AtomicFeature {
     const maybe = feature as AtomicFeature;
     return !!maybe.consolidate;
 }
@@ -54,11 +54,11 @@ export function isAtomicFeature(feature: BaseFeature): feature is AtomicFeature 
  * @param features other features
  */
 export function atomicFeature(
-    featureData: Pick<Feature, "displayName" | "summary" |
+    featureData: Pick<Aspect, "displayName" | "summary" |
         "comparators" | "toDisplayableFingerprint" | "toDisplayableFingerprintName" | "name">,
     narrower: FingerprintSelector,
-    feature0: Feature,
-    ...features: Feature[]): AtomicFeature {
+    feature0: BaseAspect,
+    ...features: BaseAspect[]): AtomicFeature {
     const prefix = featureData.displayName + ":";
     const allFeatures = [feature0, ...features];
     const apply: ApplyFingerprint = allFeatures.some(f => !f.apply) ?
@@ -86,7 +86,7 @@ function createCompositeFingerprint(prefix: string, fingerprints: FP[]): FP {
         };
 }
 
-function applyAll(allFeatures: BaseFeature[], narrower: FingerprintSelector): ApplyFingerprint {
+function applyAll(allFeatures: BaseAspect[], narrower: FingerprintSelector): ApplyFingerprint {
     return async (p, fp) => {
 
         for (const individualFingerprint of fp.data) {

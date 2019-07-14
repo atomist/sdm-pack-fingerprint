@@ -48,7 +48,7 @@ import {
     queryPreferences,
 } from "../../adhoc/preferences";
 import {
-    Feature,
+    Aspect,
     FP,
 } from "../../machine/Feature";
 import { applyToFeature } from "../../machine/Features";
@@ -67,7 +67,7 @@ import { FindOtherRepos } from "../../typings/types";
 async function pushFingerprint(
     message: (s: string) => Promise<any>,
     p: GitProject,
-    registrations: Feature[],
+    registrations: Aspect[],
     fingerprint: FP): Promise<GitProject> {
 
     logger.info(`transform running -- ${fingerprint.name}/${fingerprint.sha} --`);
@@ -92,7 +92,7 @@ async function pushFingerprint(
  *
  * @param registrations
  */
-export function runAllFingerprintAppliers(registrations: Feature[]): CodeTransform<ApplyTargetFingerprintParameters> {
+export function runAllFingerprintAppliers(registrations: Aspect[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
         const message = slackInfoMessage(
@@ -119,7 +119,7 @@ export function runAllFingerprintAppliers(registrations: Feature[]): CodeTransfo
  *
  * @param registrations
  */
-function runEveryFingerprintApplication(registrations: Feature[]): CodeTransform<ApplyTargetFingerprintsParameters> {
+function runEveryFingerprintApplication(registrations: Aspect[]): CodeTransform<ApplyTargetFingerprintsParameters> {
     return async (p, cli) => {
 
         const message = slackInfoMessage(
@@ -164,7 +164,7 @@ export const ApplyTargetFingerprintName = "ApplyTargetFingerprint";
 
 export function applyTarget(
     sdm: SoftwareDeliveryMachine,
-    registrations: Feature[],
+    registrations: Aspect[],
     presentation: EditModeMaker): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
 
     return {
@@ -193,7 +193,7 @@ export const ApplyAllFingerprintsName = "ApplyAllFingerprints";
 
 export function applyTargets(
     sdm: SoftwareDeliveryMachine,
-    registrations: Feature[],
+    registrations: Aspect[],
     presentation: EditModeMaker,
 ): CodeTransformRegistration<ApplyTargetFingerprintsParameters> {
     return {
@@ -224,7 +224,7 @@ export const BroadcastFingerprintMandateName = "BroadcastFingerprintMandate";
 
 export function broadcastFingerprintMandate(
     sdm: SoftwareDeliveryMachine,
-    registrations: Feature[],
+    registrations: Aspect[],
 ): CommandHandlerRegistration<BroadcastFingerprintMandateParameters> {
     return {
         name: BroadcastFingerprintMandateName,
@@ -241,10 +241,11 @@ export function broadcastFingerprintMandate(
 
             const data: FindOtherRepos.Query = await (findTaggedRepos(i.context.graphClient))(fp.type, fp.name);
 
+            // TODO does the analysis only have the matching tagged repos or all of them?
             if (!!data.headCommitsWithFingerprint) {
                 refs.push(
                     ...data.headCommitsWithFingerprint
-                        .filter(repo => repo.analysis.some(x => {
+                        .filter(head => head.analysis.some(x => {
                             return x.type === fp.type &&
                                 x.name === fp.name &&
                                 x.sha !== fp.sha;
@@ -277,6 +278,7 @@ export function broadcastFingerprintMandate(
             // tslint:disable-next-line
             const targets: TargetsParams = ({} as TargetsParams);
 
+            // TODO do we really support only master here
             const result: EditResult[] = await editAll(
                 i.context,
                 i.credentials,

@@ -19,9 +19,9 @@ import {
     consistentHash,
 } from "@atomist/clj-editors";
 import {
+    Aspect,
     Diff,
     DiffSummary,
-    Feature,
     FP,
     Vote,
 } from "../machine/Feature";
@@ -47,7 +47,7 @@ export const updateableMessage: MessageIdMaker = (shas, coordinate: GitCoordinat
     // return _.times(20, () => _.random(35).toString(36)).join("");
 };
 
-function displayFingerprint(feature: Feature, fp: FP): string {
+function displayFingerprint(feature: Aspect, fp: FP): string {
     if (feature.toDisplayableFingerprint) {
         return feature.toDisplayableFingerprint(fp);
     } else {
@@ -58,7 +58,7 @@ function displayFingerprint(feature: Feature, fp: FP): string {
 /**
  * get a diff summary if any registrations support one for this Fingerprint type
  */
-export function getDiffSummary(diff: Diff, target: FP, feature: Feature): undefined | DiffSummary {
+export function getDiffSummary(diff: Diff, target: FP, feature: Aspect): undefined | DiffSummary {
 
     try {
         if (feature.summary) {

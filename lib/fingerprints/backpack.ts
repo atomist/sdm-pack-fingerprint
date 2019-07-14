@@ -25,7 +25,7 @@ import {
     ExtractFingerprint,
 } from "../..";
 import {
-    Feature,
+    Aspect,
     FP,
 } from "../machine/Feature";
 
@@ -80,7 +80,7 @@ export const applyBackpackFingerprint: ApplyFingerprint = async (p, fp) => {
     }
 };
 
-export const Backpack: Feature = {
+export const Backpack: Aspect = {
     displayName: "Backpack",
     name: "backpack-react-scripts",
     extract: backpackFingerprint,

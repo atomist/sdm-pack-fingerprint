@@ -21,9 +21,9 @@ import {
     mavenDeps,
     renderProjectLibDiff,
 } from "@atomist/clj-editors";
-import { Feature } from "../machine/Feature";
+import { Aspect } from "../machine/Feature";
 
-export const MavenDeps: Feature = {
+export const MavenDeps: Aspect = {
     displayName: "Maven dependencies",
     name: "maven-project-deps",
     extract: p => mavenDeps((p as LocalProject).baseDir),
@@ -32,7 +32,7 @@ export const MavenDeps: Feature = {
     summary: renderProjectLibDiff,
 };
 
-export const MavenCoordinates: Feature = {
+export const MavenCoordinates: Aspect = {
     displayName: "Maven dependencies",
     name: "maven-project-coordinates",
     extract: p => mavenCoordinates((p as LocalProject).baseDir),

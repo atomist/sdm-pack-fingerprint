@@ -15,7 +15,7 @@
  */
 
 import {
-    BaseFeature,
+    BaseAspect,
     FP,
 } from "./Feature";
 
@@ -29,7 +29,7 @@ export type RelevanceTest<SOURCE> = (fingerprintName: string, source: SOURCE) =>
  * Feature derived from some intermediate representation of a project such as a ProjectAnalysis.
  * As with DerivedFeature, the intermediate calculation must have been completed in a previous phase.
  */
-export interface DerivedFeature<SOURCE, FPI extends FP = FP> extends BaseFeature<FPI> {
+export interface DerivedAspect<SOURCE, FPI extends FP = FP> extends BaseAspect<FPI> {
 
     /**
      * Function to extract fingerprint(s) from an intermediate representation
@@ -53,7 +53,7 @@ export interface DerivedFeature<SOURCE, FPI extends FP = FP> extends BaseFeature
 
 }
 
-export function isDerivedFeature(feature: BaseFeature): feature is DerivedFeature<any> {
-    const maybe = feature as DerivedFeature<any>;
+export function isDerivedFeature(feature: BaseAspect): feature is DerivedAspect<any> {
+    const maybe = feature as DerivedAspect<any>;
     return !!maybe.derive;
 }

@@ -32,8 +32,8 @@ import {
 } from "../..";
 import { setNewTargetFingerprint } from "../handlers/commands/updateTarget";
 import {
+    Aspect,
     DiffSummaryFingerprint,
-    Feature,
 } from "../machine/Feature";
 import {
     DefaultTargetDiffHandler,
@@ -168,7 +168,7 @@ export const diffNpmCoordinatesFingerprints: DiffSummaryFingerprint = (diff, tar
 
 const NpmDepsName = "npm-project-deps";
 
-export const NpmDeps: Feature = {
+export const NpmDeps: Aspect = {
     displayName: "npm dependencies",
     name: NpmDepsName,
     extract: createNpmDepsFingerprints,
@@ -181,7 +181,7 @@ export const NpmDeps: Feature = {
     ],
 };
 
-export const NpmCoordinates: Feature = {
+export const NpmCoordinates: Aspect = {
     displayName: "npm coordinates",
     name: "npm-project-coordinates",
     extract: createNpmCoordinatesFingerprint,

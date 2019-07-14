@@ -37,8 +37,8 @@ import {
     GetFpTargets,
 } from "../typings/types";
 import {
+    Aspect,
     DiffContext,
-    Feature,
     FingerprintHandler,
     FP,
     Vote,
@@ -69,7 +69,7 @@ async function handleDiffs(
     previous: FP,
     info: MissingInfo,
     handlers: FingerprintHandler[],
-    feature: Feature,
+    feature: Aspect,
     i: PushImpactListenerInvocation): Promise<Vote[]> {
 
     const diff: DiffContext = {
@@ -201,7 +201,7 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
 
 export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
 
-export type FingerprintComputer = (fingerprinters: Feature[], p: Project) => Promise<FP[]>;
+export type FingerprintComputer = (fingerprinters: Aspect[], p: Project) => Promise<FP[]>;
 
 export const computeFingerprints: FingerprintComputer = async (fingerprinters, p) => {
 
@@ -230,9 +230,9 @@ export const computeFingerprints: FingerprintComputer = async (fingerprinters, p
  * Construct our FingerprintRunner for the current registrations
  */
 export function fingerprintRunner(
-    fingerprinters: Feature[],
+    fingerprinters: Aspect[],
     handlers: FingerprintHandler[],
-    computer: (fingerprinters: Feature[], p: Project) => Promise<FP[]>): FingerprintRunner {
+    computer: (fingerprinters: Aspect[], p: Project) => Promise<FP[]>): FingerprintRunner {
     return async (i: PushImpactListenerInvocation) => {
         const p: Project = i.project;
 
@@ -255,7 +255,7 @@ export function fingerprintRunner(
             const info = await missingInfo(i);
             const allVotes: Vote[] = (await Promise.all(
                 allFps.map(fp => {
-                    const fpFeature: Feature = fingerprinters.find(feature => feature.name === (fp.type || fp.name));
+                    const fpFeature: Aspect = fingerprinters.find(feature => feature.name === (fp.type || fp.name));
                     return handleDiffs(fp, previous[fp.name], info, handlers, fpFeature, i);
                 }),
             )).reduce<Vote[]>(

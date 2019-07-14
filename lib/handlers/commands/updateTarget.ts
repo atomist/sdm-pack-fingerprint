@@ -31,7 +31,7 @@ import {
     slackQuestionMessage,
 } from "@atomist/sdm";
 import * as _ from "lodash";
-import { Feature } from "../../..";
+import { Aspect } from "../../..";
 import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
 import {
     deleteFPTarget,
@@ -249,7 +249,7 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
  */
 export async function setNewTargetFingerprint(
     ctx: HandlerContext,
-    feature: Feature,
+    feature: Aspect,
     fp: FP,
     channel: string): Promise<Vote> {
 

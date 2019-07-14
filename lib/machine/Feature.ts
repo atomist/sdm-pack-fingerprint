@@ -103,7 +103,7 @@ export interface FingerprintComparator<FPI extends FP = FP> {
  * but may also be built from existing fingerprints (AtomicFeature) or derived from
  * an intermediate representation such as a ProjectAnalysis (DerivedFeature).
  */
-export interface BaseFeature<FPI extends FP = FP> {
+export interface BaseAspect<FPI extends FP = FP> {
 
     /**
      * Displayable name of this feature. Used only for reporting.
@@ -171,7 +171,7 @@ export interface BaseFeature<FPI extends FP = FP> {
 /**
  * Feature that extracts fingerprints directly from a Project.
  */
-export interface Feature<FPI extends FP = FP> extends BaseFeature<FPI> {
+export interface Aspect<FPI extends FP = FP> extends BaseAspect<FPI> {
 
     /**
      * Function to extract fingerprint(s) from this project
@@ -180,16 +180,11 @@ export interface Feature<FPI extends FP = FP> extends BaseFeature<FPI> {
 
 }
 
-/**
- * @deprecated use Feature
- */
-export type FingerprintRegistration = Feature;
-
 export interface DiffContext extends Diff {
     targets: GetFpTargets.Query;
 }
 
-export type FingerprintDiffHandler = (context: SdmContext, diff: DiffContext, feature: Feature) => Promise<Vote>;
+export type FingerprintDiffHandler = (context: SdmContext, diff: DiffContext, feature: Aspect) => Promise<Vote>;
 
 /**
  * Handles differences between fingerprints across pushes and between targets.

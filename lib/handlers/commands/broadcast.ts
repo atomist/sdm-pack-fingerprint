@@ -46,11 +46,11 @@ import {
     displayName,
 } from "../../machine/Features";
 import { applyFingerprintTitle } from "../../support/messages";
+import { FindOtherRepos } from "../../typings/types";
 import {
     ApplyTargetFingerprintName,
     BroadcastFingerprintMandateName,
 } from "./applyFingerprint";
-import { FindOtherRepos } from "../../typings/types";
 
 export function askAboutBroadcast(
     cli: CommandListenerInvocation,
@@ -144,12 +144,6 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudge
                 `findTaggedRepos(broadcastNudge) ${
                 JSON.stringify(
                     data.headCommitsWithFingerprint,
-                    // .filter(
-                    //     repo => repo.analysis.some(x => {
-                    //         return x.type === fp.type &&
-                    //             x.name === fp.name &&
-                    //             x.sha !== fp.sha;
-                    //     }))
                 )
                 }`);
             return data.headCommitsWithFingerprint.map(x => {
@@ -157,7 +151,12 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudge
                     name: x.repo.name,
                     owner: x.repo.owner,
                     channels: x.repo.channels,
-                    branches: [{ commit: { analysis: x.analysis } }],
+                    branches: [{
+                        commit: {
+                            ...x.commit,
+                            analysis: x.analysis,
+                        },
+                    }],
                 };
             });
         },

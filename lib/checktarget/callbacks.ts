@@ -35,8 +35,8 @@ import {
 } from "@atomist/sdm";
 import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
 import {
+    Aspect,
     Diff,
-    Feature,
     FP,
     Vote,
 } from "../machine/Feature";
@@ -56,7 +56,7 @@ import { GetFpTargets } from "../typings/types";
 function fingerprintOutOfSyncCallback(
     ctx: HandlerContext,
     diff: Diff,
-    feature: Feature,
+    feature: Aspect,
 ): (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
 
     return async (text, fpTarget, fingerprint) => {
@@ -192,7 +192,7 @@ export function votes(config: FingerprintImpactHandlerConfig):
 export async function checkFingerprintTarget(
     ctx: HandlerContext,
     diff: Diff,
-    feature: Feature,
+    feature: Aspect,
     targetsQuery: () => Promise<GetFpTargets.Query>): Promise<any> {
 
     return checkFingerprintTargets(
