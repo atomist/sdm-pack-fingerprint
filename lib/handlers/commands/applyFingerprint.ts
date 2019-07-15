@@ -245,6 +245,7 @@ export function broadcastFingerprintMandate(
             if (!!data.headCommitsWithFingerprint) {
                 refs.push(
                     ...data.headCommitsWithFingerprint
+                        .filter(head => !!head.branch && !!head.branch.name && head.branch.name === "master")
                         .filter(head => head.analysis.some(x => {
                             return x.type === fp.type &&
                                 x.name === fp.name &&
