@@ -47,6 +47,7 @@ import {
     broadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
+import { FingerprintMenu } from "../handlers/commands/fingerprints";
 import {
     ListFingerprint,
     ListFingerprints,
@@ -251,6 +252,8 @@ function configure(
 
     sdm.addCommand(listFingerprintTargets(sdm));
     sdm.addCommand(listOneFingerprintTarget(sdm));
+
+    sdm.addCommand(FingerprintMenu);
 
     sdm.addCodeTransformCommand(applyTarget(sdm, fpRegistrations, editModeMaker));
     sdm.addCodeTransformCommand(applyTargets(sdm, fpRegistrations, editModeMaker));
