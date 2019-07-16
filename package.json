@@ -27,7 +27,7 @@
     "@atomist/clj-editors": "0.7.5",
     "@atomist/slack-messages": "^1.1.1",
     "@cljs-oss/module-deps": "^1.1.1",
-    "lodash": "^4.17.11"
+    "lodash": "^4.17.14"
   },
   "peerDependencies": {
     "@atomist/automation-client": ">=1.6.0",
@@ -35,7 +35,7 @@
     "@atomist/sdm-core": ">=1.6.0"
   },
   "devDependencies": {
-    "@atomist/automation-client": "^1.6.1",
+    "@atomist/automation-client": "^1.6.2",
     "@atomist/sdm": "^1.6.0",
     "@atomist/sdm-core": "^1.6.0",
     "@types/lodash": "^4.14.136",
