@@ -15,7 +15,10 @@
  */
 
 import { buttonForCommand } from "@atomist/automation-client";
-import { CommandHandlerRegistration, slackQuestionMessage } from "@atomist/sdm";
+import {
+    CommandHandlerRegistration,
+    slackQuestionMessage,
+} from "@atomist/sdm";
 import { ListFingerprints } from "./list";
 
 export const FingerprintMenu: CommandHandlerRegistration = {
