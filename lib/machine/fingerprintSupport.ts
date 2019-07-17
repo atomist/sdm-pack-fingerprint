@@ -33,7 +33,6 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
-import * as _ from "lodash";
 import {
     checkFingerprintTarget,
 } from "../checktarget/callbacks";
@@ -50,18 +49,18 @@ import {
 import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import { FingerprintMenu } from "../handlers/commands/fingerprints";
 import {
-    ListFingerprint,
-    ListFingerprints,
+    listFingerprint,
+    listFingerprints,
 } from "../handlers/commands/list";
 import {
     listFingerprintTargets,
     listOneFingerprintTarget,
 } from "../handlers/commands/showTargets";
 import {
-    DeleteTargetFingerprint,
-    SelectTargetFingerprintFromCurrentProject,
+    deleteTargetFingerprint,
+    selectTargetFingerprintFromCurrentProject,
     SetTargetFingerprint,
-    SetTargetFingerprintFromLatestMaster,
+    setTargetFingerprintFromLatestMaster,
     UpdateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
 import {
@@ -233,18 +232,18 @@ function configure(
     fpRegistrations: Aspect[],
     editModeMaker: EditModeMaker): void {
 
-    sdm.addCommand(ListFingerprints);
-    sdm.addCommand(ListFingerprint);
+    sdm.addCommand(listFingerprints(sdm));
+    sdm.addCommand(listFingerprint(sdm));
 
     // set a target given using the entire JSON fingerprint payload in a parameter
     sdm.addCommand(SetTargetFingerprint);
     // set a different target after noticing that a fingerprint is different from current target
     sdm.addCommand(UpdateTargetFingerprint);
     // Bootstrap a fingerprint target by selecting one from current project
-    sdm.addCommand(SelectTargetFingerprintFromCurrentProject);
+    sdm.addCommand(selectTargetFingerprintFromCurrentProject(sdm));
     // Bootstrap a fingerprint target from project by name
-    sdm.addCommand(SetTargetFingerprintFromLatestMaster);
-    sdm.addCommand(DeleteTargetFingerprint);
+    sdm.addCommand(setTargetFingerprintFromLatestMaster(sdm));
+    sdm.addCommand(deleteTargetFingerprint(sdm));
 
     // standard actionable message embedding ApplyTargetFingerprint
     sdm.addCommand(BroadcastFingerprintNudge);

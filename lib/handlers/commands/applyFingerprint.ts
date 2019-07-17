@@ -169,7 +169,10 @@ export function applyTarget(
 
     return {
         name: ApplyTargetFingerprintName,
-        intent: ["apply fingerprint target", "applyFingerprint"],
+        intent: [
+          `apply fingerprint target ${sdm.configuration.name.replace("@", "")}`,
+          `applyFingerprint ${sdm.configuration.name.replace("@", "")}`,
+        ],
         description: "choose to raise a PR on the current project to apply a target fingerprint",
         parameters: {
             msgId: { required: false, displayable: false },
