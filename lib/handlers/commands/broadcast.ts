@@ -40,11 +40,11 @@ import {
     fromName,
     toName,
 } from "../../adhoc/preferences";
-import { FP } from "../../machine/Feature";
+import { FP } from "../../machine/Aspect";
 import {
-    applyToFeature,
+    applyToAspect,
     displayName,
-} from "../../machine/Features";
+} from "../../machine/Aspects";
 import { applyFingerprintTitle } from "../../support/messages";
 import { FindOtherRepos } from "../../typings/types";
 import {
@@ -111,7 +111,7 @@ export interface BroadcastFingerprintNudgeParameters extends ParameterType {
 
 function targetUpdateMessage(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>, type: string, name: string): string {
 
-    const displayableName: string = applyToFeature({ type, name, data: {}, sha: "" }, displayName);
+    const displayableName: string = applyToAspect({ type, name, data: {}, sha: "" }, displayName);
 
     return `${user(cli.parameters.author)} has updated the target version of ${codeLine(displayableName)}.
 

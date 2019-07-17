@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FP } from "./Feature";
+import { FP } from "./Aspect";
 
 /**
  * An ideal for a given fingerprint. This may be a concrete

@@ -23,7 +23,7 @@ import {
 } from "@atomist/clj-editors";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
-import { Diff } from "../machine/Feature";
+import { Diff } from "../machine/Aspect";
 
 export function comparator(path: string): (a: any, b: any) => number {
     return (a, b) => {

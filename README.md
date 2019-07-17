@@ -14,7 +14,7 @@ software.
 
 ## Features
 
-This pack sets a goal to monitor all git pushes and trackes the following features:
+This pack sets a goal to monitor all git pushes and trackes the following aspects:
 
 * leiningen `project.clj` files are monitored for updates to library dependencies and project version.
 * maven `pom.xml` files are monitored for updates to maven library dependencies and version coordinates.

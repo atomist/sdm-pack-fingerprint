@@ -96,31 +96,31 @@ export interface FingerprintComparator<FPI extends FP = FP> {
 }
 
 /**
- * Common properties for all features.
- * Features add the ability to manage a particular type of fingerprint:
+ * Common properties for all aspects.
+ * Aspects add the ability to manage a particular type of fingerprint:
  * for example, helping with convergence across an organization and supporting
- * visualization. Features are typically extracted from a Project (see Feature)
- * but may also be built from existing fingerprints (AtomicFeature) or derived from
- * an intermediate representation such as a ProjectAnalysis (DerivedFeature).
+ * visualization. Aspects are typically extracted from a Project (see Aspect)
+ * but may also be built from existing fingerprints (AtomicAspect) or derived from
+ * an intermediate representation such as a ProjectAnalysis (DerivedAspect).
  */
 export interface BaseAspect<FPI extends FP = FP> {
 
     /**
-     * Displayable name of this feature. Used only for reporting.
+     * Displayable name of this aspect. Used only for reporting.
      */
     readonly displayName: string;
 
     /**
-     * prefix for all fingerprints that are emitted by this Feature
+     * prefix for all fingerprints that are emitted by this Aspect
      */
     readonly name: string;
 
     /**
-     * Link to documentation for this Feature. This can help people
+     * Link to documentation for this Aspect. This can help people
      * understand the results graphs and results from the analysis
      * enabled here.
      *
-     * You might provide a link to the typedoc for Features you define,
+     * You might provide a link to the typedoc for Aspects you define,
      * or an internal page describing why you created this and what
      * people can do about their results.
      */
@@ -135,7 +135,7 @@ export interface BaseAspect<FPI extends FP = FP> {
 
     /**
      * Functions that can be used to compare fingerprint instances managed by this
-     * feature.
+     * aspect.
      */
     comparators?: Array<FingerprintComparator<FPI>>;
 
@@ -154,7 +154,7 @@ export interface BaseAspect<FPI extends FP = FP> {
     toDisplayableFingerprintName?(fingerprintName: string): string;
 
     /**
-     * Validate the feature. Return undefined or the empty array if there are no problems.
+     * Validate the aspect. Return undefined or the empty array if there are no problems.
      * @return {Promise<ReviewComment[]>}
      */
     validate?(fpi: FPI): Promise<ReviewComment[]>;
@@ -169,7 +169,7 @@ export interface BaseAspect<FPI extends FP = FP> {
 }
 
 /**
- * Feature that extracts fingerprints directly from a Project.
+ * Aspect that extracts fingerprints directly from a Project.
  */
 export interface Aspect<FPI extends FP = FP> extends BaseAspect<FPI> {
 
@@ -184,7 +184,7 @@ export interface DiffContext extends Diff {
     targets: GetFpTargets.Query;
 }
 
-export type FingerprintDiffHandler = (context: SdmContext, diff: DiffContext, feature: Aspect) => Promise<Vote>;
+export type FingerprintDiffHandler = (context: SdmContext, diff: DiffContext, aspect: Aspect) => Promise<Vote>;
 
 /**
  * Handles differences between fingerprints across pushes and between targets.

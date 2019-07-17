@@ -31,7 +31,7 @@ export {
     Vote,
     Diff,
     TypedFP,
-} from "./lib/machine/Feature";
+} from "./lib/machine/Aspect";
 export {
     fingerprintRunner,
     FingerprintRunner,
@@ -68,7 +68,7 @@ export {
 } from "./lib/fingerprints/maven";
 export * from "./lib/fingerprints/jsonFiles";
 
-export * from "./lib/machine/AtomicFeature";
-export * from "./lib/machine/DerivedFeature";
+export * from "./lib/machine/AtomicAspect";
+export * from "./lib/machine/DerivedAspect";
 
 export * from "./lib/machine/Ideal";

@@ -27,7 +27,7 @@ import {
 import {
     Aspect,
     FP,
-} from "../machine/Feature";
+} from "../machine/Aspect";
 
 export const backpackFingerprint: ExtractFingerprint = async p => {
 

@@ -32,6 +32,7 @@ import {
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
+import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
 import {
     checkFingerprintTarget,
@@ -69,8 +70,8 @@ import {
     FingerprintHandler,
     FP,
     Vote,
-} from "./Feature";
-import { addFeature } from "./Features";
+} from "./Aspect";
+import { addAspect } from "./Aspects";
 import {
     computeFingerprints,
     fingerprintRunner,
@@ -102,16 +103,16 @@ export interface FingerprintImpactHandlerConfig {
 
 /**
  * Setting up a PushImpactHandler to handle different strategies (FingerprintHandlers) involves giving them the opportunity
- * to configure the sdm, and they'll need all of the current active Features.
+ * to configure the sdm, and they'll need all of the current active Aspects.
  */
 export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, registrations: Aspect[]) => FingerprintHandler;
 
 export const DefaultTargetDiffHandler: FingerprintDiffHandler =
-    async (ctx, diff, feature) => {
+    async (ctx, diff, aspect) => {
         const v: Vote = await checkFingerprintTarget(
             ctx.context,
             diff,
-            feature,
+            aspect,
             async () => {
                 return diff.targets;
             },
@@ -125,9 +126,9 @@ export const DefaultTargetDiffHandler: FingerprintDiffHandler =
  * @param handler the FingerprintDiffHandler to wrap
  */
 export function diffOnlyHandler(handler: FingerprintDiffHandler): FingerprintDiffHandler {
-    return async (context, diff, feature) => {
+    return async (context, diff, aspect) => {
         if (diff.from && diff.to.sha !== diff.from.sha) {
-            return handler(context, diff, feature);
+            return handler(context, diff, aspect);
         } else {
             return {
                 abstain: true,
@@ -155,9 +156,9 @@ export interface FingerprintOptions {
     pushImpactGoal?: PushImpact;
 
     /**
-     * Features we are managing
+     * Aspects we are managing
      */
-    features: Aspect | Aspect[];
+    aspects: Aspect | Aspect[];
 
     /**
      * Register FingerprintHandler factories to handle fingerprint impacts
@@ -195,14 +196,14 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
         ...metadata(),
         configure: (sdm: SoftwareDeliveryMachine) => {
 
-            const fingerprints: Aspect[] = Array.isArray(options.features) ? options.features : [options.features];
+            const fingerprints: Aspect[] = toArray(options.aspects);
             // const handlerRegistrations: RegisterFingerprintImpactHandler[]
             //     = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
             // const handlers: FingerprintHandler[] = handlerRegistrations.map(h => h(sdm, fingerprints));
             const handlerRegistrations: RegisterFingerprintImpactHandler[] = [];
             const handlers: FingerprintHandler[] = [];
 
-            fingerprints.map(addFeature);
+            fingerprints.map(addAspect);
 
             // tslint:disable:deprecation
             if (!!options.fingerprintGoal) {

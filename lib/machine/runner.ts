@@ -42,7 +42,7 @@ import {
     FingerprintHandler,
     FP,
     Vote,
-} from "./Feature";
+} from "./Aspect";
 import { DefaultEditModeMaker } from "./fingerprintSupport";
 
 /**
@@ -55,13 +55,13 @@ interface MissingInfo {
 }
 
 /**
- * Give each Feature the opportunity to evaluate the current FP, the previous FP, and any target FP
+ * Give each Aspect the opportunity to evaluate the current FP, the previous FP, and any target FP
  *
  * @param fp current Fingerprint
  * @param previous Fingeprint from Push.before (could be nil)
  * @param info missing info
  * @param handlers deprecated handlers
- * @param feature parent Feature for this Fingerprint
+ * @param aspect parent Aspect for this Fingerprint
  * @param i PushImpactListenerInvocation
  */
 async function handleDiffs(
@@ -69,7 +69,7 @@ async function handleDiffs(
     previous: FP,
     info: MissingInfo,
     handlers: FingerprintHandler[],
-    feature: Aspect,
+    aspect: Aspect,
     i: PushImpactListenerInvocation): Promise<Vote[]> {
 
     const diff: DiffContext = {
@@ -91,23 +91,23 @@ async function handleDiffs(
             handlers
                 .filter(h => h.diffHandler)
                 .filter(h => h.selector(fp))
-                .map(h => h.diffHandler(i, diff, feature)));
+                .map(h => h.diffHandler(i, diff, aspect)));
     }
     const currentVotes: Vote[] = await Promise.all(
         handlers
             .filter(h => h.handler)
             .filter(h => h.selector(fp))
-            .map(h => h.handler(i, diff, feature)));
+            .map(h => h.handler(i, diff, aspect)));
 
-    let featureVotes: Vote[] = [];
-    if (feature.workflows) {
-        featureVotes = await Promise.all(feature.workflows.map(h => h(i, diff, feature)));
+    let aspectVotes: Vote[] = [];
+    if (aspect.workflows) {
+        aspectVotes = await Promise.all(aspect.workflows.map(h => h(i, diff, aspect)));
     }
 
     return [].concat(
         diffVotes,
         currentVotes,
-        featureVotes,
+        aspectVotes,
     );
 }
 
@@ -148,10 +148,10 @@ const targetDiffBallot = votes({
 });
 
 /**
- * Delay handling Votes from Feature diff handlers until all of them are available so that
+ * Delay handling Votes from Aspect diff handlers until all of them are available so that
  * we can build Messages that can report on all target diffs
  *
- * @param vts votes from all of the Feature diff handlers
+ * @param vts votes from all of the Aspect diff handlers
  * @param handlers deprecated external set of handlers
  * @param i PushImpactListenerInvocation
  * @param info missing info
@@ -255,8 +255,8 @@ export function fingerprintRunner(
             const info = await missingInfo(i);
             const allVotes: Vote[] = (await Promise.all(
                 allFps.map(fp => {
-                    const fpFeature: Aspect = fingerprinters.find(feature => feature.name === (fp.type || fp.name));
-                    return handleDiffs(fp, previous[fp.name], info, handlers, fpFeature, i);
+                    const fpAspect: Aspect = fingerprinters.find(aspects => aspects.name === (fp.type || fp.name));
+                    return handleDiffs(fp, previous[fp.name], info, handlers, fpAspect, i);
                 }),
             )).reduce<Vote[]>(
                 (acc, vts) => acc.concat(vts),

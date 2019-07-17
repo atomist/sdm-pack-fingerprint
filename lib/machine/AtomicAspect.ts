@@ -22,15 +22,15 @@ import {
     BaseAspect,
     FingerprintSelector,
     FP,
-} from "./Feature";
-import { applyToFeature } from "./Features";
+} from "./Aspect";
+import { applyToAspect } from "./Aspects";
 
 /**
- * Feature derived from existing fingerprints.
+ * Aspect derived from existing fingerprints.
  * Surfaces as a single fingerprint. Implementations must
  * also support atomic application.
  */
-export interface AtomicFeature<FPI extends FP = FP> extends BaseAspect<FPI> {
+export interface AtomicAspect<FPI extends FP = FP> extends BaseAspect<FPI> {
 
     /**
      * Function to extract fingerprint(s) from this project
@@ -39,33 +39,33 @@ export interface AtomicFeature<FPI extends FP = FP> extends BaseAspect<FPI> {
 
 }
 
-export function isAtomicFeature(feature: BaseAspect): feature is AtomicFeature {
-    const maybe = feature as AtomicFeature;
+export function isAtomicAspect(aspect: BaseAspect): aspect is AtomicAspect {
+    const maybe = aspect as AtomicAspect;
     return !!maybe.consolidate;
 }
 
 /**
- * Create a composite feature from the given other features or extractors.
+ * Create a composite aspect from the given other aspects or extractors.
  * Will use a single fingerprint that is made of many others. Ordering is significant:
- * atomic features can only be computed after normal fingerprints have been calculated.
- * @param featureData identifying data of new composite fingerprint
- * @param narrower function to select fingerprints from the various features that we are interested in
- * @param feature0 first feature to combine
- * @param features other features
+ * atomic aspects can only be computed after normal fingerprints have been calculated.
+ * @param aspectData identifying data of new composite fingerprint
+ * @param narrower function to select fingerprints from the various aspects that we are interested in
+ * @param aspect0 first aspect to combine
+ * @param aspects other aspects
  */
-export function atomicFeature(
-    featureData: Pick<Aspect, "displayName" | "summary" |
+export function atomicAspect(
+    aspectData: Pick<Aspect, "displayName" | "summary" |
         "comparators" | "toDisplayableFingerprint" | "toDisplayableFingerprintName" | "name">,
     narrower: FingerprintSelector,
-    feature0: BaseAspect,
-    ...features: BaseAspect[]): AtomicFeature {
-    const prefix = featureData.displayName + ":";
-    const allFeatures = [feature0, ...features];
-    const apply: ApplyFingerprint = allFeatures.some(f => !f.apply) ?
+    aspect0: BaseAspect,
+    ...aspects: BaseAspect[]): AtomicAspect {
+    const prefix = aspectData.displayName + ":";
+    const allAspects = [aspect0, ...aspects];
+    const apply: ApplyFingerprint = allAspects.some(f => !f.apply) ?
         undefined :
-        applyAll(allFeatures, narrower);
+        applyAll(allAspects, narrower);
     return {
-        ...featureData,
+        ...aspectData,
         apply,
         consolidate: async fps => {
             // Extract a single composite fingerprint
@@ -86,14 +86,14 @@ function createCompositeFingerprint(prefix: string, fingerprints: FP[]): FP {
         };
 }
 
-function applyAll(allFeatures: BaseAspect[], narrower: FingerprintSelector): ApplyFingerprint {
+function applyAll(allAspects: BaseAspect[], narrower: FingerprintSelector): ApplyFingerprint {
     return async (p, fp) => {
 
         for (const individualFingerprint of fp.data) {
-            await applyToFeature(individualFingerprint, async (feature, fingerprint) => {
-                logger.info("Applying fingerprint %s with feature %s",
-                    individualFingerprint.name, feature.displayName);
-                await feature.apply(p, individualFingerprint);
+            await applyToAspect(individualFingerprint, async (aspect, fingerprint) => {
+                logger.info("Applying fingerprint %s with aspect %s",
+                    individualFingerprint.name, aspect.displayName);
+                await aspect.apply(p, individualFingerprint);
             });
         }
         return true;

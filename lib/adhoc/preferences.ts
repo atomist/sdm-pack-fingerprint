@@ -18,7 +18,7 @@ import {
     GraphClient,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
-import { FP } from "../machine/Feature";
+import { FP } from "../machine/Aspect";
 import {
     DeleteFpTarget,
     GetFpTargets,

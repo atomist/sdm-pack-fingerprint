@@ -16,12 +16,13 @@
 
 import { logger } from "@atomist/automation-client";
 import {
-    ApplyFingerprint, BaseAspect,
+    ApplyFingerprint,
+    BaseAspect,
     ExtractFingerprint,
     FP,
     sha256,
 } from "../..";
-import { Aspect } from "../machine/Feature";
+import { Aspect } from "../machine/Aspect";
 
 export interface FileFingerprint extends FP {
     data: {
@@ -56,26 +57,26 @@ export function createFilesFingerprint(type: string,
         const fps: FileFingerprint[] = [];
         await Promise.all(
             filenames.map(async filename => {
-                const file = await p.getFile(filename);
+                    const file = await p.getFile(filename);
 
-                if (file) {
-                    const content = await file.getContent();
-                    const canonicalized = canonicalize(content);
-                    fps.push(
-                        {
-                            type,
-                            name: filename,
-                            abbreviation: `file-${filename}`,
-                            version: "0.0.1",
-                            data: {
-                                content,
-                                filename,
+                    if (file) {
+                        const content = await file.getContent();
+                        const canonicalized = canonicalize(content);
+                        fps.push(
+                            {
+                                type,
+                                name: filename,
+                                abbreviation: `file-${filename}`,
+                                version: "0.0.1",
+                                data: {
+                                    content,
+                                    filename,
+                                },
+                                sha: sha256(JSON.stringify(canonicalized)),
                             },
-                            sha: sha256(JSON.stringify(canonicalized)),
-                        },
-                    );
-                }
-            },
+                        );
+                    }
+                },
             ));
 
         return fps;
@@ -107,15 +108,15 @@ export const JsonFile: Aspect = {
 };
 
 /**
- * Create a feature that handles the given files
- * @return {Feature}
+ * Create a aspect that handles the given files
+ * @return {Aspect}
  */
-export function filesFeature(opts: {
-    type: string,
-    canonicalize: (content: string) => any,
-} & Pick<BaseAspect<FileFingerprint>, "name" | "displayName" |
-    "toDisplayableFingerprintName" | "toDisplayableFingerprint">,
-                             ...files: string[]): Aspect<FileFingerprint> {
+export function filesAspect(opts: {
+                                type: string,
+                                canonicalize: (content: string) => any,
+                            } & Pick<BaseAspect<FileFingerprint>, "name" | "displayName" |
+                                "toDisplayableFingerprintName" | "toDisplayableFingerprint">,
+                            ...files: string[]): Aspect<FileFingerprint> {
     return {
         ...opts,
         extract: createFilesFingerprint(

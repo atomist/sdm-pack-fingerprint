@@ -21,14 +21,14 @@ import {
     constructNpmDepsFingerprintName,
     createNpmDepFingerprint,
 } from "../../lib/fingerprints/npmDeps";
-import { atomicFeature } from "../../lib/machine/AtomicFeature";
 import {
     Aspect,
     ExtractFingerprint,
-} from "../../lib/machine/Feature";
-import { addFeature } from "../../lib/machine/Features";
+} from "../../lib/machine/Aspect";
+import { addAspect } from "../../lib/machine/Aspects";
+import { atomicAspect } from "../../lib/machine/AtomicAspect";
 
-describe("atomicFeature", () => {
+describe("atomicAspect", () => {
 
     it("should ignore everything", async () => {
         const fp = createNpmDepFingerprint("foo", "0.1.0");
@@ -37,11 +37,11 @@ describe("atomicFeature", () => {
             displayName: "foo",
             name: "foo",
         };
-        const feature = atomicFeature({
+        const aspect = atomicAspect({
             displayName: "composite",
             name: "composite",
         }, () => false, f1);
-        const fingerprinted = await feature.consolidate([fp]);
+        const fingerprinted = await aspect.consolidate([fp]);
         assert.strictEqual(fingerprinted, undefined);
     });
 
@@ -53,11 +53,11 @@ describe("atomicFeature", () => {
             displayName: "foo",
             name: "foo",
         };
-        const feature = atomicFeature({
+        const aspect = atomicAspect({
             displayName: "composite",
             name: "composite",
         }, () => true, f1);
-        const fingerprinted = toArray(await feature.consolidate([fp]));
+        const fingerprinted = toArray(await aspect.consolidate([fp]));
         assert(!!fingerprinted);
         assert.strictEqual(fingerprinted[0].name, "composite:" + constructNpmDepsFingerprintName("foo"));
     });
@@ -74,11 +74,11 @@ describe("atomicFeature", () => {
             displayName: "foo",
             name: "foo",
         };
-        const feature = atomicFeature({
+        const aspect = atomicAspect({
             displayName: "composite",
             name: "name",
         }, fp => fp.name.endsWith("foo") || fp.name.endsWith("bar"), f1);
-        const fingerprinted = toArray(await feature.consolidate([fp1, fp2, fp3]));
+        const fingerprinted = toArray(await aspect.consolidate([fp1, fp2, fp3]));
         assert(!!fingerprinted);
         assert.strictEqual(fingerprinted.length, 1);
         assert(fingerprinted[0].name.includes("foo"));
@@ -121,11 +121,11 @@ describe("atomicFeature", () => {
                 return true;
             },
         };
-        addFeature(f1);
-        addFeature(f2);
+        addAspect(f1);
+        addAspect(f2);
 
-        // create Atomic Feature
-        const feature = atomicFeature(
+        // create Atomic Aspect
+        const aspect = atomicAspect(
             {
                 displayName: "composite",
                 name: "composite",
@@ -134,8 +134,8 @@ describe("atomicFeature", () => {
             f1,
             f2);
 
-        // create consolidated fingerprint for Atomist Feature
-        const consolidated = await feature.consolidate([fp1, fp2]);
+        // create consolidated fingerprint for Atomist Aspect
+        const consolidated = await aspect.consolidate([fp1, fp2]);
 
         // check consolidated fingerprint
         assert(!!consolidated);
@@ -144,7 +144,7 @@ describe("atomicFeature", () => {
 
         // apply consolidated fingerprint and ensure both apply functions run
         const p = InMemoryProject.of();
-        await feature.apply(p, consolidated);
+        await aspect.apply(p, consolidated);
         assert(await p.hasFile("f1"));
         assert(await p.hasFile("f2"));
     });

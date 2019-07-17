@@ -24,12 +24,12 @@ import {
     DiffSummary,
     FP,
     Vote,
-} from "../machine/Feature";
+} from "../machine/Aspect";
 import {
-    applyToFeature,
+    applyToAspect,
     displayName,
     displayValue,
-} from "../machine/Features";
+} from "../machine/Aspects";
 import { orDefault } from "./util";
 
 export interface GitCoordinate {
@@ -47,9 +47,9 @@ export const updateableMessage: MessageIdMaker = (shas, coordinate: GitCoordinat
     // return _.times(20, () => _.random(35).toString(36)).join("");
 };
 
-function displayFingerprint(feature: Aspect, fp: FP): string {
-    if (feature.toDisplayableFingerprint) {
-        return feature.toDisplayableFingerprint(fp);
+function displayFingerprint(aspect: Aspect, fp: FP): string {
+    if (aspect.toDisplayableFingerprint) {
+        return aspect.toDisplayableFingerprint(fp);
     } else {
         return JSON.stringify(fp.data);
     }
@@ -58,15 +58,15 @@ function displayFingerprint(feature: Aspect, fp: FP): string {
 /**
  * get a diff summary if any registrations support one for this Fingerprint type
  */
-export function getDiffSummary(diff: Diff, target: FP, feature: Aspect): undefined | DiffSummary {
+export function getDiffSummary(diff: Diff, target: FP, aspect: Aspect): undefined | DiffSummary {
 
     try {
-        if (feature.summary) {
-            return feature.summary(diff, target);
+        if (aspect.summary) {
+            return aspect.summary(diff, target);
         } else {
             return {
                 title: "Target diff",
-                description: `from ${displayFingerprint(feature, diff.from)} to ${displayFingerprint(feature, diff.to)}`,
+                description: `from ${displayFingerprint(aspect, diff.from)} to ${displayFingerprint(aspect, diff.to)}`,
             };
         }
     } catch (e) {
@@ -78,7 +78,7 @@ export function getDiffSummary(diff: Diff, target: FP, feature: Aspect): undefin
 
 export function applyFingerprintTitle(fp: FP): string {
     try {
-        return `Apply fingerprint ${applyToFeature(fp, displayName)} (${applyToFeature(fp, displayValue)})`;
+        return `Apply fingerprint ${applyToAspect(fp, displayName)} (${applyToAspect(fp, displayValue)})`;
     } catch (ex) {
         return `Apply fingerprint ${fp.name}`;
     }

@@ -19,31 +19,31 @@ import {
     FP,
 } from "../..";
 
-export function displayName(feature: Aspect, fp: FP): string {
-    if (!!feature.toDisplayableFingerprintName) {
-        return `${feature.toDisplayableFingerprintName(fp.name)}`;
+export function displayName(aspect: Aspect, fp: FP): string {
+    if (!!aspect.toDisplayableFingerprintName) {
+        return `${aspect.toDisplayableFingerprintName(fp.name)}`;
     } else {
         return `${fp.name}`;
     }
 }
 
-export function displayValue(feature: Aspect, fp: FP): string {
-    if (!!feature.toDisplayableFingerprint) {
-        return `${feature.toDisplayableFingerprint(fp)}`;
+export function displayValue(aspect: Aspect, fp: FP): string {
+    if (!!aspect.toDisplayableFingerprint) {
+        return `${aspect.toDisplayableFingerprint(fp)}`;
     } else {
         return `${fp.data}`;
     }
 }
 
-const features = new Map<string, Aspect>();
+const aspects = new Map<string, Aspect>();
 
-export function addFeature(feature: Aspect): void {
-    features.set(feature.name, feature);
+export function addAspect(aspect: Aspect): void {
+    aspects.set(aspect.name, aspect);
 }
 
-export function applyToFeature<T>(fp: FP, f: (feature: Aspect, fp: FP) => T): T {
-    if (!features.get(fp.type || fp.name)) {
-        throw new Error(`can not lookup Feature for ${fp.type}::${fp.name}`);
+export function applyToAspect<T>(fp: FP, f: (aspect: Aspect, fp: FP) => T): T {
+    if (!aspects.get(fp.type || fp.name)) {
+        throw new Error(`can not lookup Aspect for ${fp.type}::${fp.name}`);
     }
-    return f(features.get(fp.type), fp);
+    return f(aspects.get(fp.type), fp);
 }

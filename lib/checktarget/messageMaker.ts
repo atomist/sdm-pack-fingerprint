@@ -40,7 +40,7 @@ import {
     ApplyTargetFingerprintName,
 } from "../handlers/commands/applyFingerprint";
 import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
-import { Vote } from "../machine/Feature";
+import { Vote } from "../machine/Aspect";
 import {
     applyFingerprintTitle,
     GitCoordinate,

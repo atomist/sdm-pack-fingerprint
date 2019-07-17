@@ -17,7 +17,7 @@
 import {
     BaseAspect,
     FP,
-} from "./Feature";
+} from "./Aspect";
 
 /**
  * Do we consider that the particular fingerprint is relevant to this project,
@@ -26,8 +26,8 @@ import {
 export type RelevanceTest<SOURCE> = (fingerprintName: string, source: SOURCE) => boolean;
 
 /**
- * Feature derived from some intermediate representation of a project such as a ProjectAnalysis.
- * As with DerivedFeature, the intermediate calculation must have been completed in a previous phase.
+ * Aspect derived from some intermediate representation of a project such as a ProjectAnalysis.
+ * As with DerivedAspect, the intermediate calculation must have been completed in a previous phase.
  */
 export interface DerivedAspect<SOURCE, FPI extends FP = FP> extends BaseAspect<FPI> {
 
@@ -40,20 +40,20 @@ export interface DerivedAspect<SOURCE, FPI extends FP = FP> extends BaseAspect<F
     derive: (source: SOURCE) => Promise<FPI | FPI[]>;
 
     /**
-     * Is this feature relevant to this project? For example, if
+     * Is this aspect relevant to this project? For example, if
      * we are tracking TypeScript version, is this even a Node project?
      * Is the target at all relevant
      */
     relevanceTest?: RelevanceTest<SOURCE>;
 
     /**
-     * Is this feature desired on this project, according to our standards?
+     * Is this aspect desired on this project, according to our standards?
      */
     necessityTest?: RelevanceTest<SOURCE>;
 
 }
 
-export function isDerivedFeature(feature: BaseAspect): feature is DerivedAspect<any> {
-    const maybe = feature as DerivedAspect<any>;
+export function isDerivedAspect(aspect: BaseAspect): aspect is DerivedAspect<any> {
+    const maybe = aspect as DerivedAspect<any>;
     return !!maybe.derive;
 }

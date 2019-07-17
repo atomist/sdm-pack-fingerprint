@@ -34,7 +34,7 @@ import { setNewTargetFingerprint } from "../handlers/commands/updateTarget";
 import {
     Aspect,
     DiffSummaryFingerprint,
-} from "../machine/Feature";
+} from "../machine/Aspect";
 import {
     DefaultTargetDiffHandler,
     diffOnlyHandler,
@@ -189,7 +189,7 @@ export const NpmCoordinates: Aspect = {
     toDisplayableFingerprint: fp => fp.data,
     workflows: [
         diffOnlyHandler(
-            (ctx, diff, feature) => {
+            (ctx, diff) => {
                 if (diff.channel) {
                     return setNewTargetFingerprint(
                         ctx.context,

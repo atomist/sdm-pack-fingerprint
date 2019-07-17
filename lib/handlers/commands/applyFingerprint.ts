@@ -50,8 +50,8 @@ import {
 import {
     Aspect,
     FP,
-} from "../../machine/Feature";
-import { applyToFeature } from "../../machine/Features";
+} from "../../machine/Aspect";
+import { applyToAspect } from "../../machine/Aspects";
 import { EditModeMaker } from "../../machine/fingerprintSupport";
 import { FindOtherRepos } from "../../typings/types";
 
@@ -72,9 +72,9 @@ async function pushFingerprint(
 
     logger.info(`transform running -- ${fingerprint.name}/${fingerprint.sha} --`);
 
-    await applyToFeature(fingerprint, async (feature, fp) => {
-        if (feature.apply) {
-            const result: boolean = await feature.apply(p, fp);
+    await applyToAspect(fingerprint, async (aspect, fp) => {
+        if (aspect.apply) {
+            const result: boolean = await aspect.apply(p, fp);
             if (!result) {
                 await message(`failure applying fingerprint ${fp.name}`);
             } else {

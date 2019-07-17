@@ -36,7 +36,7 @@ import {
     queryPreferences,
     toName,
 } from "../../adhoc/preferences";
-import { FP } from "../../machine/Feature";
+import { FP } from "../../machine/Aspect";
 import { comparator } from "../../support/util";
 import { GetFpTargets } from "../../typings/types";
 

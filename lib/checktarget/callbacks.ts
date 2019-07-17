@@ -39,7 +39,7 @@ import {
     Diff,
     FP,
     Vote,
-} from "../machine/Feature";
+} from "../machine/Aspect";
 import {
     FingerprintImpactHandlerConfig,
 } from "../machine/fingerprintSupport";
@@ -56,7 +56,7 @@ import { GetFpTargets } from "../typings/types";
 function fingerprintOutOfSyncCallback(
     ctx: HandlerContext,
     diff: Diff,
-    feature: Aspect,
+    aspect: Aspect,
 ): (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
 
     return async (text, fpTarget, fingerprint) => {
@@ -68,7 +68,7 @@ function fingerprintOutOfSyncCallback(
             fingerprint,
             fpTarget,
             text,
-            summary: getDiffSummary(diff, fpTarget, feature),
+            summary: getDiffSummary(diff, fpTarget, aspect),
         };
     };
 }
@@ -192,12 +192,12 @@ export function votes(config: FingerprintImpactHandlerConfig):
 export async function checkFingerprintTarget(
     ctx: HandlerContext,
     diff: Diff,
-    feature: Aspect,
+    aspect: Aspect,
     targetsQuery: () => Promise<GetFpTargets.Query>): Promise<any> {
 
     return checkFingerprintTargets(
         targetsQuery,
-        fingerprintOutOfSyncCallback(ctx, diff, feature),
+        fingerprintOutOfSyncCallback(ctx, diff, aspect),
         fingerprintInSyncCallback(ctx, diff),
         diff,
     );

@@ -21,7 +21,7 @@ import {
     mavenDeps,
     renderProjectLibDiff,
 } from "@atomist/clj-editors";
-import { Aspect } from "../machine/Feature";
+import { Aspect } from "../machine/Aspect";
 
 export const MavenDeps: Aspect = {
     displayName: "Maven dependencies",

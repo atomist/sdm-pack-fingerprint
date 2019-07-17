@@ -42,11 +42,11 @@ import {
 import {
     FP,
     Vote,
-} from "../../machine/Feature";
+} from "../../machine/Aspect";
 import {
     displayName,
     displayValue,
-} from "../../machine/Features";
+} from "../../machine/Aspects";
 import {
     GetAllFpsOnSha,
     GetFpByBranch,
@@ -249,14 +249,14 @@ export const DeleteTargetFingerprint: CommandHandlerRegistration<DeleteTargetFin
  */
 export async function setNewTargetFingerprint(
     ctx: HandlerContext,
-    feature: Aspect,
+    aspect: Aspect,
     fp: FP,
     channel: string): Promise<Vote> {
 
     // TODO this FP doesn't necessarily hold an FP with a version
     const message = slackQuestionMessage(
         "Fingerprint Target",
-        `Shall we update the target of ${displayName(feature, fp)} to \`${displayValue(feature, fp)}\` for all projects?`,
+        `Shall we update the target of ${displayName(aspect, fp)} to \`${displayValue(aspect, fp)}\` for all projects?`,
         {
             actions: [
                 actionableButton<any>(

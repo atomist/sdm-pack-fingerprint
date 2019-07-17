@@ -91,9 +91,9 @@ const CljServiceGenerator: GeneratorRegistration = {
 //     },
 // };
 
-export const featureGoal = new PushImpact();
+export const pushImpact = new PushImpact();
 const FingerprintingGoals: Goals = goals("check fingerprints")
-    .plan(featureGoal, // complianceGoal
+    .plan(pushImpact, // complianceGoal
     );
 
 export function machineMaker(config: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
@@ -119,8 +119,8 @@ export function machineMaker(config: SoftwareDeliveryMachineConfiguration): Soft
     sdm.addExtensionPacks(
         goalStateSupport(),
         fingerprintSupport({
-            pushImpactGoal: featureGoal,
-            features:
+            pushImpactGoal: pushImpact,
+            aspects:
                 [
                     NpmDeps,
                     NpmCoordinates,
