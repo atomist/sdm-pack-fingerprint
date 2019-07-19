@@ -124,6 +124,5 @@ export function filesAspect(opts: {
             opts.canonicalize,
             ...files),
         apply: applyFileFingerprint,
-        toDisplayableFingerprint: fp => fp.name,
     };
 }
