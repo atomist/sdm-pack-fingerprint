@@ -92,6 +92,7 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
                         name: "AddFingerprints",
                         variables: {
                             additions,
+                            isDefaultBranch: (ids.Repo[0].defaultBranch === i.push.branch),
                             type,
                             branchId: ids.Repo[0].branches[0].id,
                             repoId: ids.Repo[0].id,

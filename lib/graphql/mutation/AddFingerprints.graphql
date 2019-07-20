@@ -1,7 +1,7 @@
-mutation AddFingerprints($type: String!, $additions: [FingerprintInput!]!, $branchId: String!, $sha: String!, $repoId: String!) {
+mutation AddFingerprints($type: String!, $additions: [FingerprintInput!]!, $branchId: String!, $sha: String!, $repoId: String!, $isDefaultBranch: Boolean!) {
   setCommitFingerprints(
     add: $additions,
-    isDefaultBranch: true,
+    isDefaultBranch: $isDefaultBranch,
     isHeadCommit: true,
     type: $type,
     branchId: $branchId,
