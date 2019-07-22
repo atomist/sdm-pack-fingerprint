@@ -19,10 +19,10 @@ import {
     Project,
     ReviewComment,
 } from "@atomist/automation-client";
-import {SdmContext} from "@atomist/sdm";
-import {GitCoordinate} from "../support/messages";
-import {GetFpTargets} from "../typings/types";
-import {Ideal} from "./Ideal";
+import { SdmContext } from "@atomist/sdm";
+import { GitCoordinate } from "../support/messages";
+import { GetFpTargets } from "../typings/types";
+import { Ideal } from "./Ideal";
 
 /**
  * Fingerprint interface. An Aspect can emit zero or more fingerprints,
