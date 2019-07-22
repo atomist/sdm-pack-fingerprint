@@ -19,13 +19,14 @@ import {
     Project,
     ReviewComment,
 } from "@atomist/automation-client";
-import { SdmContext } from "@atomist/sdm";
-import { GitCoordinate } from "../support/messages";
-import { GetFpTargets } from "../typings/types";
-import { Ideal } from "./Ideal";
+import {SdmContext} from "@atomist/sdm";
+import {GitCoordinate} from "../support/messages";
+import {GetFpTargets} from "../typings/types";
+import {Ideal} from "./Ideal";
 
 /**
- * Fingerprint interface
+ * Fingerprint interface. An Aspect can emit zero or more fingerprints,
+ * which must have the same data type.
  */
 export interface FP {
     type?: string;
@@ -47,10 +48,16 @@ export interface Vote {
     summary?: { title: string, description: string };
 }
 
+/**
+ * Difference between two fingerprints
+ */
 export interface Diff {
     from: FP;
     to: FP;
-    data: { from: any[], to: any[] };
+    data: {
+        from: any[];
+        to: any[];
+    };
     owner: string;
     repo: string;
     sha: string;
@@ -102,6 +109,8 @@ export interface FingerprintComparator<FPI extends FP = FP> {
  * visualization. Aspects are typically extracted from a Project (see Aspect)
  * but may also be built from existing fingerprints (AtomicAspect) or derived from
  * an intermediate representation such as a ProjectAnalysis (DerivedAspect).
+ * The structure (that is, the data payload) of all fingerprints emitted by an aspect
+ * should be the same.
  */
 export interface BaseAspect<FPI extends FP = FP> {
 
@@ -165,7 +174,42 @@ export interface BaseAspect<FPI extends FP = FP> {
      */
     suggestedIdeals?(type: string, fingerprintName: string): Promise<Ideal[]>;
 
+    /**
+     * Workflows to be invoked on a fingerprint change. This supports use cases such as
+     * reacting to a potential impactful change and cascading changes to other projects.
+     */
     workflows?: FingerprintDiffHandler[];
+
+    /**
+     * Indications about how to calculate stats for this aspect across
+     * multiple projects. An aspect without AspectStats will have its entropy
+     * calculated by default.
+     */
+    stats?: AspectStats;
+}
+
+/**
+ * Type for default stats that can be calculated on any feature.
+ */
+export type DefaultStat = "entropy";
+
+/**
+ * Indication about how to calculate custom stats across multiple projects for an Aspect.
+ */
+export interface AspectStats {
+
+    /**
+     * Default stats, such as entropy, that are irrelevant for this aspect and should not be exposed.
+     */
+    excludedDefaultStats?: Set<DefaultStat>;
+
+    /**
+     * Path inside JSON data structure to compute mean, stdev etc.
+     * The value at this path must be numeric. If an aspect appears to need multiple
+     * basicStatsPaths, break it up into finer grained aspects.
+     */
+    basicStatsPath?: string;
+
 }
 
 /**
