@@ -39,6 +39,7 @@ import {
 import {
     IgnoreCommandRegistration,
     MessageMaker,
+    messageMaker,
 } from "../checktarget/messageMaker";
 import {
     applyTarget,
@@ -204,21 +205,28 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 
             fingerprints.map(addAspect);
 
+            const runner = fingerprintRunner(
+                fingerprints,
+                handlers,
+                computeFingerprints,
+                {
+                    messageMaker,
+                    transformPresentation: DefaultEditModeMaker,
+                    ...options,
+                });
+
             // tslint:disable:deprecation
             if (!!options.fingerprintGoal) {
                 options.fingerprintGoal.with({
                     name: `${options.fingerprintGoal.uniqueName}-fingerprinter`,
                     action: async (i: PushImpactListenerInvocation) => {
-                        await (fingerprintRunner(
-                            fingerprints,
-                            handlers,
-                            computeFingerprints))(i);
+                        await runner(i);
                         return [];
                     },
                 });
             }
             if (!!options.pushImpactGoal) {
-                options.pushImpactGoal.withListener(fingerprintRunner(fingerprints, handlers, computeFingerprints));
+                options.pushImpactGoal.withListener(runner);
             }
 
             configure(sdm, handlerRegistrations, fingerprints, options.transformPresentation || DefaultEditModeMaker);

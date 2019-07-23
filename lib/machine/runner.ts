@@ -43,7 +43,11 @@ import {
     FP,
     Vote,
 } from "./Aspect";
-import { DefaultEditModeMaker } from "./fingerprintSupport";
+import {
+    DefaultEditModeMaker,
+    FingerprintImpactHandlerConfig,
+    FingerprintOptions,
+} from "./fingerprintSupport";
 
 /**
  * PushListenerImpactInvocations don't have this info and must be faulted in currently.  This is probably not ideal.
@@ -139,40 +143,6 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
         {});
 }
 
-/**
- * TODO Default PR generation style and message making for target diff handlers probably need to be configurable
- */
-const targetDiffBallot = votes({
-    transformPresentation: DefaultEditModeMaker,
-    messageMaker,
-});
-
-/**
- * Delay handling Votes from Aspect diff handlers until all of them are available so that
- * we can build Messages that can report on all target diffs
- *
- * @param vts votes from all of the Aspect diff handlers
- * @param handlers deprecated external set of handlers
- * @param i PushImpactListenerInvocation
- * @param info missing info
- */
-async function tallyVotes(vts: Vote[], handlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo): Promise<void> {
-
-    const coordinate: GitCoordinate = {
-        owner: i.push.repo.owner,
-        repo: i.push.repo.name,
-        sha: i.push.after.sha,
-        providerId: info.providerId,
-        branch: i.push.branch,
-    };
-
-    return targetDiffBallot(
-        i.context,
-        vts,
-        coordinate,
-        info.channel);
-}
-
 async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo> {
 
     const info = {
@@ -232,7 +202,32 @@ export const computeFingerprints: FingerprintComputer = async (fingerprinters, p
 export function fingerprintRunner(
     fingerprinters: Aspect[],
     handlers: FingerprintHandler[],
-    computer: (fingerprinters: Aspect[], p: Project) => Promise<FP[]>): FingerprintRunner {
+    computer: (fingerprinters: Aspect[], p: Project) => Promise<FP[]>,
+    options: FingerprintOptions & FingerprintImpactHandlerConfig = {
+        aspects: [],
+        transformPresentation: DefaultEditModeMaker,
+        messageMaker,
+    }): FingerprintRunner {
+
+    const targetDiffBallot = votes({ ...options });
+
+    const tallyVotes = async (vts: Vote[], fingerprintHandlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo) => {
+
+        const coordinate: GitCoordinate = {
+            owner: i.push.repo.owner,
+            repo: i.push.repo.name,
+            sha: i.push.after.sha,
+            providerId: info.providerId,
+            branch: i.push.branch,
+        };
+
+        return targetDiffBallot(
+            i.context,
+            vts,
+            coordinate,
+            info.channel);
+    };
+
     return async (i: PushImpactListenerInvocation) => {
         const p: Project = i.project;
 

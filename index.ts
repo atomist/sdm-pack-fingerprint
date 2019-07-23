@@ -20,6 +20,7 @@ export {
     diffOnlyHandler,
     DefaultTargetDiffHandler,
     DefaultEditModeMaker,
+    EditModeMaker,
 } from "./lib/machine/fingerprintSupport";
 export {
     BaseAspect,
