@@ -146,18 +146,20 @@ function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudge
                     data.headCommitsWithFingerprint,
                 )
                 }`);
-            return data.headCommitsWithFingerprint.map(x => {
-                return {
-                    name: x.repo.name,
-                    owner: x.repo.owner,
-                    channels: x.repo.channels,
-                    branches: [{
-                        commit: {
-                            ...x.commit,
-                            analysis: x.analysis,
-                        },
-                    }],
-                };
+            return data.headCommitsWithFingerprint
+                .filter(head => !!head.branch && !!head.branch.name && head.branch.name === "master")
+                .map(x => {
+                    return {
+                        name: x.repo.name,
+                        owner: x.repo.owner,
+                        channels: x.repo.channels,
+                        branches: [{
+                            commit: {
+                                ...x.commit,
+                                analysis: x.analysis,
+                            },
+                        }],
+                    };
             });
         },
         {
