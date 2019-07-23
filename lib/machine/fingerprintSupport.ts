@@ -38,8 +38,8 @@ import {
 } from "../checktarget/callbacks";
 import {
     IgnoreCommandRegistration,
-    MessageMaker,
     messageMaker,
+    MessageMaker,
 } from "../checktarget/messageMaker";
 import {
     applyTarget,
