@@ -169,7 +169,7 @@ export const diffNpmCoordinatesFingerprints: DiffSummaryFingerprint = (diff, tar
 const NpmDepsName = "npm-project-deps";
 
 export const NpmDeps: Aspect = {
-    displayName: "npm dependencies",
+    displayName: "NPM dependencies",
     name: NpmDepsName,
     extract: createNpmDepsFingerprints,
     apply: applyNpmDepsFingerprint,
@@ -182,7 +182,7 @@ export const NpmDeps: Aspect = {
 };
 
 export const NpmCoordinates: Aspect = {
-    displayName: "npm coordinates",
+    displayName: "NPM coordinates",
     name: "npm-project-coordinates",
     extract: createNpmCoordinatesFingerprint,
     summary: diffNpmCoordinatesFingerprints,

@@ -33,12 +33,12 @@ export const MavenDeps: Aspect = {
 };
 
 export const MavenCoordinates: Aspect = {
-    displayName: "Maven dependencies",
+    displayName: "Maven coordinates",
     name: "maven-project-coordinates",
     extract: p => mavenCoordinates((p as LocalProject).baseDir),
     apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
     toDisplayableFingerprint: fp => fp.name,
-    summary: (diff, target) => {
+    summary: diff => {
         return {
             title: "Maven Coordinates have Updated",
             description: `from ${diff.from.data} to ${diff.to.data}`,
