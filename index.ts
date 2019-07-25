@@ -25,6 +25,7 @@ export {
 export {
     BaseAspect,
     Aspect,
+    AspectStats,
     ApplyFingerprint,
     ExtractFingerprint,
     DiffSummaryFingerprint,
