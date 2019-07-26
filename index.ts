@@ -32,6 +32,7 @@ export {
     ExtractFingerprint,
     DiffSummaryFingerprint,
     FP,
+    supportsEntropy,
     Vote,
     Diff,
     TypedFP,

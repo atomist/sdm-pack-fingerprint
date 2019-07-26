@@ -24,6 +24,8 @@ import { GitCoordinate } from "../support/messages";
 import { GetFpTargets } from "../typings/types";
 import { Ideal } from "./Ideal";
 
+import * as _ from "lodash";
+
 /**
  * Fingerprint interface. An Aspect can emit zero or more fingerprints,
  * which must have the same data type.
@@ -220,6 +222,13 @@ export interface AspectStats {
      */
     basicStatsPath?: string;
 
+}
+
+/**
+ * Does this aspect support entropy, or is it turned off?
+ */
+export function supportsEntropy(ba: BaseAspect): boolean {
+    return _.get(ba, "stats.defaultStatStatus.entropy", true) !== false;
 }
 
 /**
