@@ -27,6 +27,8 @@ export {
     Aspect,
     AspectStats,
     ApplyFingerprint,
+    DefaultStat,
+    DefaultStatStatus,
     ExtractFingerprint,
     DiffSummaryFingerprint,
     FP,

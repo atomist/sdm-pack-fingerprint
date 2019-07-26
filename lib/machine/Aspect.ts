@@ -194,14 +194,24 @@ export interface BaseAspect<FPI extends FP = FP> {
 export type DefaultStat = "entropy";
 
 /**
+ * Type to use to customize calculation of default stats, such as entropy.
+ * By default, all default stats are calculated and exposed.
+ * To disable any, set a value of false for the key (such as "entropy"). A value of true
+ * continues to include the stat.
+ */
+export type DefaultStatStatus = Partial<Record<DefaultStat, boolean>>;
+
+/**
  * Indication about how to calculate custom stats across multiple projects for an Aspect.
  */
 export interface AspectStats {
 
     /**
-     * Default stats, such as entropy, that are irrelevant for this aspect and should not be exposed.
+     * Set the status for calculating and exposing default stats, such as entropy.
+     * Some may be irrelevant for this aspect.
+     * Default is to calculate all stats.
      */
-    excludedDefaultStats?: Set<DefaultStat>;
+    defaultStatStatus?: DefaultStatStatus;
 
     /**
      * Path inside JSON data structure to compute mean, stdev etc.
