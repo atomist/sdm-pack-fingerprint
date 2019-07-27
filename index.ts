@@ -35,7 +35,6 @@ export {
     supportsEntropy,
     Vote,
     Diff,
-    TypedFP,
 } from "./lib/machine/Aspect";
 export {
     fingerprintRunner,
