@@ -175,12 +175,15 @@ export const DefaultEditModeMaker: EditModeMaker = (ci, p) => {
     // body can be derived from ApplyTargetParameters
     // optional message is undefined here
     // target branch is hard-coded to master
+
+    const fingerprint = ci.parameters.fingerprint || ci.parameters.targetfingerprint;
+
     return new editModes.PullRequest(
         `apply-target-fingerprint-${Date.now()}`,
         ci.parameters.title,
         `${ci.parameters.body}
 
-[atomist:generated]`,
+[atomist:generated]${!!fingerprint ? ` [fingerprint:${fingerprint}`: ""}`,
         undefined,
         ci.parameters.branch || "master",
         {

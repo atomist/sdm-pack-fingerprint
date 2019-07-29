@@ -34,7 +34,6 @@ import {
     italic,
     user,
 } from "@atomist/slack-messages";
-import * as _ from "lodash";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import {
     fromName,
@@ -82,8 +81,8 @@ export function askAboutBroadcast(
                     },
                     BroadcastFingerprintMandateName,
                     {
+                        title: applyFingerprintTitle(fp),
                         body: applyFingerprintTitle(fp),
-                        title: "Broadcasting PRs",
                         branch: "master",
                         fingerprint: toName(fp.type, fp.name),
                         msgId,

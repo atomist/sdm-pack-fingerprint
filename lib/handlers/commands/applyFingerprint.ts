@@ -256,7 +256,7 @@ export function broadcastFingerprintMandate(
 
             await createJob<ApplyTargetFingerprintParameters>({
                 command: ApplyTargetFingerprintName,
-                description: `Applying target of fingerprint ${type}`,
+                description: `Applying target of fingerprint ${codeLine(i.parameters.fingerprint)}`,
                 name: `ApplyTargetFingerprint/${i.parameters.fingerprint}`,
                 parameters: refs.map(r => ({
                     title: i.parameters.title,
