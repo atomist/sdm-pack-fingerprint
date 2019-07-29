@@ -44,7 +44,6 @@ type MessageIdMaker = (shas: string[], coordinate: GitCoordinate, channel: strin
 
 export const updateableMessage: MessageIdMaker = (shas, coordinate: GitCoordinate, channel: string) => {
     return consistentHash([...shas, channel, coordinate.owner, coordinate.repo]);
-    // return _.times(20, () => _.random(35).toString(36)).join("");
 };
 
 function displayFingerprint(aspect: Aspect, fp: FP): string {

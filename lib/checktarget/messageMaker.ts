@@ -33,7 +33,6 @@ import {
     bold,
     SlackMessage,
 } from "@atomist/slack-messages";
-import * as _ from "lodash";
 import { toName } from "../adhoc/preferences";
 import {
     ApplyAllFingerprintsName,
@@ -102,7 +101,10 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
     };
 }
 
-interface IgnoreParameters extends ParameterType { msgId: string; fingerprints: string; }
+interface IgnoreParameters extends ParameterType {
+    msgId: string;
+    fingerprints: string;
+}
 
 export const IgnoreCommandRegistration: CommandHandlerRegistration<IgnoreParameters> = {
     name: "IgnoreFingerprintDiff",
@@ -188,15 +190,11 @@ export const messageMaker: MessageMaker = async params => {
     if (params.voteResults.failedVotes.length > 1) {
         message.attachments.push(applyAll(params));
     } else {
-        message.attachments.push(
-            {
-                text: "Ignore this change",
-                fallback: "Ignore this change",
-                actions: [
-                    ignoreButton(params),
-                ],
-            },
-        );
+        const lastAttachment = message.attachments[message.attachments.length - 1];
+        lastAttachment.actions = [
+            ...(lastAttachment.actions || []),
+            ignoreButton(params),
+        ];
     }
 
     message.attachments[message.attachments.length - 1].footer = slackFooter();
