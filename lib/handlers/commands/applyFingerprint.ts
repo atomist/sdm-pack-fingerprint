@@ -273,7 +273,7 @@ export function broadcastFingerprintMandate(
 
             const message = slackSuccessMessage(
                 "Boardcast Fingerprint Target",
-                `Successfully scheduled job to apply target for fingerprint ${bold(type)} to ${refs.length} ${refs.length > 1 ? "repositories" : "repository"}`);
+                `Successfully scheduled job to apply target for fingerprint ${codeLine(i.parameters.fingerprint)} to ${refs.length} ${refs.length > 1 ? "repositories" : "repository"}`);
 
             // replace the previous message where we chose this action
             await i.addressChannels(message, { id: i.parameters.msgId });

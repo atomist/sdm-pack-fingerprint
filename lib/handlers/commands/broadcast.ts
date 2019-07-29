@@ -16,6 +16,7 @@
 
 import {
     buttonForCommand,
+    guid,
     logger,
     ParameterType,
 } from "@atomist/automation-client";
@@ -57,7 +58,7 @@ export function askAboutBroadcast(
     msgId: string): Promise<void> {
 
     const author = cli.context.source.slack.user.id;
-
+    const id = msgId || guid();
     const message = slackQuestionMessage(
         "Broadcast Fingerprint Target",
         `Shall we send every affected repository a nudge or pull request for the new  ${codeLine(toName(fp.type, fp.name))} target?`,
@@ -85,7 +86,7 @@ export function askAboutBroadcast(
                         body: applyFingerprintTitle(fp),
                         branch: "master",
                         fingerprint: toName(fp.type, fp.name),
-                        msgId,
+                        msgId: id,
                     },
                 ),
             ],
@@ -93,7 +94,7 @@ export function askAboutBroadcast(
     );
 
     // always create a new message
-    return cli.addressChannels(message, { id: msgId });
+    return cli.addressChannels(message, { id });
 }
 
 // ------------------------------
