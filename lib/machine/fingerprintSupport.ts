@@ -183,7 +183,7 @@ export const DefaultEditModeMaker: EditModeMaker = (ci, p) => {
         ci.parameters.title,
         `${ci.parameters.body}
 
-[atomist:generated]${!!fingerprint ? ` [fingerprint:${fingerprint}`: ""}`,
+[atomist:generated]${!!fingerprint ? ` [fingerprint:${fingerprint}` : ""}`,
         undefined,
         ci.parameters.branch || "master",
         {
