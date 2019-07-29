@@ -22,6 +22,10 @@ import {
     LoggingProgressLog,
     spawnLog,
 } from "@atomist/sdm";
+import {
+    bold,
+    codeLine,
+} from "@atomist/slack-messages";
 import _ = require("lodash");
 import {
     ApplyFingerprint,
@@ -129,19 +133,22 @@ export const createNpmCoordinatesFingerprint: ExtractFingerprint = async p => {
 };
 
 export const applyNpmDepsFingerprint: ApplyFingerprint = async (p, fp) => {
+    const pckage = fp.data[0];
+    const version = fp.data[1];
     const file = await p.getFile("package.json");
-    if (file) {
+    if (!!file) {
+        const pj = (await file.getContent())
+            .replace(new RegExp(`"${pckage}":\\s*".*"`, "g"), `"${pckage}": "${version}"`);
+        await file.setContent(pj);
         const log = new LoggingProgressLog("npm install");
         const result = await spawnLog(
             "npm",
-            ["install", `${fp.data[0]}@${fp.data[1]}`, "--save-exact"],
+            ["install"],
             {
                 cwd: (p as LocalProject).baseDir,
                 log,
-                logCommand: false,
+                logCommand: true,
             });
-        logger.info("finished npm install");
-        await log.flush();
         logger.info(log.log);
         return result.code === 0;
     } else {
@@ -152,9 +159,9 @@ export const applyNpmDepsFingerprint: ApplyFingerprint = async (p, fp) => {
 /* tslint:disable:max-line-length */
 export const diffNpmDepsFingerprints: DiffSummaryFingerprint = (diff, target) => {
     return {
-        title: "New Library Target",
+        title: "New NPM Package Target",
         description:
-            `Target version for library *${diff.from.data[0]}* is *${target.data[1]}*.\nCurrently *${diff.from.data[1]}* in *${diff.owner}/${diff.repo}*`,
+            `Target version for NPM package ${bold(diff.from.data[0])} is ${codeLine(target.data[1])}.\nProject ${bold(`${diff.owner}/${diff.repo}/${diff.branch}`)} is currently configured to use version ${codeLine(diff.to.data[1])}.`,
     };
 };
 
