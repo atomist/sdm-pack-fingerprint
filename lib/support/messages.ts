@@ -26,7 +26,7 @@ import {
     Vote,
 } from "../machine/Aspect";
 import {
-    applyToAspect,
+    aspectOf,
     displayName,
     displayValue,
 } from "../machine/Aspects";
@@ -75,19 +75,20 @@ export function getDiffSummary(diff: Diff, target: FP, aspect: Aspect): undefine
     return undefined;
 }
 
-export function applyFingerprintTitle(fp: FP): string {
-    try {
-        return `Apply fingerprint ${applyToAspect(fp, displayName)} (${applyToAspect(fp, displayValue)})`;
-    } catch (ex) {
+export function applyFingerprintTitle(fp: FP, aspects: Aspect[]): string {
+    const aspect = aspectOf(fp, aspects);
+    if (!!aspect) {
+        return `Apply fingerprint ${displayName(aspect, fp)} (${displayValue(aspect, fp)})`;
+    } else {
         return `Apply fingerprint ${fp.name}`;
     }
 }
 
-export function prBody(vote: Vote): string {
+export function prBody(vote: Vote, aspects: Aspect[]): string {
     const title: string =
         orDefault(
             () => vote.summary.title,
-            applyFingerprintTitle(vote.fpTarget));
+            applyFingerprintTitle(vote.fpTarget, aspects));
     const description: string =
         orDefault(
             () => vote.summary.description,

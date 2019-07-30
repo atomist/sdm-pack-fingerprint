@@ -15,6 +15,7 @@
  */
 
 export {
+    createPullRequestEditModeMaker,
     fingerprintSupport,
     forFingerprints,
     diffOnlyHandler,

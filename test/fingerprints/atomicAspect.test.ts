@@ -25,7 +25,6 @@ import {
     Aspect,
     ExtractFingerprint,
 } from "../../lib/machine/Aspect";
-import { addAspect } from "../../lib/machine/Aspects";
 import { atomicAspect } from "../../lib/machine/AtomicAspect";
 
 describe("atomicAspect", () => {
@@ -121,8 +120,6 @@ describe("atomicAspect", () => {
                 return true;
             },
         };
-        addAspect(f1);
-        addAspect(f2);
 
         // create Atomic Aspect
         const aspect = atomicAspect(

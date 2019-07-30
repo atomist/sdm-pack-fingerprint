@@ -33,9 +33,8 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
-import {
-    checkFingerprintTarget,
-} from "../checktarget/callbacks";
+import * as _ from "lodash";
+import { checkFingerprintTarget } from "../checktarget/callbacks";
 import {
     IgnoreCommandRegistration,
     messageMaker,
@@ -47,7 +46,7 @@ import {
     applyTargets,
     broadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
-import { BroadcastFingerprintNudge } from "../handlers/commands/broadcast";
+import { broadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import { FingerprintMenu } from "../handlers/commands/fingerprints";
 import {
     listFingerprint,
@@ -60,9 +59,9 @@ import {
 import {
     deleteTargetFingerprint,
     selectTargetFingerprintFromCurrentProject,
-    SetTargetFingerprint,
+    setTargetFingerprint,
     setTargetFingerprintFromLatestMaster,
-    UpdateTargetFingerprint,
+    updateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
 import {
     Aspect,
@@ -71,7 +70,6 @@ import {
     FP,
     Vote,
 } from "./Aspect";
-import { addAspect } from "./Aspects";
 import {
     computeFingerprints,
     fingerprintRunner,
@@ -169,28 +167,42 @@ export interface FingerprintOptions {
     transformPresentation?: EditModeMaker;
 }
 
-export const DefaultEditModeMaker: EditModeMaker = (ci, p) => {
-    // name the branch apply-target-fingerprint with a Date
-    // title can be derived from ApplyTargetParameters
-    // body can be derived from ApplyTargetParameters
-    // optional message is undefined here
-    // target branch is hard-coded to master
+export const DefaultEditModeMaker: EditModeMaker = createPullRequestEditModeMaker();
 
-    const fingerprint = ci.parameters.fingerprint || ci.parameters.targetfingerprint;
+export function createPullRequestEditModeMaker(options: {
+    branchPrefix?: string,
+    title?: string,
+    body?: string,
+    message?: string,
+    autoMerge?: {
+        method?: AutoMergeMethod,
+        mode?: AutoMergeMode,
+    },
+} = { }): EditModeMaker {
+    return ci => {
 
-    return new editModes.PullRequest(
-        `apply-target-fingerprint-${Date.now()}`,
-        ci.parameters.title,
-        `${ci.parameters.body}
+        // name the branch apply-target-fingerprint with a Date
+        // title can be derived from ApplyTargetParameters
+        // body can be derived from ApplyTargetParameters
+        // optional message is undefined here
+        // target branch is hard-coded to master
+
+        const fingerprint = ci.parameters.fingerprint || ci.parameters.targetfingerprint;
+        const autoMerge = _.get(options, "autoMerge") || {};
+        return new editModes.PullRequest(
+            options.branchPrefix || `apply-target-fingerprint-${Date.now()}`,
+            options.title || ci.parameters.title,
+            options.body || `${ci.parameters.body}
 
 [atomist:generated]${!!fingerprint ? ` [fingerprint:${fingerprint}]` : ""}`,
-        undefined,
-        ci.parameters.branch || "master",
-        {
-            method: AutoMergeMethod.Squash,
-            mode: AutoMergeMode.ApprovedReview,
-        });
-};
+            options.message,
+            ci.parameters.branch || "master",
+            {
+                method: autoMerge.method || AutoMergeMethod.Squash,
+                mode: autoMerge.mode || AutoMergeMode.ApprovedReview,
+            });
+    };
+}
 
 /**
  * Install and configure the fingerprint support in this SDM
@@ -207,8 +219,6 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
             // const handlers: FingerprintHandler[] = handlerRegistrations.map(h => h(sdm, fingerprints));
             const handlerRegistrations: RegisterFingerprintImpactHandler[] = [];
             const handlers: FingerprintHandler[] = [];
-
-            fingerprints.map(addAspect);
 
             const runner = fingerprintRunner(
                 fingerprints,
@@ -242,24 +252,24 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
 function configure(
     sdm: SoftwareDeliveryMachine,
     handlers: RegisterFingerprintImpactHandler[],
-    fpRegistrations: Aspect[],
+    aspects: Aspect[],
     editModeMaker: EditModeMaker): void {
 
     sdm.addCommand(listFingerprints(sdm));
     sdm.addCommand(listFingerprint(sdm));
 
     // set a target given using the entire JSON fingerprint payload in a parameter
-    sdm.addCommand(SetTargetFingerprint);
+    sdm.addCommand(setTargetFingerprint(aspects));
     // set a different target after noticing that a fingerprint is different from current target
-    sdm.addCommand(UpdateTargetFingerprint);
+    sdm.addCommand(updateTargetFingerprint(aspects));
     // Bootstrap a fingerprint target by selecting one from current project
     sdm.addCommand(selectTargetFingerprintFromCurrentProject(sdm));
     // Bootstrap a fingerprint target from project by name
-    sdm.addCommand(setTargetFingerprintFromLatestMaster(sdm));
+    sdm.addCommand(setTargetFingerprintFromLatestMaster(sdm, aspects));
     sdm.addCommand(deleteTargetFingerprint(sdm));
 
     // standard actionable message embedding ApplyTargetFingerprint
-    sdm.addCommand(BroadcastFingerprintNudge);
+    sdm.addCommand(broadcastFingerprintNudge(aspects));
 
     sdm.addCommand(IgnoreCommandRegistration);
 
@@ -268,9 +278,9 @@ function configure(
 
     sdm.addCommand(FingerprintMenu);
 
-    sdm.addCodeTransformCommand(applyTarget(sdm, fpRegistrations, editModeMaker));
-    sdm.addCodeTransformCommand(applyTargets(sdm, fpRegistrations, editModeMaker));
+    sdm.addCodeTransformCommand(applyTarget(sdm, aspects, editModeMaker));
+    sdm.addCodeTransformCommand(applyTargets(sdm, aspects, editModeMaker));
 
-    sdm.addCommand(broadcastFingerprintMandate(sdm, fpRegistrations));
+    sdm.addCommand(broadcastFingerprintMandate(sdm, aspects));
 
 }

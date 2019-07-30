@@ -39,7 +39,10 @@ import {
     ApplyTargetFingerprintName,
 } from "../handlers/commands/applyFingerprint";
 import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
-import { Vote } from "../machine/Aspect";
+import {
+    Aspect,
+    Vote,
+} from "../machine/Aspect";
 import {
     applyFingerprintTitle,
     GitCoordinate,
@@ -53,6 +56,7 @@ export interface MessageMakerParams {
     msgId: string;
     channel: string;
     coord: GitCoordinate;
+    aspects: Aspect[];
 }
 
 export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult>;
@@ -78,9 +82,9 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
                 {
                     msgId: params.msgId,
                     targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
-                    title: applyFingerprintTitle(vote.fpTarget),
+                    title: applyFingerprintTitle(vote.fpTarget, params.aspects),
                     branch: vote.diff.branch,
-                    body: prBody(vote),
+                    body: prBody(vote, params.aspects),
                     targets: {
                         owner: vote.diff.owner,
                         repo: vote.diff.repo,
@@ -157,7 +161,7 @@ function applyAll(params: MessageMakerParams): Attachment {
                     msgId: params.msgId,
                     fingerprints: params.voteResults.failedVotes.map(vote => toName(vote.fpTarget.type, vote.fpTarget.name)).join(","),
                     title: `Apply all of \`${params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(", ")}\``,
-                    body: params.voteResults.failedVotes.map(prBody).join("\n"),
+                    body: params.voteResults.failedVotes.map(v => prBody(v, params.aspects)).join("\n"),
                     targets: {
                         owner: params.coord.owner,
                         repo: params.coord.repo,

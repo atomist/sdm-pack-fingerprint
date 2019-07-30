@@ -209,7 +209,7 @@ export function fingerprintRunner(
         messageMaker,
     }): FingerprintRunner {
 
-    const targetDiffBallot = votes({ ...options });
+    const targetDiffBallot = votes(options);
 
     const tallyVotes = async (vts: Vote[], fingerprintHandlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo) => {
 
