@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased](https://github.com/atomist/sdm-pack-fingerprints/compare/4.0.2...HEAD)
 
+### Fixed
+
+-   Update diff handler for npm project deps. [#107](https://github.com/atomist/sdm-pack-fingerprints/issues/107)
+
 ## [4.0.2](https://github.com/atomist/sdm-pack-fingerprints/compare/4.0.1...4.0.2) - 2019-07-23
 
 ## [4.0.1](https://github.com/atomist/sdm-pack-fingerprints/compare/4.0.0...4.0.1) - 2019-07-23
