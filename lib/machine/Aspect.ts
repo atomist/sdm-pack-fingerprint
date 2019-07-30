@@ -29,12 +29,13 @@ import * as _ from "lodash";
 /**
  * Fingerprint interface. An Aspect can emit zero or more fingerprints,
  * which must have the same data type.
+ * @param DATA type parameter for data
  */
-export interface FP {
+export interface FP<DATA = any> {
     type?: string;
     name: string;
     sha: string;
-    data: any;
+    data: DATA;
     version?: string;
     abbreviation?: string;
 }
@@ -66,13 +67,6 @@ export interface Diff {
     providerId: string;
     channel: string;
     branch: string;
-}
-
-/**
- * Fingerprint that has a typed data payload
- */
-export interface TypedFP<T> extends FP {
-    data: T;
 }
 
 /**
