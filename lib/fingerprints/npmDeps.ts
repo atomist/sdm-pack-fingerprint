@@ -41,12 +41,17 @@ import {
 } from "../machine/fingerprintSupport";
 
 /**
+ * [lib, version]
+ */
+export type NpmDepData = string[];
+
+/**
  * Construct an npmdep fingerprint from the given library and version
  * @param {string} lib
  * @param {string} version
  * @return {FP}
  */
-export function createNpmDepFingerprint(lib: string, version: string): FP {
+export function createNpmDepFingerprint(lib: string, version: string): FP<NpmDepData> {
     const data = [lib, version];
     return {
         type: NpmDepsName,
@@ -83,7 +88,7 @@ export function deconstructNpmDepsFingerprintName(fingerprintName: string): stri
     }
 }
 
-export const createNpmDepsFingerprints: ExtractFingerprint = async p => {
+export const createNpmDepsFingerprints: ExtractFingerprint<FP<NpmDepData>> = async p => {
     const file = await p.getFile("package.json");
 
     if (file) {
@@ -128,7 +133,7 @@ export const createNpmCoordinatesFingerprint: ExtractFingerprint = async p => {
 
 };
 
-export const applyNpmDepsFingerprint: ApplyFingerprint = async (p, fp) => {
+export const applyNpmDepsFingerprint: ApplyFingerprint<FP<NpmDepData>> = async (p, fp) => {
     const file = await p.getFile("package.json");
     if (file) {
         const log = new LoggingProgressLog("npm install");
@@ -168,7 +173,10 @@ export const diffNpmCoordinatesFingerprints: DiffSummaryFingerprint = (diff, tar
 
 const NpmDepsName = "npm-project-deps";
 
-export const NpmDeps: Aspect = {
+/**
+ * Aspect emitting 0 or more npm dependencies fingerprints.
+ */
+export const NpmDeps: Aspect<FP<NpmDepData>> = {
     displayName: "NPM dependencies",
     name: NpmDepsName,
     extract: createNpmDepsFingerprints,
