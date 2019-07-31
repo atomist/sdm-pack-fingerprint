@@ -192,13 +192,13 @@ export function createPullRequestEditModeMaker(options: {
         const title = options.title || ci.parameters.title || `Apply fingerprint target (${fingerprint})`;
         const body = options.body || ci.parameters.body || title;
         return new editModes.PullRequest(
-            options.branchPrefix || `apply-target-fingerprint-${Date.now()}`,
+            `${options.branchPrefix || "apply-target-fingerprint"}-${Date.now()}`,
             title,
             `${body}
 
 [atomist:generated]${!!fingerprint ? ` [fingerprint:${fingerprint}]` : ""}`,
             options.message,
-            ci.parameters.branch || p.id.branch,
+            p.id.branch,
             {
                 method: autoMerge.method || AutoMergeMethod.Squash,
                 mode: autoMerge.mode || AutoMergeMode.ApprovedReview,
