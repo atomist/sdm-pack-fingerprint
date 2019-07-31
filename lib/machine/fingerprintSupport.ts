@@ -282,7 +282,7 @@ function configure(
 
     sdm.addCodeTransformCommand(applyTarget(sdm, aspects, editModeMaker));
     sdm.addCodeTransformCommand(applyTargets(sdm, aspects, editModeMaker));
-    sdm.addCodeTransformCommand(applyTargetBySha(sdm, aspects, editModeMaker))
+    sdm.addCodeTransformCommand(applyTargetBySha(sdm, aspects, editModeMaker));
 
     sdm.addCommand(broadcastFingerprintMandate(sdm, aspects));
 

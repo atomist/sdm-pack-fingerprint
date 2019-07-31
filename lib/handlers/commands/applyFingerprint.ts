@@ -101,7 +101,6 @@ export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<Appl
     };
 }
 
-
 export function runFingerprintAppliersBySha(aspects: Aspect[]): CodeTransform<ApplyTargetFingerprintByShaParameters> {
     return async (p, cli) => {
 
