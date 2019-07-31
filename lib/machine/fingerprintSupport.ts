@@ -180,13 +180,12 @@ export function createPullRequestEditModeMaker(options: {
         mode?: AutoMergeMode,
     },
 } = { }): EditModeMaker {
-    return ci => {
+    return (ci, p) => {
 
         // name the branch apply-target-fingerprint with a Date
         // title can be derived from ApplyTargetParameters
         // body can be derived from ApplyTargetParameters
         // optional message is undefined here
-        // target branch is hard-coded to master
 
         const fingerprint = ci.parameters.fingerprint || ci.parameters.targetfingerprint || ci.parameters.type;
         const autoMerge = _.get(options, "autoMerge") || {};
@@ -199,7 +198,7 @@ export function createPullRequestEditModeMaker(options: {
 
 [atomist:generated]${!!fingerprint ? ` [fingerprint:${fingerprint}]` : ""}`,
             options.message,
-            ci.parameters.branch || "master",
+            ci.parameters.branch || p.id.branch,
             {
                 method: autoMerge.method || AutoMergeMethod.Squash,
                 mode: autoMerge.mode || AutoMergeMode.ApprovedReview,
