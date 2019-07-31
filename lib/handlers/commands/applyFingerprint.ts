@@ -18,6 +18,7 @@ import {
     GitProject,
     logger,
     ParameterType,
+    QueryNoCacheOptions,
     RepoRef,
 } from "@atomist/automation-client";
 import {
@@ -44,7 +45,10 @@ import {
 } from "../../machine/Aspect";
 import { aspectOf } from "../../machine/Aspects";
 import { EditModeMaker } from "../../machine/fingerprintSupport";
-import { FindOtherRepos } from "../../typings/types";
+import {
+    FindOtherRepos,
+    GetFpBySha,
+} from "../../typings/types";
 
 /**
  * Call relevant apply functions from Registrations for a Fingerprint
@@ -88,6 +92,41 @@ export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<Appl
                 cli.context.graphClient,
                 type,
                 name));
+
+        if (result) {
+            return p;
+        } else {
+            return { edited: false, success: true, target: p };
+        }
+    };
+}
+
+
+export function runFingerprintAppliersBySha(aspects: Aspect[]): CodeTransform<ApplyTargetFingerprintByShaParameters> {
+    return async (p, cli) => {
+
+        const message = slackInfoMessage(
+            "Apply Fingerprint Target",
+            `Applying fingerprint target ${codeLine(`${cli.parameters.targetfingerprint}`)} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
+
+        await cli.addressChannels(message, { id: cli.parameters.msgId });
+
+        const { type, name } = fromName(cli.parameters.targetfingerprint);
+
+        const fp = await cli.context.graphClient.query<GetFpBySha.Query, GetFpBySha.Variables>({
+            name: "GetFpBySha",
+            variables: {
+                type,
+                name,
+                sha: cli.parameters.sha,
+            },
+            options: QueryNoCacheOptions,
+        });
+
+        const result = pushFingerprint(
+            (p as GitProject),
+            aspects,
+            fp.SourceFingerprint as any);
 
         if (result) {
             return p;
@@ -144,12 +183,11 @@ export interface ApplyTargetFingerprintParameters extends ApplyTargetParameters 
     targetfingerprint: string;
 }
 
-// use where ApplyTargetFingerprint was used
 export const ApplyTargetFingerprintName = "ApplyTargetFingerprint";
 
 export function applyTarget(
     sdm: SoftwareDeliveryMachine,
-    registrations: Aspect[],
+    aspects: Aspect[],
     presentation: EditModeMaker): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
 
     return {
@@ -167,7 +205,38 @@ export function applyTarget(
             branch: { required: false, displayable: false },
         },
         transformPresentation: presentation,
-        transform: runAllFingerprintAppliers(registrations),
+        transform: runAllFingerprintAppliers(aspects),
+        autoSubmit: true,
+    };
+}
+
+export interface ApplyTargetFingerprintByShaParameters extends ApplyTargetFingerprintParameters {
+    sha: string;
+}
+
+export const ApplyTargetFingerprintByShaName = "ApplyTargetFingerprintBySha";
+
+export function applyTargetBySha(
+    sdm: SoftwareDeliveryMachine,
+    aspects: Aspect[],
+    presentation: EditModeMaker): CodeTransformRegistration<ApplyTargetFingerprintByShaParameters> {
+
+    return {
+        name: ApplyTargetFingerprintByShaName,
+        intent: [
+            `apply fingerprint target by sha ${sdm.configuration.name.replace("@", "")}`,
+        ],
+        description: "Apply a fingerprint target identified by the fingerprint's sha and type",
+        parameters: {
+            msgId: { required: false, displayable: false },
+            targetfingerprint: { required: true },
+            sha: { required: true },
+            body: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
+            title: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
+            branch: { required: false, displayable: false },
+        },
+        transformPresentation: presentation,
+        transform: runFingerprintAppliersBySha(aspects),
         autoSubmit: true,
     };
 }

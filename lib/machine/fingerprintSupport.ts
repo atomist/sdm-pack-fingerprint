@@ -42,6 +42,7 @@ import {
 } from "../checktarget/messageMaker";
 import {
     applyTarget,
+    applyTargetBySha,
     ApplyTargetParameters,
     applyTargets,
     broadcastFingerprintMandate,
@@ -187,8 +188,9 @@ export function createPullRequestEditModeMaker(options: {
         // optional message is undefined here
         // target branch is hard-coded to master
 
-        const fingerprint = ci.parameters.fingerprint || ci.parameters.targetfingerprint;
+        const fingerprint = ci.parameters.fingerprint || ci.parameters.targetfingerprint || ci.parameters.type;
         const autoMerge = _.get(options, "autoMerge") || {};
+
         return new editModes.PullRequest(
             options.branchPrefix || `apply-target-fingerprint-${Date.now()}`,
             options.title || ci.parameters.title,
@@ -280,6 +282,7 @@ function configure(
 
     sdm.addCodeTransformCommand(applyTarget(sdm, aspects, editModeMaker));
     sdm.addCodeTransformCommand(applyTargets(sdm, aspects, editModeMaker));
+    sdm.addCodeTransformCommand(applyTargetBySha(sdm, aspects, editModeMaker))
 
     sdm.addCommand(broadcastFingerprintMandate(sdm, aspects));
 
