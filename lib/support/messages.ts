@@ -40,10 +40,10 @@ export interface GitCoordinate {
     branch?: string;
 }
 
-type MessageIdMaker = (shas: string[], coordinate: GitCoordinate, channel: string) => string;
+type MessageIdMaker = (shas: string[], coordinate: GitCoordinate) => string;
 
-export const updateableMessage: MessageIdMaker = (shas, coordinate: GitCoordinate, channel: string) => {
-    return consistentHash([...shas, channel, coordinate.owner, coordinate.repo]);
+export const updateableMessage: MessageIdMaker = (shas, coordinate: GitCoordinate) => {
+    return consistentHash([...shas, coordinate.owner, coordinate.repo]);
 };
 
 function displayFingerprint(aspect: Aspect, fp: FP): string {

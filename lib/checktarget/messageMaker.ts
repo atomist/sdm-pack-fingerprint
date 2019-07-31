@@ -16,6 +16,7 @@
 
 import {
     addressSlackChannelsFromContext,
+    addressWeb,
     buttonForCommand,
     HandlerContext,
     HandlerResult,
@@ -215,10 +216,22 @@ export const messageMaker: MessageMaker = async params => {
     message.attachments[message.attachments.length - 1].footer = slackFooter();
     message.attachments[message.attachments.length - 1].ts = slackTs();
 
-    return params.ctx.messageClient.send(
-        message,
-        await addressSlackChannelsFromContext(params.ctx, params.channel),
-        // {id: params.msgId} if you want to update messages if the target goal has not changed
-        { id: params.msgId },
-    );
+    if (!!params.channel) {
+        return params.ctx.messageClient.send(
+            message,
+            await addressSlackChannelsFromContext(params.ctx, params.channel),
+            // {id: params.msgId} if you want to update messages if the target goal has not changed
+            { id: params.msgId },
+        );
+    } else {
+        return params.ctx.messageClient.send(
+            message,
+            addressWeb(),
+            // {id: params.msgId} if you want to update messages if the target goal has not changed
+            { id: params.msgId },
+        );
+    }
+
+
+
 };

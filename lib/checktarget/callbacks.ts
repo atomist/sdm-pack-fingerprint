@@ -139,28 +139,24 @@ export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfi
 
         if (result.failed) {
 
-            if (channel) {
-                await config.messageMaker({
-                    ctx,
-                    msgId: updateableMessage(
-                        [].concat(
-                            result.failedVotes.map(vote => vote.fingerprint.sha),
-                            result.failedVotes.map(vote => vote.fpTarget.sha)),
-                        coord,
-                        channel),
-                    channel,
-                    voteResults: result,
-                    coord,
-                    aspects: toArray(config.aspects || []),
-                });
-            } else {
-                logger.warn(`no linked repo channel.  Not sending target message`);
-            }
+            await config.messageMaker({
+                ctx,
+                msgId: updateableMessage(
+                    [].concat(
+                        result.failedVotes.map(vote => vote.fingerprint.sha),
+                        result.failedVotes.map(vote => vote.fpTarget.sha)),
+                    coord),
+                channel,
+                voteResults: result,
+                coord,
+                aspects: toArray(config.aspects || []),
+            });
 
             goalState = {
                 state: SdmGoalState.failure,
                 description: `compliance check for ${commaSeparatedList(result.failedVotes.map(vote => vote.fingerprint.name))} has failed`,
             };
+
         } else {
 
             goalState = {
