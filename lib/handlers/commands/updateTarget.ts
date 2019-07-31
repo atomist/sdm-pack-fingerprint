@@ -139,14 +139,10 @@ export class UpdateTargetFingerprintParameters {
 
     // sha of fingerprint
     @Parameter({ required: true })
-    public fpsha: string;
-
-    // name is used to store the fingerprint
-    @Parameter({ required: true })
-    public fpname: string;
+    public sha: string;
 
     @Parameter({ required: true })
-    public fptype: string;
+    public targetfingerprint: string;
 }
 
 export const UpdateTargetFingerprintName = "RegisterTargetFingerprint";
@@ -155,27 +151,31 @@ export const UpdateTargetFingerprintName = "RegisterTargetFingerprint";
  * Used by MessageMaker to implement SetNewTarget
  * (knows the name, type, and sha of the potential target fingerprint)
  */
-export function updateTargetFingerprint(aspects: Aspect[]): CommandHandlerRegistration<UpdateTargetFingerprintParameters> {
+export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
+                                        aspects: Aspect[]): CommandHandlerRegistration<UpdateTargetFingerprintParameters> {
     return {
         name: UpdateTargetFingerprintName,
         description: "set a new target for a team to consume a particular version",
         paramsMaker: UpdateTargetFingerprintParameters,
+        intent: [
+            `register fingerprint target ${sdm.configuration.name.replace("@", "")}`,
+        ],
         listener: async cli => {
 
+            const { type, name } = fromName(cli.parameters.targetfingerprint);
             const query: GetFpBySha.Query = await cli.context.graphClient.query<GetFpBySha.Query, GetFpBySha.Variables>(
                 {
                     options: QueryNoCacheOptions,
                     name: "GetFpBySha",
                     variables: {
-                        type: cli.parameters.fptype,
-                        name: cli.parameters.fpname,
-                        sha: cli.parameters.fpsha,
+                        type,
+                        name,
+                        sha: cli.parameters.sha,
                     },
                 },
             );
             const fp: GetFpBySha.SourceFingerprint = query.SourceFingerprint;
             fp.data = JSON.parse(fp.data);
-            logger.info(`update target to ${JSON.stringify(fp)}`);
             const fingerprint: FP = {
                 name: fp.name,
                 type: fp.type,
@@ -183,7 +183,7 @@ export function updateTargetFingerprint(aspects: Aspect[]): CommandHandlerRegist
                 sha: fp.sha,
             };
 
-            await (setFPTarget(cli.context.graphClient))(cli.parameters.fptype, cli.parameters.fpname, fingerprint);
+            await (setFPTarget(cli.context.graphClient))(type, name, fingerprint);
             return askAboutBroadcast(cli, aspects, fingerprint, cli.parameters.msgId);
         },
     };

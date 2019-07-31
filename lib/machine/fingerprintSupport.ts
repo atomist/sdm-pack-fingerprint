@@ -190,11 +190,12 @@ export function createPullRequestEditModeMaker(options: {
 
         const fingerprint = ci.parameters.fingerprint || ci.parameters.targetfingerprint || ci.parameters.type;
         const autoMerge = _.get(options, "autoMerge") || {};
-
+        const title = options.title || ci.parameters.title || `Apply fingerprint target (${fingerprint})`;
+        const body = options.body || ci.parameters.body || title;
         return new editModes.PullRequest(
             options.branchPrefix || `apply-target-fingerprint-${Date.now()}`,
-            options.title || ci.parameters.title,
-            options.body || `${ci.parameters.body}
+            title,
+            `${body}
 
 [atomist:generated]${!!fingerprint ? ` [fingerprint:${fingerprint}]` : ""}`,
             options.message,
@@ -263,7 +264,7 @@ function configure(
     // set a target given using the entire JSON fingerprint payload in a parameter
     sdm.addCommand(setTargetFingerprint(aspects));
     // set a different target after noticing that a fingerprint is different from current target
-    sdm.addCommand(updateTargetFingerprint(aspects));
+    sdm.addCommand(updateTargetFingerprint(sdm, aspects));
     // Bootstrap a fingerprint target by selecting one from current project
     sdm.addCommand(selectTargetFingerprintFromCurrentProject(sdm));
     // Bootstrap a fingerprint target from project by name

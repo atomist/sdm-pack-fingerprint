@@ -85,7 +85,7 @@ export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<Appl
         await cli.addressChannels(message, { id: cli.parameters.msgId });
 
         const { type, name } = fromName(cli.parameters.targetfingerprint);
-        const result = pushFingerprint(
+        const result = await pushFingerprint(
             (p as GitProject),
             aspects,
             await queryPreferences(
@@ -122,10 +122,15 @@ export function runFingerprintAppliersBySha(aspects: Aspect[]): CodeTransform<Ap
             options: QueryNoCacheOptions,
         });
 
-        const result = pushFingerprint(
+        const result = await pushFingerprint(
             (p as GitProject),
             aspects,
-            fp.SourceFingerprint as any);
+            {
+                type,
+                name,
+                data: JSON.parse(fp.SourceFingerprint.data),
+                sha: fp.SourceFingerprint.sha,
+            });
 
         if (result) {
             return p;

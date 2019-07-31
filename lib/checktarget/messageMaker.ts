@@ -96,9 +96,8 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
                 UpdateTargetFingerprintName,
                 {
                     msgId: params.msgId,
-                    fptype: vote.fingerprint.type,
-                    fpname: vote.fingerprint.name,
-                    fpsha: vote.fingerprint.sha,
+                    targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
+                    sha: vote.fingerprint.sha,
                 },
             ),
         ],
