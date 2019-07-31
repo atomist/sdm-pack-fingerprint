@@ -151,7 +151,7 @@ function runEveryFingerprintApplication(aspects: Aspect[]): CodeTransform<ApplyT
 
         const message = slackInfoMessage(
             "Apply Fingerprint Targets",
-            `Applying fingerprint targets ${fingerprints.map(fp => codeLine(fp)).join(", ")} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
+            `Applying fingerprint targets ${fingerprints.map(codeLine).join(", ")} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
 
         await cli.addressChannels(message, { id: cli.parameters.msgId });
 
