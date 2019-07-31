@@ -26,11 +26,13 @@ import {
     CommandHandlerRegistration,
     CommandListenerInvocation,
     slackFooter,
+    slackTs,
 } from "@atomist/sdm";
 import {
     Action,
     Attachment,
     bold,
+    codeLine,
     SlackMessage,
 } from "@atomist/slack-messages";
 import { toName } from "../adhoc/preferences";
@@ -43,6 +45,7 @@ import {
     Aspect,
     Vote,
 } from "../machine/Aspect";
+import { aspectOf } from "../machine/Aspects";
 import {
     applyFingerprintTitle,
     GitCoordinate,
@@ -146,9 +149,18 @@ function ignoreButton(params: MessageMakerParams): Action {
  * @param params
  */
 function applyAll(params: MessageMakerParams): Attachment {
+
+    const fingerprints = params.voteResults.failedVotes.map(vote => {
+        const aspect = aspectOf({ type: vote.fpTarget.type }, params.aspects);
+        if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+            return aspect.toDisplayableFingerprintName(vote.fpTarget.name);
+        }
+        return vote.fpTarget.name;
+    });
+
     return {
         title: "Apply all Changes",
-        text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => vote.name).join(", ")}`,
+        text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => codeLine(vote.name)).join(", ")}`,
         color: "warning",
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
@@ -159,7 +171,7 @@ function applyAll(params: MessageMakerParams): Attachment {
                 {
                     msgId: params.msgId,
                     fingerprints: params.voteResults.failedVotes.map(vote => toName(vote.fpTarget.type, vote.fpTarget.name)).join(","),
-                    title: `Apply all of \`${params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(", ")}\``,
+                    title: `Apply all of ${fingerprints.join(", ")}`,
                     body: params.voteResults.failedVotes.map(v => prBody(v, params.aspects)).join("\n"),
                     targets: {
                         owner: params.coord.owner,
@@ -201,6 +213,7 @@ export const messageMaker: MessageMaker = async params => {
     }
 
     message.attachments[message.attachments.length - 1].footer = slackFooter();
+    message.attachments[message.attachments.length - 1].ts = slackTs();
 
     return params.ctx.messageClient.send(
         message,

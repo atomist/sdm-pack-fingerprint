@@ -35,6 +35,6 @@ export function displayValue(aspect: Aspect, fp: FP): string {
     }
 }
 
-export function aspectOf(fingerprint: FP, aspects: Aspect[]): Aspect | undefined {
+export function aspectOf(fingerprint: Pick<FP, "type">, aspects: Aspect[]): Aspect | undefined {
     return aspects.find(a => a.name === fingerprint.type);
 }

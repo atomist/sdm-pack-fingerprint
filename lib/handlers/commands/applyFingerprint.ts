@@ -147,32 +147,28 @@ export function runFingerprintAppliersBySha(aspects: Aspect[]): CodeTransform<Ap
 function runEveryFingerprintApplication(aspects: Aspect[]): CodeTransform<ApplyTargetFingerprintsParameters> {
     return async (p, cli) => {
 
+        const fingerprints = cli.parameters.fingerprints.split(",").map(fp => fp.trim());
+
         const message = slackInfoMessage(
-            "Apply Fingerprint Target",
-            `Applying fingerprint target ${codeLine(cli.parameters.fingerprints)} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
+            "Apply Fingerprint Targets",
+            `Applying fingerprint targets ${fingerprints.map(fp => codeLine(fp)).join(", ")} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
 
         await cli.addressChannels(message, { id: cli.parameters.msgId });
 
-        // TODO fpName is targetName
-        const results = await Promise.all(
-            cli.parameters.fingerprints.split(",").map(
-                async fpName => {
-                    const { type, name } = fromName(fpName);
-                    return pushFingerprint(
-                        (p as GitProject),
-                        aspects,
-                        await queryPreferences(
-                            cli.context.graphClient,
-                            type,
-                            name));
-                },
-            ),
-        );
-        if (!results.some(r => !r)) {
-            return p;
-        } else {
-            return { edited: false, success: true, target: p };
+        for (const fpName of fingerprints) {
+            const { type, name } = fromName(fpName.trim());
+            const result = await pushFingerprint(
+                (p as GitProject),
+                aspects,
+                await queryPreferences(
+                    cli.context.graphClient,
+                    type,
+                    name));
+            if (!result) {
+                return { edited: false, success: true, target: p };
+            }
         }
+        return p;
     };
 }
 

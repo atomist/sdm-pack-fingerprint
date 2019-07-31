@@ -118,7 +118,7 @@ function targetUpdateMessage(cli: CommandListenerInvocation<BroadcastFingerprint
                              type: string,
                              name: string): string {
 
-    const aspect = aspectOf({ type, name, data: {}, sha: "" }, aspects);
+    const aspect = aspectOf({ type }, aspects);
     const displayableName = !!aspect ? displayName(aspect, { type, name, data: {}, sha: "" }) : name;
 
     return `${user(cli.parameters.author)} has updated the target version of ${codeLine(displayableName)}.
