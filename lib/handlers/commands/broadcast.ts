@@ -34,6 +34,7 @@ import {
     italic,
     user,
 } from "@atomist/slack-messages";
+import * as _ from "lodash";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import {
     fromName,
@@ -60,7 +61,7 @@ export function askAboutBroadcast(
     fp: FP,
     msgId: string): Promise<void> {
 
-    const author = cli.context.source.slack.user.id;
+    const author = _.get(cli.context.source, "slack.user.id") || _.get(cli.context.source, "web.identity.sub");
     const id = msgId || guid();
     const message = slackQuestionMessage(
         "Broadcast Fingerprint Target",
