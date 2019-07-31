@@ -67,7 +67,7 @@ export class SetTargetFingerprintFromLatestMasterParameters {
 
     @Parameter({
         required: true,
-        pattern: /[\w-]+::[\w-]+/,
+        pattern: /[\w-]+::[\w-]+(::[\w-]+)?/,
         description: `Please enter the fingerprint (format type::name)`,
         displayName: `Please enter the fingerprint (format type::name)`,
     })
