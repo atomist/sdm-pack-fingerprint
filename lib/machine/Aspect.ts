@@ -38,6 +38,11 @@ export interface FP<DATA = any> {
     data: DATA;
     version?: string;
     abbreviation?: string;
+
+    /**
+     * Path within the repository. Undefined means root.
+     */
+    path?: string;
 }
 
 export interface Vote {

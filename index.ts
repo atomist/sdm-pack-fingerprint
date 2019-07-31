@@ -80,3 +80,8 @@ export * from "./lib/machine/AtomicAspect";
 export * from "./lib/machine/DerivedAspect";
 
 export * from "./lib/machine/Ideal";
+
+export * from "./lib/fingerprints/virtual-project/VirtualProjectFinder";
+export * from "./lib/fingerprints/virtual-project/virtualProjectsFinders";
+export * from "./lib/fingerprints/virtual-project/fileNamesSubprojectFinder";
+export * from "./lib/fingerprints/virtual-project/makeVirtualProjectAware";
