@@ -136,7 +136,7 @@ export function ignoreCommand(aspects: Aspect[]): CommandHandlerRegistration<Ign
 
             const msg = slackInfoMessage(
                 "New Fingerprint Target",
-                `Dismissed fingerprint target updates for ${fingerprints.map(f => codeLine(f)).join(", ")}`,
+                `Dismissed fingerprint target updates for ${fingerprints.map(codeLine).join(", ")}`,
             );
 
             // collapse the message
