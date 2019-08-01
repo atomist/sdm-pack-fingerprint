@@ -205,7 +205,7 @@ export function createPullRequestEditModeMaker(options: {
             title,
             `${body}
 
-[atomist:generated]${!!fingerprint ? ` ${fingerprint}` : ""}`,
+[atomist:generated]`,
             options.message,
             p.id.branch,
             {
