@@ -183,7 +183,7 @@ function applyAll(params: MessageMakerParams): Attachment {
                     msgId: params.msgId,
                     fingerprints: params.voteResults.failedVotes.map(vote => toName(vote.fpTarget.type, vote.fpTarget.name)).join(","),
                     title: `Apply all of ${fingerprints.join(", ")}`,
-                    body: params.voteResults.failedVotes.map(v => prBody(v, params.aspects)).join("\n"),
+                    body: params.voteResults.failedVotes.map(v => prBody(v, params.aspects)).join("\n---\n"),
                     targets: {
                         owner: params.coord.owner,
                         repo: params.coord.repo,
