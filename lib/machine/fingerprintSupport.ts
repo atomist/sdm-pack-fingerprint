@@ -187,7 +187,17 @@ export function createPullRequestEditModeMaker(options: {
         // body can be derived from ApplyTargetParameters
         // optional message is undefined here
 
-        const fingerprint = ci.parameters.fingerprint || ci.parameters.targetfingerprint || ci.parameters.type;
+        let fingerprint = ci.parameters.fingerprint || ci.parameters.targetfingerprint || ci.parameters.type as string;
+        if (!!fingerprint) {
+            fingerprint = `[fingerprint:${fingerprint}]`;
+        } else {
+            fingerprint = ci.parameters.fingerprints as string;
+            if (!!fingerprint) {
+                fingerprint = fingerprint.split(",").map(f => `[fingerprint:${fingerprint}]`).join(" ");
+            }
+        }
+
+
         const autoMerge = _.get(options, "autoMerge") || {};
         const title = options.title || ci.parameters.title || `Apply fingerprint target (${fingerprint})`;
         const body = options.body || ci.parameters.body || title;
@@ -196,7 +206,7 @@ export function createPullRequestEditModeMaker(options: {
             title,
             `${body}
 
-[atomist:generated]${!!fingerprint ? ` [fingerprint:${fingerprint}]` : ""}`,
+[atomist:generated]${!!fingerprint ? ` ${fingerprint}` : ""}`,
             options.message,
             p.id.branch,
             {

@@ -158,8 +158,6 @@ function ignoreButton(params: MessageMakerParams): Action {
 }
 
 /**
- *
- * @param params
  */
 function applyAll(params: MessageMakerParams): Attachment {
 
