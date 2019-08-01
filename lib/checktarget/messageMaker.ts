@@ -77,39 +77,36 @@ export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult
  * @param vote
  */
 function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
-    return {
-        title: orDefault(() => vote.summary.title, "New Target"),
-        text: orDefault(() => vote.summary.description, vote.text),
-        color: "warning",
-        fallback: "Fingerprint Update",
-        mrkdwn_in: ["text"],
-        actions: [
-            buttonForCommand(
-                { text: "Apply" },
-                ApplyTargetFingerprintName,
-                {
-                    msgId: params.msgId,
-                    targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
-                    title: applyFingerprintTitle(vote.fpTarget, params.aspects),
-                    branch: vote.diff.branch,
-                    body: prBody(vote, params.aspects),
-                    targets: {
-                        owner: vote.diff.owner,
-                        repo: vote.diff.repo,
+    return slackInfoMessage(
+        orDefault(() => vote.summary.title, "New Target"),
+        orDefault(() => vote.summary.description, vote.text), {
+            actions: [
+                buttonForCommand(
+                    { text: "Apply" },
+                    ApplyTargetFingerprintName,
+                    {
+                        msgId: params.msgId,
+                        targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
+                        title: applyFingerprintTitle(vote.fpTarget, params.aspects),
                         branch: vote.diff.branch,
+                        body: prBody(vote, params.aspects),
+                        targets: {
+                            owner: vote.diff.owner,
+                            repo: vote.diff.repo,
+                            branch: vote.diff.branch,
+                        },
+                    }),
+                buttonForCommand(
+                    { text: "Set New Target" },
+                    UpdateTargetFingerprintName,
+                    {
+                        msgId: params.msgId,
+                        targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
+                        sha: vote.fingerprint.sha,
                     },
-                }),
-            buttonForCommand(
-                { text: "Set New Target" },
-                UpdateTargetFingerprintName,
-                {
-                    msgId: params.msgId,
-                    targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
-                    sha: vote.fingerprint.sha,
-                },
-            ),
-        ],
-    };
+                ),
+            ],
+        }).attachments[0];
 }
 
 interface IgnoreParameters extends ParameterType {
@@ -177,7 +174,7 @@ function applyAll(params: MessageMakerParams): Attachment {
     return {
         title: "Apply all Changes",
         text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => codeLine(vote.name)).join(", ")}`,
-        color: "warning",
+        color: "#D7B958",
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
         actions: [
