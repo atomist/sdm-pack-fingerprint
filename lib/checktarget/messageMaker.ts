@@ -27,6 +27,7 @@ import {
     CommandHandlerRegistration,
     CommandListenerInvocation,
     slackFooter,
+    slackInfoMessage,
     slackTs,
 } from "@atomist/sdm";
 import {
@@ -36,7 +37,10 @@ import {
     codeLine,
     SlackMessage,
 } from "@atomist/slack-messages";
-import { toName } from "../adhoc/preferences";
+import {
+    fromName,
+    toName,
+} from "../adhoc/preferences";
 import {
     ApplyAllFingerprintsName,
     ApplyTargetFingerprintName,
@@ -113,34 +117,45 @@ interface IgnoreParameters extends ParameterType {
     fingerprints: string;
 }
 
-export const IgnoreCommandRegistration: CommandHandlerRegistration<IgnoreParameters> = {
-    name: "IgnoreFingerprintDiff",
-    parameters: { msgId: { required: false }, fingerprints: { required: false } },
-    listener: async (i: CommandListenerInvocation<IgnoreParameters>) => {
-        // TODO - this is an opportunity to provide feedback that the project does not intend to merge this
-        // collapse the message
-        await i.addressChannels(
-            {
-                attachments: [
-                    {
-                        title: "Fingerprints Ignored",
-                        fallback: "Fingerprints Ignored",
-                        text: `Ignoring ${i.parameters.fingerprints}`,
-                    },
-                ],
-            },
-            { id: i.parameters.msgId },
-        );
-    },
-};
+export const IgnoreCommandName = "IgnoreFingerprintDiff";
+
+export function ignoreCommand(aspects: Aspect[]): CommandHandlerRegistration<IgnoreParameters> {
+    return {
+        name: IgnoreCommandName,
+        parameters: { msgId: { required: false }, fingerprints: { required: false } },
+        listener: async (i: CommandListenerInvocation<IgnoreParameters>) => {
+
+            const fingerprints = i.parameters.fingerprints.split(",").map(f => {
+                const { type, name } = fromName(f);
+                const aspect = aspectOf({ type }, aspects);
+                if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+                    return aspect.toDisplayableFingerprintName(name);
+                }
+                return name;
+            });
+
+            const msg = slackInfoMessage(
+                "New Fingerprint Target",
+                `Dismissed fingerprint target updates for ${fingerprints.map(f => codeLine(f)).join(", ")}`,
+            );
+
+            // collapse the message
+            await i.addressChannels(
+                msg,
+                { id: i.parameters.msgId },
+            );
+        },
+    };
+}
 
 function ignoreButton(params: MessageMakerParams): Action {
     return actionableButton<IgnoreParameters>(
-        { text: "Ignore" },
-        IgnoreCommandRegistration,
+        { text: "Dismiss" },
+        IgnoreCommandName,
         {
             msgId: params.msgId,
-            fingerprints: params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(","),
+            fingerprints: params.voteResults.failedVotes
+                .map(vote => `${vote.fpTarget.type}::${vote.fpTarget.name}`).join(","),
         },
     );
 }

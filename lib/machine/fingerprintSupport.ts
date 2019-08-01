@@ -36,7 +36,7 @@ import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
 import { checkFingerprintTarget } from "../checktarget/callbacks";
 import {
-    IgnoreCommandRegistration,
+    ignoreCommand,
     messageMaker,
     MessageMaker,
 } from "../checktarget/messageMaker";
@@ -273,7 +273,7 @@ function configure(
     // standard actionable message embedding ApplyTargetFingerprint
     sdm.addCommand(broadcastFingerprintNudge(aspects));
 
-    sdm.addCommand(IgnoreCommandRegistration);
+    sdm.addCommand(ignoreCommand(aspects));
 
     sdm.addCommand(listFingerprintTargets(sdm));
     sdm.addCommand(listOneFingerprintTarget(sdm));
