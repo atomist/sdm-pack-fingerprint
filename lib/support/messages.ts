@@ -96,6 +96,6 @@ export function prBody(vote: Vote, aspects: Aspect[]): string {
             () => vote.summary.description,
             `no summary`);
     const fingerprint = toName(vote.fpTarget.type, vote.fpTarget.name);
-    const intro = `Apply target fingerprint ${codeLine(fingerprint)}:`
+    const intro = `Apply target fingerprint ${codeLine(fingerprint)}:`;
     return `${intro}\n\n#### ${title}\n${description}\n\n[fingerprint:${fingerprint}=${vote.fpTarget.sha}]`;
 }
