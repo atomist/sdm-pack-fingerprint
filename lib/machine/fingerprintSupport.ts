@@ -197,7 +197,6 @@ export function createPullRequestEditModeMaker(options: {
             }
         }
 
-
         const autoMerge = _.get(options, "autoMerge") || {};
         const title = options.title || ci.parameters.title || `Apply fingerprint target (${fingerprint})`;
         const body = options.body || ci.parameters.body || title;
