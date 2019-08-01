@@ -193,7 +193,7 @@ export function createPullRequestEditModeMaker(options: {
         } else {
             fingerprint = ci.parameters.fingerprints as string;
             if (!!fingerprint) {
-                fingerprint = fingerprint.split(",").map(f => `[fingerprint:${fingerprint}]`).join(" ");
+                fingerprint = fingerprint.split(",").map(f => `[fingerprint:${f}]`).join(" ");
             }
         }
 
