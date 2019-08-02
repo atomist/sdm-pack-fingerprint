@@ -15,12 +15,16 @@
  */
 
 export {
+    createPullRequestTransformPresentation,
     fingerprintSupport,
     forFingerprints,
     diffOnlyHandler,
     DefaultTargetDiffHandler,
-    DefaultEditModeMaker,
-    EditModeMaker,
+    DefaultTransformPresentation,
+    PullRequestTransformPresentationOptions,
+    FingerprintImpactHandlerConfig,
+    FingerprintOptions,
+    RegisterFingerprintImpactHandler,
 } from "./lib/machine/fingerprintSupport";
 export {
     BaseAspect,

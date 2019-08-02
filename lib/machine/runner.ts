@@ -44,7 +44,7 @@ import {
     Vote,
 } from "./Aspect";
 import {
-    DefaultEditModeMaker,
+    DefaultTransformPresentation,
     FingerprintImpactHandlerConfig,
     FingerprintOptions,
 } from "./fingerprintSupport";
@@ -205,11 +205,11 @@ export function fingerprintRunner(
     computer: (fingerprinters: Aspect[], p: Project) => Promise<FP[]>,
     options: FingerprintOptions & FingerprintImpactHandlerConfig = {
         aspects: [],
-        transformPresentation: DefaultEditModeMaker,
+        transformPresentation: DefaultTransformPresentation,
         messageMaker,
     }): FingerprintRunner {
 
-    const targetDiffBallot = votes({ ...options });
+    const targetDiffBallot = votes(options);
 
     const tallyVotes = async (vts: Vote[], fingerprintHandlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo) => {
 

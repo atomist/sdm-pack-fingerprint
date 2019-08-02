@@ -19,6 +19,11 @@ import {
     consistentHash,
 } from "@atomist/clj-editors";
 import {
+    codeBlock,
+    codeLine,
+} from "@atomist/slack-messages";
+import { toName } from "../adhoc/preferences";
+import {
     Aspect,
     Diff,
     DiffSummary,
@@ -26,7 +31,7 @@ import {
     Vote,
 } from "../machine/Aspect";
 import {
-    applyToAspect,
+    aspectOf,
     displayName,
     displayValue,
 } from "../machine/Aspects";
@@ -40,10 +45,10 @@ export interface GitCoordinate {
     branch?: string;
 }
 
-type MessageIdMaker = (shas: string[], coordinate: GitCoordinate, channel: string) => string;
+type MessageIdMaker = (shas: string[], coordinate: GitCoordinate) => string;
 
-export const updateableMessage: MessageIdMaker = (shas, coordinate: GitCoordinate, channel: string) => {
-    return consistentHash([...shas, channel, coordinate.owner, coordinate.repo]);
+export const updateableMessage: MessageIdMaker = (shas, coordinate: GitCoordinate) => {
+    return consistentHash([...shas, coordinate.owner, coordinate.repo]);
 };
 
 function displayFingerprint(aspect: Aspect, fp: FP): string {
@@ -75,23 +80,35 @@ export function getDiffSummary(diff: Diff, target: FP, aspect: Aspect): undefine
     return undefined;
 }
 
-export function applyFingerprintTitle(fp: FP): string {
-    try {
-        return `Apply fingerprint ${applyToAspect(fp, displayName)} (${applyToAspect(fp, displayValue)})`;
-    } catch (ex) {
-        return `Apply fingerprint ${fp.name}`;
+export function applyFingerprintTitle(fp: FP, aspects: Aspect[]): string {
+    const aspect = aspectOf(fp, aspects);
+    if (!!aspect) {
+        return `Apply target fingerprint ${displayName(aspect, fp)}`;
+    } else {
+        return `Apply target fingerprint ${fp.name}`;
     }
 }
 
-export function prBody(vote: Vote): string {
+export function prBodyFromFingerprint(fp: FP, aspects: Aspect[]): string {
+    const aspect = aspectOf(fp, aspects);
+    const fingerprint = toName(fp.type, fp.name);
+    const intro = `Apply target fingerprint ${codeLine(fingerprint)}:`;
+    const description = `${displayName(aspect, fp)} (${displayValue(aspect, fp)})`;
+    return `${intro}\n\n${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${fp.sha}]`;
+}
+
+export function prBody(vote: Vote, aspects: Aspect[]): string {
     const title: string =
         orDefault(
             () => vote.summary.title,
-            applyFingerprintTitle(vote.fpTarget));
-    const description: string =
+            applyFingerprintTitle(vote.fpTarget, aspects));
+    const summary: string =
         orDefault(
             () => vote.summary.description,
             `no summary`);
-
-    return `#### ${title}\n${description}`;
+    const fingerprint = toName(vote.fpTarget.type, vote.fpTarget.name);
+    const intro = `Apply target fingerprint ${codeLine(fingerprint)}:`;
+    const aspect = aspectOf(vote.fpTarget, aspects);
+    const description = `${displayName(aspect, vote.fpTarget)} (${displayValue(aspect, vote.fpTarget)})`;
+    return `${intro}\n\n**${title}**\n${summary}\n\n${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${vote.fpTarget.sha}]`;
 }

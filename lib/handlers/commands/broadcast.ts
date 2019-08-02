@@ -20,12 +20,11 @@ import {
     logger,
     ParameterType,
 } from "@atomist/automation-client";
-import {
-    broadcastFingerprint,
-} from "@atomist/clj-editors";
+import { broadcastFingerprint } from "@atomist/clj-editors";
 import {
     actionableButton,
     CommandHandlerRegistration,
+    CommandListener,
     CommandListenerInvocation,
     slackQuestionMessage,
     slackWarningMessage,
@@ -35,14 +34,18 @@ import {
     italic,
     user,
 } from "@atomist/slack-messages";
+import * as _ from "lodash";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import {
     fromName,
     toName,
 } from "../../adhoc/preferences";
-import { FP } from "../../machine/Aspect";
 import {
-    applyToAspect,
+    Aspect,
+    FP,
+} from "../../machine/Aspect";
+import {
+    aspectOf,
     displayName,
 } from "../../machine/Aspects";
 import { applyFingerprintTitle } from "../../support/messages";
@@ -54,10 +57,11 @@ import {
 
 export function askAboutBroadcast(
     cli: CommandListenerInvocation,
+    aspects: Aspect[],
     fp: FP,
     msgId: string): Promise<void> {
 
-    const author = cli.context.source.slack.user.id;
+    const author = _.get(cli.context.source, "slack.user.id") || _.get(cli.context.source, "web.identity.sub");
     const id = msgId || guid();
     const message = slackQuestionMessage(
         "Broadcast Fingerprint Target",
@@ -68,7 +72,7 @@ export function askAboutBroadcast(
                     {
                         text: "Broadcast Nudge",
                     },
-                    BroadcastFingerprintNudge,
+                    BroadcastFingerprintNudgeName,
                     {
                         author,
                         msgId,
@@ -82,8 +86,8 @@ export function askAboutBroadcast(
                     },
                     BroadcastFingerprintMandateName,
                     {
-                        title: applyFingerprintTitle(fp),
-                        body: applyFingerprintTitle(fp),
+                        title: applyFingerprintTitle(fp, aspects),
+                        body: applyFingerprintTitle(fp, aspects),
                         branch: "master",
                         fingerprint: toName(fp.type, fp.name),
                         msgId: id,
@@ -109,9 +113,13 @@ export interface BroadcastFingerprintNudgeParameters extends ParameterType {
     msgId?: string;
 }
 
-function targetUpdateMessage(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>, type: string, name: string): string {
+function targetUpdateMessage(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>,
+                             aspects: Aspect[],
+                             type: string,
+                             name: string): string {
 
-    const displayableName: string = applyToAspect({ type, name, data: {}, sha: "" }, displayName);
+    const aspect = aspectOf({ type }, aspects);
+    const displayableName = !!aspect ? displayName(aspect, { type, name, data: {}, sha: "" }) : name;
 
     return `${user(cli.parameters.author)} has updated the target version of ${codeLine(displayableName)}.
 
@@ -132,95 +140,100 @@ interface FingerprintedRepo {
  *
  * @param cli
  */
-function broadcastNudge(cli: CommandListenerInvocation<BroadcastFingerprintNudgeParameters>): Promise<any> {
+function broadcastNudge(aspects: Aspect[]): CommandListener<BroadcastFingerprintNudgeParameters> {
+    return async cli => {
+        const msgId = `broadcastNudge-${cli.parameters.name}-${cli.parameters.sha}`;
 
-    const msgId = `broadcastNudge-${cli.parameters.name}-${cli.parameters.sha}`;
+        return broadcastFingerprint(
+            async (type: string, name: string): Promise<FingerprintedRepo[]> => {
 
-    return broadcastFingerprint(
-        async (type: string, name: string): Promise<FingerprintedRepo[]> => {
+                const data: FindOtherRepos.Query = await (findTaggedRepos(cli.context.graphClient))(type, name);
+                logger.info(
+                    `findTaggedRepos(broadcastNudge) ${
+                        JSON.stringify(
+                            data.headCommitsWithFingerprint,
+                        )
+                        }`);
+                return data.headCommitsWithFingerprint
+                    .filter(head => !!head.branch && !!head.branch.name && head.branch.name === "master")
+                    .map(x => {
+                        return {
+                            name: x.repo.name,
+                            owner: x.repo.owner,
+                            channels: x.repo.channels,
+                            branches: [{
+                                commit: {
+                                    ...x.commit,
+                                    analysis: x.analysis,
+                                },
+                            }],
+                        };
+                    });
+            },
+            {
+                ...fromName(cli.parameters.fingerprint),
+                sha: cli.parameters.sha,
+            },
+            (owner: string, repo: string, channel: string) => {
+                const { type, name } = fromName(cli.parameters.fingerprint);
+                const message = slackWarningMessage("Fingerprint Target", targetUpdateMessage(cli, aspects, type, name), cli.context);
 
-            const data: FindOtherRepos.Query = await (findTaggedRepos(cli.context.graphClient))(type, name);
-            logger.info(
-                `findTaggedRepos(broadcastNudge) ${
-                JSON.stringify(
-                    data.headCommitsWithFingerprint,
-                )
-                }`);
-            return data.headCommitsWithFingerprint
-                .filter(head => !!head.branch && !!head.branch.name && head.branch.name === "master")
-                .map(x => {
-                    return {
-                        name: x.repo.name,
-                        owner: x.repo.owner,
-                        channels: x.repo.channels,
-                        branches: [{
-                            commit: {
-                                ...x.commit,
-                                analysis: x.analysis,
+                message.attachments.push({
+                    text: `Shall we update repository to use the new ${codeLine(name)} target?`,
+                    fallback: `Shall we update repository to use the new ${codeLine(name)} target?`,
+                    actions: [
+                        buttonForCommand(
+                            {
+                                text: "Update",
                             },
-                        }],
-                    };
-            });
-        },
-        {
-            ...fromName(cli.parameters.fingerprint),
-            sha: cli.parameters.sha,
-        },
-        (owner: string, repo: string, channel: string) => {
-            const { type, name } = fromName(cli.parameters.fingerprint);
-            const message = slackWarningMessage("Fingerprint Target", targetUpdateMessage(cli, type, name), cli.context);
+                            ApplyTargetFingerprintName,
+                            {
+                                msgId,
+                                targetfingerprint: cli.parameters.fingerprint,
+                                title: `Updated target for ${name}`,
+                                body: cli.parameters.reason,
+                            },
+                        ),
+                    ],
+                    callback_id: "atm-confirm-done",
+                });
 
-            message.attachments.push({
-                text: `Shall we update repository to use the new ${codeLine(name)} target?`,
-                fallback: `Shall we update repository to use the new ${codeLine(name)} target?`,
-                actions: [
-                    buttonForCommand(
-                        {
-                            text: "Update",
-                        },
-                        ApplyTargetFingerprintName,
-                        {
-                            msgId,
-                            targetfingerprint: cli.parameters.fingerprint,
-                            title: `Updated target for ${name}`,
-                            body: cli.parameters.reason,
-                        },
-                    ),
-                ],
-                callback_id: "atm-confirm-done",
-            });
-
-            // each channel with a repo containing this fingerprint gets a message
-            // use the msgId passed in so all the msgIds across the different channels are the same
-            return cli.context.messageClient.addressChannels(message, channel, { id: msgId });
-        },
-    );
+                // each channel with a repo containing this fingerprint gets a message
+                // use the msgId passed in so all the msgIds across the different channels are the same
+                return cli.context.messageClient.addressChannels(message, channel, { id: msgId });
+            },
+        );
+    };
 }
 
-export const BroadcastFingerprintNudge: CommandHandlerRegistration<BroadcastFingerprintNudgeParameters> = {
-    name: "BroadcastFingerprintNudge",
-    description: "message all Channels linked to Repos that contain a particular fingerprint",
-    parameters: {
-        fingerprint: { required: true },
-        sha: {
-            required: true,
-            description: "sha of fingerprint to broadcast",
+const BroadcastFingerprintNudgeName = "BroadcastFingerprintNudge";
+
+export function broadcastFingerprintNudge(aspects: Aspect[]): CommandHandlerRegistration<BroadcastFingerprintNudgeParameters> {
+    return {
+        name: BroadcastFingerprintNudgeName,
+        description: "message all Channels linked to Repos that contain a particular fingerprint",
+        parameters: {
+            fingerprint: { required: true },
+            sha: {
+                required: true,
+                description: "sha of fingerprint to broadcast",
+            },
+            reason: {
+                required: true,
+                control: "textarea",
+                pattern: /[\s\S]*/,
+                description: "always give a reason why we're releasing the nudge",
+            },
+            author: {
+                required: true,
+                description: "author of the Nudge",
+            },
+            msgId: {
+                required: false,
+                displayable: false,
+            },
         },
-        reason: {
-            required: true,
-            control: "textarea",
-            pattern: /[\s\S]*/,
-            description: "always give a reason why we're releasing the nudge",
-        },
-        author: {
-            required: true,
-            description: "author of the Nudge",
-        },
-        msgId: {
-            required: false,
-            displayable: false,
-        },
-    },
-    listener: broadcastNudge,
-    autoSubmit: true,
-};
+        listener: broadcastNudge(aspects),
+        autoSubmit: true,
+    };
+}

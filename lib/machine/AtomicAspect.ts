@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { logger } from "@atomist/automation-client";
 import { sha256 } from "@atomist/clj-editors";
 import {
     ApplyFingerprint,
@@ -23,7 +22,7 @@ import {
     FingerprintSelector,
     FP,
 } from "./Aspect";
-import { applyToAspect } from "./Aspects";
+import { aspectOf } from "./Aspects";
 
 /**
  * Aspect derived from existing fingerprints.
@@ -57,8 +56,8 @@ export function atomicAspect(
     aspectData: Pick<Aspect, "displayName" | "summary" |
         "comparators" | "toDisplayableFingerprint" | "toDisplayableFingerprintName" | "name">,
     narrower: FingerprintSelector,
-    aspect0: BaseAspect,
-    ...aspects: BaseAspect[]): AtomicAspect {
+    aspect0: Aspect,
+    ...aspects: Aspect[]): AtomicAspect {
     const prefix = aspectData.displayName + ":";
     const allAspects = [aspect0, ...aspects];
     const apply: ApplyFingerprint = allAspects.some(f => !f.apply) ?
@@ -86,15 +85,17 @@ function createCompositeFingerprint(prefix: string, fingerprints: FP[]): FP {
         };
 }
 
-function applyAll(allAspects: BaseAspect[], narrower: FingerprintSelector): ApplyFingerprint {
+function applyAll(aspects: Aspect[], narrower: FingerprintSelector): ApplyFingerprint {
     return async (p, fp) => {
 
         for (const individualFingerprint of fp.data) {
-            await applyToAspect(individualFingerprint, async (aspect, fingerprint) => {
-                logger.info("Applying fingerprint %s with aspect %s",
-                    individualFingerprint.name, aspect.displayName);
-                await aspect.apply(p, individualFingerprint);
-            });
+            const aspect = aspectOf(individualFingerprint, aspects);
+            if (!!aspect && !!aspect.apply) {
+                const result = await aspect.apply(p, individualFingerprint);
+                if (!result) {
+                    return result;
+                }
+            }
         }
         return true;
     };

@@ -16,6 +16,7 @@
 
 import {
     addressSlackChannelsFromContext,
+    addressWeb,
     buttonForCommand,
     HandlerContext,
     HandlerResult,
@@ -26,20 +27,30 @@ import {
     CommandHandlerRegistration,
     CommandListenerInvocation,
     slackFooter,
+    slackInfoMessage,
+    slackTs,
 } from "@atomist/sdm";
 import {
     Action,
     Attachment,
     bold,
+    codeLine,
     SlackMessage,
 } from "@atomist/slack-messages";
-import { toName } from "../adhoc/preferences";
+import {
+    fromName,
+    toName,
+} from "../adhoc/preferences";
 import {
     ApplyAllFingerprintsName,
     ApplyTargetFingerprintName,
 } from "../handlers/commands/applyFingerprint";
 import { UpdateTargetFingerprintName } from "../handlers/commands/updateTarget";
-import { Vote } from "../machine/Aspect";
+import {
+    Aspect,
+    Vote,
+} from "../machine/Aspect";
+import { aspectOf } from "../machine/Aspects";
 import {
     applyFingerprintTitle,
     GitCoordinate,
@@ -53,6 +64,7 @@ export interface MessageMakerParams {
     msgId: string;
     channel: string;
     coord: GitCoordinate;
+    aspects: Aspect[];
 }
 
 export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult>;
@@ -65,40 +77,36 @@ export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult
  * @param vote
  */
 function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
-    return {
-        title: orDefault(() => vote.summary.title, "New Target"),
-        text: orDefault(() => vote.summary.description, vote.text),
-        color: "warning",
-        fallback: "Fingerprint Update",
-        mrkdwn_in: ["text"],
-        actions: [
-            buttonForCommand(
-                { text: "Apply" },
-                ApplyTargetFingerprintName,
-                {
-                    msgId: params.msgId,
-                    targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
-                    title: applyFingerprintTitle(vote.fpTarget),
-                    branch: vote.diff.branch,
-                    body: prBody(vote),
-                    targets: {
-                        owner: vote.diff.owner,
-                        repo: vote.diff.repo,
+    return slackInfoMessage(
+        orDefault(() => vote.summary.title, "New Target"),
+        orDefault(() => vote.summary.description, vote.text), {
+            actions: [
+                buttonForCommand(
+                    { text: "Apply" },
+                    ApplyTargetFingerprintName,
+                    {
+                        msgId: params.msgId,
+                        targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
+                        title: applyFingerprintTitle(vote.fpTarget, params.aspects),
                         branch: vote.diff.branch,
+                        body: prBody(vote, params.aspects),
+                        targets: {
+                            owner: vote.diff.owner,
+                            repo: vote.diff.repo,
+                            branch: vote.diff.branch,
+                        },
+                    }),
+                buttonForCommand(
+                    { text: "Set New Target" },
+                    UpdateTargetFingerprintName,
+                    {
+                        msgId: params.msgId,
+                        targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
+                        sha: vote.fingerprint.sha,
                     },
-                }),
-            buttonForCommand(
-                { text: "Set New Target" },
-                UpdateTargetFingerprintName,
-                {
-                    msgId: params.msgId,
-                    fptype: vote.fingerprint.type,
-                    fpname: vote.fingerprint.name,
-                    fpsha: vote.fingerprint.sha,
-                },
-            ),
-        ],
-    };
+                ),
+            ],
+        }).attachments[0];
 }
 
 interface IgnoreParameters extends ParameterType {
@@ -106,47 +114,65 @@ interface IgnoreParameters extends ParameterType {
     fingerprints: string;
 }
 
-export const IgnoreCommandRegistration: CommandHandlerRegistration<IgnoreParameters> = {
-    name: "IgnoreFingerprintDiff",
-    parameters: { msgId: { required: false }, fingerprints: { required: false } },
-    listener: async (i: CommandListenerInvocation<IgnoreParameters>) => {
-        // TODO - this is an opportunity to provide feedback that the project does not intend to merge this
-        // collapse the message
-        await i.addressChannels(
-            {
-                attachments: [
-                    {
-                        title: "Fingerprints Ignored",
-                        fallback: "Fingerprints Ignored",
-                        text: `Ignoring ${i.parameters.fingerprints}`,
-                    },
-                ],
-            },
-            { id: i.parameters.msgId },
-        );
-    },
-};
+export const IgnoreCommandName = "IgnoreFingerprintDiff";
+
+export function ignoreCommand(aspects: Aspect[]): CommandHandlerRegistration<IgnoreParameters> {
+    return {
+        name: IgnoreCommandName,
+        parameters: { msgId: { required: false }, fingerprints: { required: false } },
+        listener: async (i: CommandListenerInvocation<IgnoreParameters>) => {
+
+            const fingerprints = i.parameters.fingerprints.split(",").map(f => {
+                const { type, name } = fromName(f);
+                const aspect = aspectOf({ type }, aspects);
+                if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+                    return aspect.toDisplayableFingerprintName(name);
+                }
+                return name;
+            });
+
+            const msg = slackInfoMessage(
+                "New Fingerprint Target",
+                `Dismissed fingerprint target updates for ${fingerprints.map(codeLine).join(", ")}`,
+            );
+
+            // collapse the message
+            await i.addressChannels(
+                msg,
+                { id: i.parameters.msgId },
+            );
+        },
+    };
+}
 
 function ignoreButton(params: MessageMakerParams): Action {
     return actionableButton<IgnoreParameters>(
-        { text: "Ignore" },
-        IgnoreCommandRegistration,
+        { text: "Dismiss" },
+        IgnoreCommandName,
         {
             msgId: params.msgId,
-            fingerprints: params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(","),
+            fingerprints: params.voteResults.failedVotes
+                .map(vote => `${vote.fpTarget.type}::${vote.fpTarget.name}`).join(","),
         },
     );
 }
 
 /**
- *
- * @param params
  */
 function applyAll(params: MessageMakerParams): Attachment {
+
+    const fingerprints = params.voteResults.failedVotes.map(vote => {
+        const aspect = aspectOf({ type: vote.fpTarget.type }, params.aspects);
+        if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+            return aspect.toDisplayableFingerprintName(vote.fpTarget.name);
+        }
+        return vote.fpTarget.name;
+    });
+
     return {
         title: "Apply all Changes",
-        text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => vote.name).join(", ")}`,
-        color: "warning",
+        text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => codeLine(vote.name)).join(", ")}`,
+        color: "#D7B958",
         fallback: "Fingerprint Update",
         mrkdwn_in: ["text"],
         actions: [
@@ -156,8 +182,8 @@ function applyAll(params: MessageMakerParams): Attachment {
                 {
                     msgId: params.msgId,
                     fingerprints: params.voteResults.failedVotes.map(vote => toName(vote.fpTarget.type, vote.fpTarget.name)).join(","),
-                    title: `Apply all of \`${params.voteResults.failedVotes.map(vote => vote.fpTarget.name).join(", ")}\``,
-                    body: params.voteResults.failedVotes.map(prBody).join("\n"),
+                    title: `Apply all of ${fingerprints.join(", ")}`,
+                    body: params.voteResults.failedVotes.map(v => prBody(v, params.aspects)).join("\n---\n"),
                     targets: {
                         owner: params.coord.owner,
                         repo: params.coord.repo,
@@ -198,11 +224,22 @@ export const messageMaker: MessageMaker = async params => {
     }
 
     message.attachments[message.attachments.length - 1].footer = slackFooter();
+    message.attachments[message.attachments.length - 1].ts = slackTs();
 
-    return params.ctx.messageClient.send(
-        message,
-        await addressSlackChannelsFromContext(params.ctx, params.channel),
-        // {id: params.msgId} if you want to update messages if the target goal has not changed
-        { id: params.msgId },
-    );
+    if (!!params.channel) {
+        return params.ctx.messageClient.send(
+            message,
+            await addressSlackChannelsFromContext(params.ctx, params.channel),
+            // {id: params.msgId} if you want to update messages if the target goal has not changed
+            { id: params.msgId },
+        );
+    } else {
+        return params.ctx.messageClient.send(
+            message,
+            addressWeb(),
+            // {id: params.msgId} if you want to update messages if the target goal has not changed
+            { id: params.msgId },
+        );
+    }
+
 };

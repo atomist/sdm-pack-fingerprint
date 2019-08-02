@@ -30,10 +30,11 @@ import {
 import {
     findSdmGoalOnCommit,
     Goal,
+    SdmGoalState,
     updateGoal,
     UpdateSdmGoalParams,
 } from "@atomist/sdm";
-import { SdmGoalState } from "@atomist/sdm-core/lib/typings/types";
+import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import {
     Aspect,
     Diff,
@@ -42,6 +43,7 @@ import {
 } from "../machine/Aspect";
 import {
     FingerprintImpactHandlerConfig,
+    FingerprintOptions,
 } from "../machine/fingerprintSupport";
 import {
     getDiffSummary,
@@ -125,7 +127,7 @@ async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, pa
  *
  * @param config
  */
-export function votes(config: FingerprintImpactHandlerConfig):
+export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfig):
     (ctx: HandlerContext, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any> {
 
     return async (ctx, vs: Vote[], coord, channel) => {
@@ -137,27 +139,24 @@ export function votes(config: FingerprintImpactHandlerConfig):
 
         if (result.failed) {
 
-            if (channel) {
-                await config.messageMaker({
-                    ctx,
-                    msgId: updateableMessage(
-                        [].concat(
-                            result.failedVotes.map(vote => vote.fingerprint.sha),
-                            result.failedVotes.map(vote => vote.fpTarget.sha)),
-                        coord,
-                        channel),
-                    channel,
-                    voteResults: result,
-                    coord,
-                });
-            } else {
-                logger.warn(`no linked repo channel.  Not sending target message`);
-            }
+            await config.messageMaker({
+                ctx,
+                msgId: updateableMessage(
+                    [].concat(
+                        result.failedVotes.map(vote => vote.fingerprint.sha),
+                        result.failedVotes.map(vote => vote.fpTarget.sha)),
+                    coord),
+                channel,
+                voteResults: result,
+                coord,
+                aspects: toArray(config.aspects || []),
+            });
 
             goalState = {
                 state: SdmGoalState.failure,
                 description: `compliance check for ${commaSeparatedList(result.failedVotes.map(vote => vote.fingerprint.name))} has failed`,
             };
+
         } else {
 
             goalState = {

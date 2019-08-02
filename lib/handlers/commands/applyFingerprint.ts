@@ -18,6 +18,7 @@ import {
     GitProject,
     logger,
     ParameterType,
+    QueryNoCacheOptions,
     RepoRef,
 } from "@atomist/automation-client";
 import {
@@ -28,6 +29,7 @@ import {
     slackInfoMessage,
     slackSuccessMessage,
     SoftwareDeliveryMachine,
+    TransformPresentation,
 } from "@atomist/sdm";
 import {
     bold,
@@ -42,48 +44,42 @@ import {
     Aspect,
     FP,
 } from "../../machine/Aspect";
-import { applyToAspect } from "../../machine/Aspects";
-import { EditModeMaker } from "../../machine/fingerprintSupport";
-import { FindOtherRepos } from "../../typings/types";
+import { aspectOf } from "../../machine/Aspects";
+import {
+    applyFingerprintTitle,
+    prBodyFromFingerprint,
+} from "../../support/messages";
+import {
+    FindOtherRepos,
+    GetFpBySha,
+} from "../../typings/types";
 
 /**
  * Call relevant apply functions from Registrations for a Fingerprint
  * This happens in the context of an an editable Project
- *
- * @param message a callback function if you would like notify about an error
- * @param p the Project
- * @param registrations all of the current Registrations containing apply functions
- * @param fp the fingerprint to apply
  */
 async function pushFingerprint(
-    message: (s: string) => Promise<any>,
     p: GitProject,
-    registrations: Aspect[],
-    fingerprint: FP): Promise<GitProject> {
+    aspects: Aspect[],
+    fp: FP): Promise<boolean> {
 
-    logger.info(`transform running -- ${fingerprint.name}/${fingerprint.sha} --`);
+    const aspect = aspectOf(fp, aspects);
 
-    await applyToAspect(fingerprint, async (aspect, fp) => {
-        if (aspect.apply) {
-            const result: boolean = await aspect.apply(p, fp);
-            if (!result) {
-                await message(`failure applying fingerprint ${fp.name}`);
-            } else {
-                logger.info(`successfully applied fingerprint ${fp.name}`);
-            }
+    if (!!aspect && !!aspect.apply) {
+        const result: boolean = await aspect.apply(p, fp);
+        if (result) {
+            logger.info(`Successfully applied fingerprint ${fp.name}`);
         }
-    });
-
-    return p;
+        return result;
+    }
+    return false;
 }
 
 /**
  * Create a CodeTransform that can be used to apply a Fingerprint to a Project
  * This CodeTransform is takes one target Fingerprint in it's set of parameters.
- *
- * @param registrations
  */
-export function runAllFingerprintAppliers(registrations: Aspect[]): CodeTransform<ApplyTargetFingerprintParameters> {
+export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
         const message = slackInfoMessage(
@@ -93,48 +89,108 @@ export function runAllFingerprintAppliers(registrations: Aspect[]): CodeTransfor
         await cli.addressChannels(message, { id: cli.parameters.msgId });
 
         const { type, name } = fromName(cli.parameters.targetfingerprint);
-        return pushFingerprint(
-            async (s: string) => cli.addressChannels(s),
+
+        const fingerprint = await queryPreferences(
+            cli.context.graphClient,
+            type,
+            name);
+
+        const result = await pushFingerprint(
             (p as GitProject),
-            registrations,
-            await queryPreferences(
-                cli.context.graphClient,
+            aspects,
+            fingerprint,
+        );
+
+        if (!cli.parameters.title) {
+            cli.parameters.title = applyFingerprintTitle(fingerprint, aspects);
+        }
+        if (!cli.parameters.body) {
+            cli.parameters.body = prBodyFromFingerprint(fingerprint, aspects);
+        }
+
+        if (result) {
+            return p;
+        } else {
+            return { edited: false, success: true, target: p };
+        }
+    };
+}
+
+export function runFingerprintAppliersBySha(aspects: Aspect[]): CodeTransform<ApplyTargetFingerprintByShaParameters> {
+    return async (p, cli) => {
+
+        const message = slackInfoMessage(
+            "Apply Fingerprint Target",
+            `Applying fingerprint target ${codeLine(`${cli.parameters.targetfingerprint}`)} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
+
+        await cli.addressChannels(message, { id: cli.parameters.msgId });
+
+        const { type, name } = fromName(cli.parameters.targetfingerprint);
+
+        const fp = await cli.context.graphClient.query<GetFpBySha.Query, GetFpBySha.Variables>({
+            name: "GetFpBySha",
+            variables: {
                 type,
-                name));
+                name,
+                sha: cli.parameters.sha,
+            },
+            options: QueryNoCacheOptions,
+        });
+
+        const fingerprint = {
+            type,
+            name,
+            data: JSON.parse(fp.SourceFingerprint.data),
+            sha: fp.SourceFingerprint.sha,
+        };
+        const result = await pushFingerprint(
+            (p as GitProject),
+            aspects,
+            fingerprint);
+
+        if (!cli.parameters.title) {
+            cli.parameters.title = applyFingerprintTitle(fingerprint, aspects);
+        }
+        if (!cli.parameters.body) {
+            cli.parameters.body = prBodyFromFingerprint(fingerprint, aspects);
+        }
+
+        if (result) {
+            return p;
+        } else {
+            return { edited: false, success: true, target: p };
+        }
     };
 }
 
 /**
  * Create a CodeTransform that can be used to apply a Fingerprint to a Project
  * This CodeTransform takes a set of Fingerprints in it's set of parameters
- *
- * @param registrations
  */
-function runEveryFingerprintApplication(registrations: Aspect[]): CodeTransform<ApplyTargetFingerprintsParameters> {
+function runEveryFingerprintApplication(aspects: Aspect[]): CodeTransform<ApplyTargetFingerprintsParameters> {
     return async (p, cli) => {
 
+        const fingerprints = cli.parameters.fingerprints.split(",").map(fp => fp.trim());
+
         const message = slackInfoMessage(
-            "Apply Fingerprint Target",
-            `Applying fingerprint target ${codeLine(cli.parameters.fingerprints)} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
+            "Apply Fingerprint Targets",
+            `Applying fingerprint targets ${fingerprints.map(codeLine).join(", ")} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
 
         await cli.addressChannels(message, { id: cli.parameters.msgId });
 
-        // TODO fpName is targetName
-        await Promise.all(
-            cli.parameters.fingerprints.split(",").map(
-                async fpName => {
-                    const { type, name } = fromName(fpName);
-                    return pushFingerprint(
-                        async (s: string) => cli.addressChannels(s),
-                        (p as GitProject),
-                        registrations,
-                        await queryPreferences(
-                            cli.context.graphClient,
-                            type,
-                            name));
-                },
-            ),
-        );
+        for (const fpName of fingerprints) {
+            const { type, name } = fromName(fpName.trim());
+            const result = await pushFingerprint(
+                (p as GitProject),
+                aspects,
+                await queryPreferences(
+                    cli.context.graphClient,
+                    type,
+                    name));
+            if (!result) {
+                return { edited: false, success: true, target: p };
+            }
+        }
         return p;
     };
 }
@@ -150,19 +206,18 @@ export interface ApplyTargetFingerprintParameters extends ApplyTargetParameters 
     targetfingerprint: string;
 }
 
-// use where ApplyTargetFingerprint was used
 export const ApplyTargetFingerprintName = "ApplyTargetFingerprint";
 
 export function applyTarget(
     sdm: SoftwareDeliveryMachine,
-    registrations: Aspect[],
-    presentation: EditModeMaker): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
+    aspects: Aspect[],
+    presentation: TransformPresentation<ApplyTargetParameters>): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
 
     return {
         name: ApplyTargetFingerprintName,
         intent: [
-          `apply fingerprint target ${sdm.configuration.name.replace("@", "")}`,
-          `applyFingerprint ${sdm.configuration.name.replace("@", "")}`,
+            `apply fingerprint target ${sdm.configuration.name.replace("@", "")}`,
+            `applyFingerprint ${sdm.configuration.name.replace("@", "")}`,
         ],
         description: "choose to raise a PR on the current project to apply a target fingerprint",
         parameters: {
@@ -173,7 +228,38 @@ export function applyTarget(
             branch: { required: false, displayable: false },
         },
         transformPresentation: presentation,
-        transform: runAllFingerprintAppliers(registrations),
+        transform: runAllFingerprintAppliers(aspects),
+        autoSubmit: true,
+    };
+}
+
+export interface ApplyTargetFingerprintByShaParameters extends ApplyTargetFingerprintParameters {
+    sha: string;
+}
+
+export const ApplyTargetFingerprintByShaName = "ApplyTargetFingerprintBySha";
+
+export function applyTargetBySha(
+    sdm: SoftwareDeliveryMachine,
+    aspects: Aspect[],
+    presentation: TransformPresentation<ApplyTargetParameters>): CodeTransformRegistration<ApplyTargetFingerprintByShaParameters> {
+
+    return {
+        name: ApplyTargetFingerprintByShaName,
+        intent: [
+            `apply fingerprint target by sha ${sdm.configuration.name.replace("@", "")}`,
+        ],
+        description: "Apply a fingerprint target identified by the fingerprint's sha and type",
+        parameters: {
+            msgId: { required: false, displayable: false },
+            targetfingerprint: { required: true },
+            sha: { required: true },
+            body: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
+            title: { required: false, displayable: true, control: "textarea", pattern: /[\S\s]*/ },
+            branch: { required: false, displayable: false },
+        },
+        transformPresentation: presentation,
+        transform: runFingerprintAppliersBySha(aspects),
         autoSubmit: true,
     };
 }
@@ -188,7 +274,7 @@ export const ApplyAllFingerprintsName = "ApplyAllFingerprints";
 export function applyTargets(
     sdm: SoftwareDeliveryMachine,
     registrations: Aspect[],
-    presentation: EditModeMaker,
+    presentation: TransformPresentation<ApplyTargetParameters>,
 ): CodeTransformRegistration<ApplyTargetFingerprintsParameters> {
     return {
         name: ApplyAllFingerprintsName,
@@ -243,13 +329,13 @@ export function broadcastFingerprintMandate(
                                 x.sha !== fp.sha;
                         }))
                         .map(x => {
-                            return {
-                                owner: x.repo.owner,
-                                repo: x.repo.name,
-                                url: "url",
-                                branch: "master",
-                            };
-                        },
+                                return {
+                                    owner: x.repo.owner,
+                                    repo: x.repo.name,
+                                    url: "url",
+                                    branch: "master",
+                                };
+                            },
                         ),
                 );
             }
@@ -273,7 +359,8 @@ export function broadcastFingerprintMandate(
 
             const message = slackSuccessMessage(
                 "Boardcast Fingerprint Target",
-                `Successfully scheduled job to apply target for fingerprint ${codeLine(i.parameters.fingerprint)} to ${refs.length} ${refs.length > 1 ? "repositories" : "repository"}`);
+                `Successfully scheduled job to apply target for fingerprint ${codeLine(i.parameters.fingerprint)} to ${
+                    refs.length} ${refs.length > 1 ? "repositories" : "repository"}`);
 
             // replace the previous message where we chose this action
             await i.addressChannels(message, { id: i.parameters.msgId });

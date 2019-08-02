@@ -21,29 +21,20 @@ import {
 
 export function displayName(aspect: Aspect, fp: FP): string {
     if (!!aspect.toDisplayableFingerprintName) {
-        return `${aspect.toDisplayableFingerprintName(fp.name)}`;
+        return aspect.toDisplayableFingerprintName(fp.name);
     } else {
-        return `${fp.name}`;
+        return fp.name;
     }
 }
 
 export function displayValue(aspect: Aspect, fp: FP): string {
     if (!!aspect.toDisplayableFingerprint) {
-        return `${aspect.toDisplayableFingerprint(fp)}`;
+        return aspect.toDisplayableFingerprint(fp);
     } else {
-        return `${fp.data}`;
+        return JSON.stringify(fp.data, undefined, 2);
     }
 }
 
-const aspects = new Map<string, Aspect>();
-
-export function addAspect(aspect: Aspect): void {
-    aspects.set(aspect.name, aspect);
-}
-
-export function applyToAspect<T>(fp: FP, f: (aspect: Aspect, fp: FP) => T): T {
-    if (!aspects.get(fp.type || fp.name)) {
-        throw new Error(`can not lookup Aspect for ${fp.type}::${fp.name}`);
-    }
-    return f(aspects.get(fp.type), fp);
+export function aspectOf(fingerprint: Pick<FP, "type">, aspects: Aspect[]): Aspect | undefined {
+    return aspects.find(a => a.name === fingerprint.type);
 }
