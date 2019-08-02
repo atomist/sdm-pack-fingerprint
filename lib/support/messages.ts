@@ -18,7 +18,10 @@ import { logger } from "@atomist/automation-client";
 import {
     consistentHash,
 } from "@atomist/clj-editors";
-import { codeLine } from "@atomist/slack-messages";
+import {
+    codeBlock,
+    codeLine,
+} from "@atomist/slack-messages";
 import { toName } from "../adhoc/preferences";
 import {
     Aspect,
@@ -87,9 +90,11 @@ export function applyFingerprintTitle(fp: FP, aspects: Aspect[]): string {
 }
 
 export function prBodyFromFingerprint(fp: FP, aspects: Aspect[]): string {
+    const aspect = aspectOf(fp, aspects);
     const fingerprint = toName(fp.type, fp.name);
     const intro = `Apply target fingerprint ${codeLine(fingerprint)}`;
-    return `${intro}\n\n[fingerprint:${fingerprint}=${fp.sha}]`;
+    const description = `${displayName(aspect, fp)} (${displayValue(aspect, fp)})`;
+    return `${intro}\n\n${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${fp.sha}]`;
 }
 
 export function prBody(vote: Vote, aspects: Aspect[]): string {

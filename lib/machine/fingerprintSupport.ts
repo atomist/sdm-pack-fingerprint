@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import {
-    editModes,
-    Project,
-} from "@atomist/automation-client";
+import { Project } from "@atomist/automation-client";
 import {
     AutoMerge,
     AutoMergeMethod,
@@ -26,6 +23,7 @@ import {
 import {
     ExtensionPack,
     Fingerprint,
+    formatDate,
     Goal,
     metadata,
     PushImpact,
@@ -195,14 +193,15 @@ export function createPullRequestTransformPresentation(options: PullRequestTrans
  * This allows us to better format the properties of the PullRequest as we have access to the
  * parameters instance.
  */
-class LazyPullRequest extends editModes.PullRequest {
+class LazyPullRequest {
 
     private readonly fingerprint: string;
 
+    private readonly branchName: string;
+    
     constructor(private readonly options: PullRequestTransformPresentationOptions,
                 private readonly parameters: ApplyTargetParameters,
                 private readonly project: Project) {
-        super(undefined, undefined, undefined, undefined);
 
         this.fingerprint = (this.parameters.fingerprint || this.parameters.targetfingerprint || this.parameters.type) as string;
         if (!this.fingerprint) {
@@ -211,10 +210,11 @@ class LazyPullRequest extends editModes.PullRequest {
                 this.fingerprint = this.fingerprint.split(",").map(f => f.trim()).join(", ");
             }
         }
+        this.branchName = `${this.options.branchPrefix || "apply-target-fingerprint"}-${formatDate()}`;
     }
 
     get branch(): string {
-        return `${this.options.branchPrefix || "apply-target-fingerprint"}-${Date.now()}`;
+        return this.branchName;
     }
 
     get title(): string {
@@ -225,7 +225,7 @@ class LazyPullRequest extends editModes.PullRequest {
          return this.options.body || this.parameters.body || this.title;
     }
     get message(): string {
-        return this.options.message;
+        return this.options.message || this.title;
     }
     get targetBranch(): string {
         return this.project.id.branch;
