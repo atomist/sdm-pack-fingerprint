@@ -15,13 +15,12 @@
  */
 
 export {
-    createPullRequestEditModeMaker,
+    createPullRequestTransformPresentation,
     fingerprintSupport,
     forFingerprints,
     diffOnlyHandler,
     DefaultTargetDiffHandler,
-    DefaultEditModeMaker,
-    EditModeMaker,
+    DefaultTransformPresentation,
 } from "./lib/machine/fingerprintSupport";
 export {
     BaseAspect,

@@ -33,6 +33,7 @@ import {
     PushTest,
     SoftwareDeliveryMachine,
     SoftwareDeliveryMachineConfiguration,
+    TransformPresentation,
     whenPushSatisfies,
 } from "@atomist/sdm";
 import {
@@ -49,7 +50,7 @@ import { Backpack } from "../lib/fingerprints/backpack";
 import {
     JsonFile,
 } from "../lib/fingerprints/jsonFiles";
-import { EditModeMaker } from "../lib/machine/fingerprintSupport";
+import { ApplyTargetParameters } from "../lib/handlers/commands/applyFingerprint";
 
 const IsNpm: PushTest = pushTest(`contains package.json file`, async pci =>
     !!(await pci.project.getFile("package.json")),
@@ -102,7 +103,7 @@ const FingerprintingGoals: Goals = goals("check fingerprints")
     .plan(pushImpact, // complianceGoal
     );
 
-export const AutoApproveEditModeMaker: EditModeMaker = (ci, p) => {
+export const AutoApproveEditModeMaker: TransformPresentation<ApplyTargetParameters> = (ci, p) => {
     // name the branch apply-target-fingerprint with a Date
     // title can be derived from ApplyTargetParameters
     // body can be derived from ApplyTargetParameters

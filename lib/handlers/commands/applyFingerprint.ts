@@ -29,6 +29,7 @@ import {
     slackInfoMessage,
     slackSuccessMessage,
     SoftwareDeliveryMachine,
+    TransformPresentation,
 } from "@atomist/sdm";
 import {
     bold,
@@ -44,7 +45,6 @@ import {
     FP,
 } from "../../machine/Aspect";
 import { aspectOf } from "../../machine/Aspects";
-import { EditModeMaker } from "../../machine/fingerprintSupport";
 import {
     applyFingerprintTitle,
     prBodyFromFingerprint,
@@ -211,7 +211,7 @@ export const ApplyTargetFingerprintName = "ApplyTargetFingerprint";
 export function applyTarget(
     sdm: SoftwareDeliveryMachine,
     aspects: Aspect[],
-    presentation: EditModeMaker): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
+    presentation: TransformPresentation<ApplyTargetParameters>): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
 
     return {
         name: ApplyTargetFingerprintName,
@@ -242,7 +242,7 @@ export const ApplyTargetFingerprintByShaName = "ApplyTargetFingerprintBySha";
 export function applyTargetBySha(
     sdm: SoftwareDeliveryMachine,
     aspects: Aspect[],
-    presentation: EditModeMaker): CodeTransformRegistration<ApplyTargetFingerprintByShaParameters> {
+    presentation: TransformPresentation<ApplyTargetParameters>): CodeTransformRegistration<ApplyTargetFingerprintByShaParameters> {
 
     return {
         name: ApplyTargetFingerprintByShaName,
@@ -274,7 +274,7 @@ export const ApplyAllFingerprintsName = "ApplyAllFingerprints";
 export function applyTargets(
     sdm: SoftwareDeliveryMachine,
     registrations: Aspect[],
-    presentation: EditModeMaker,
+    presentation: TransformPresentation<ApplyTargetParameters>,
 ): CodeTransformRegistration<ApplyTargetFingerprintsParameters> {
     return {
         name: ApplyAllFingerprintsName,

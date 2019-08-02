@@ -44,7 +44,7 @@ import {
     Vote,
 } from "./Aspect";
 import {
-    DefaultEditModeMaker,
+    DefaultTransformPresentation,
     FingerprintImpactHandlerConfig,
     FingerprintOptions,
 } from "./fingerprintSupport";
@@ -205,7 +205,7 @@ export function fingerprintRunner(
     computer: (fingerprinters: Aspect[], p: Project) => Promise<FP[]>,
     options: FingerprintOptions & FingerprintImpactHandlerConfig = {
         aspects: [],
-        transformPresentation: DefaultEditModeMaker,
+        transformPresentation: DefaultTransformPresentation,
         messageMaker,
     }): FingerprintRunner {
 

@@ -19,6 +19,7 @@ import {
     Project,
 } from "@atomist/automation-client";
 import {
+    AutoMerge,
     AutoMergeMethod,
     AutoMergeMode,
 } from "@atomist/automation-client/lib/operations/edit/editModes";
@@ -27,10 +28,10 @@ import {
     Fingerprint,
     Goal,
     metadata,
-    PushAwareParametersInvocation,
     PushImpact,
     PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
+    TransformPresentation,
 } from "@atomist/sdm";
 import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
@@ -84,11 +85,6 @@ export function forFingerprints(...s: string[]): (fp: FP) => boolean {
 }
 
 /**
- * permits customization of EditModes in the FingerprintImpactHandlerConfig
- */
-export type EditModeMaker = (cli: PushAwareParametersInvocation<ApplyTargetParameters>, project?: Project) => editModes.EditMode;
-
-/**
  * customize the out of the box strategy for monitoring when fingerprints are out
  * of sync with a target.
  *
@@ -96,7 +92,7 @@ export type EditModeMaker = (cli: PushAwareParametersInvocation<ApplyTargetParam
 export interface FingerprintImpactHandlerConfig {
     complianceGoal?: Goal;
     complianceGoalFailMessage?: string;
-    transformPresentation: EditModeMaker;
+    transformPresentation: TransformPresentation<ApplyTargetParameters>;
     messageMaker: MessageMaker;
 }
 
@@ -165,52 +161,69 @@ export interface FingerprintOptions {
      */
     handlers?: RegisterFingerprintImpactHandler | RegisterFingerprintImpactHandler[];
 
-    transformPresentation?: EditModeMaker;
+    transformPresentation?: TransformPresentation<ApplyTargetParameters>;
 }
 
-export const DefaultEditModeMaker: EditModeMaker = createPullRequestEditModeMaker();
+export const DefaultTransformPresentation: TransformPresentation<ApplyTargetParameters> = createPullRequestTransformPresentation();
 
-export function createPullRequestEditModeMaker(options: {
-    branchPrefix?: string,
-    title?: string,
-    body?: string,
-    message?: string,
+export interface PullRequestTransformPresentationOptions {
+    branchPrefix?: string;
+    title?: string;
+    body?: string;
+    message?: string;
     autoMerge?: {
-        method?: AutoMergeMethod,
-        mode?: AutoMergeMode,
-    },
-} = { }): EditModeMaker {
-    return (ci, p) => {
+        method?: AutoMergeMethod;
+        mode?: AutoMergeMode;
+    };
+}
 
-        // name the branch apply-target-fingerprint with a Date
-        // title can be derived from ApplyTargetParameters
-        // body can be derived from ApplyTargetParameters
-        // optional message is undefined here
+export function createPullRequestTransformPresentation(options: PullRequestTransformPresentationOptions = {})
+    : TransformPresentation<ApplyTargetParameters> {
+    return (ci, p) => new LazyPullRequest(options, ci.parameters, p);
+}
 
-        let fingerprint = ci.parameters.fingerprint || ci.parameters.targetfingerprint || ci.parameters.type as string;
-        if (!fingerprint) {
-            fingerprint = ci.parameters.fingerprints as string;
-            if (!!fingerprint) {
-                fingerprint = fingerprint.split(",").map(f => f.trim()).join(", ");
+class LazyPullRequest extends editModes.PullRequest {
+
+    private readonly fingerprint: string;
+
+    constructor(private readonly options: PullRequestTransformPresentationOptions,
+                private readonly parameters: ApplyTargetParameters,
+                private readonly project: Project) {
+        super(undefined, undefined, undefined, undefined);
+
+        this.fingerprint = (this.parameters.fingerprint || this.parameters.targetfingerprint || this.parameters.type) as string;
+        if (!this.fingerprint) {
+            this.fingerprint = this.parameters.fingerprints as string;
+            if (!!this.fingerprint) {
+                this.fingerprint = this.fingerprint.split(",").map(f => f.trim()).join(", ");
             }
         }
+    }
 
-        const autoMerge = _.get(options, "autoMerge") || {};
-        const title = options.title || ci.parameters.title || `Apply fingerprint target (${fingerprint})`;
-        const body = options.body || ci.parameters.body || title;
-        return new editModes.PullRequest(
-            `${options.branchPrefix || "apply-target-fingerprint"}-${Date.now()}`,
-            title,
-            `${body}
+    get branch(): string {
+        return `${this.options.branchPrefix || "apply-target-fingerprint"}-${Date.now()}`
+    }
 
-[atomist:generated]`,
-            options.message,
-            p.id.branch,
-            {
-                method: autoMerge.method || AutoMergeMethod.Squash,
-                mode: autoMerge.mode || AutoMergeMode.ApprovedReview,
-            });
-    };
+    get title(): string {
+        return this.options.title || this.parameters.title || `Apply fingerprint target (${this.fingerprint})`;
+    }
+
+    get body(): string {
+         return this.options.body || this.parameters.body || this.title;
+    }
+    get message(): string {
+        return this.options.message;
+    }
+    get targetBranch(): string {
+        return this.project.id.branch;
+    }
+    get autoMerge(): AutoMerge {
+        const autoMerge = _.get(this.options, "autoMerge") || {};
+        return {
+            method: autoMerge.method || AutoMergeMethod.Squash,
+            mode: autoMerge.mode || AutoMergeMode.ApprovedReview,
+        }
+    }
 }
 
 /**
@@ -235,7 +248,7 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
                 computeFingerprints,
                 {
                     messageMaker,
-                    transformPresentation: DefaultEditModeMaker,
+                    transformPresentation: DefaultTransformPresentation,
                     ...options,
                 });
 
@@ -253,7 +266,7 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
                 options.pushImpactGoal.withListener(runner);
             }
 
-            configure(sdm, handlerRegistrations, fingerprints, options.transformPresentation || DefaultEditModeMaker);
+            configure(sdm, handlerRegistrations, fingerprints, options.transformPresentation || DefaultTransformPresentation);
         },
     };
 }
@@ -262,7 +275,7 @@ function configure(
     sdm: SoftwareDeliveryMachine,
     handlers: RegisterFingerprintImpactHandler[],
     aspects: Aspect[],
-    editModeMaker: EditModeMaker): void {
+    editModeMaker: TransformPresentation<ApplyTargetParameters>): void {
 
     sdm.addCommand(listFingerprints(sdm));
     sdm.addCommand(listFingerprint(sdm));
