@@ -198,7 +198,7 @@ class LazyPullRequest {
     private readonly fingerprint: string;
 
     private readonly branchName: string;
-    
+
     constructor(private readonly options: PullRequestTransformPresentationOptions,
                 private readonly parameters: ApplyTargetParameters,
                 private readonly project: Project) {
