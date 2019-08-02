@@ -188,12 +188,10 @@ export function createPullRequestEditModeMaker(options: {
         // optional message is undefined here
 
         let fingerprint = ci.parameters.fingerprint || ci.parameters.targetfingerprint || ci.parameters.type as string;
-        if (!!fingerprint) {
-            fingerprint = `[fingerprint:${fingerprint}]`;
-        } else {
+        if (!fingerprint) {
             fingerprint = ci.parameters.fingerprints as string;
             if (!!fingerprint) {
-                fingerprint = fingerprint.split(",").map(f => `[fingerprint:${f}]`).join(" ");
+                fingerprint = fingerprint.split(",").map(f => f.trim()).join(", ");
             }
         }
 

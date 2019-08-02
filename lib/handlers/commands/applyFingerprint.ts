@@ -46,6 +46,10 @@ import {
 import { aspectOf } from "../../machine/Aspects";
 import { EditModeMaker } from "../../machine/fingerprintSupport";
 import {
+    applyFingerprintTitle,
+    prBodyFromFingerprint,
+} from "../../support/messages";
+import {
     FindOtherRepos,
     GetFpBySha,
 } from "../../typings/types";
@@ -85,13 +89,24 @@ export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<Appl
         await cli.addressChannels(message, { id: cli.parameters.msgId });
 
         const { type, name } = fromName(cli.parameters.targetfingerprint);
+
+        const fingerprint = await queryPreferences(
+            cli.context.graphClient,
+            type,
+            name);
+
         const result = await pushFingerprint(
             (p as GitProject),
             aspects,
-            await queryPreferences(
-                cli.context.graphClient,
-                type,
-                name));
+            fingerprint,
+        );
+
+        if (!cli.parameters.title) {
+            cli.parameters.title = applyFingerprintTitle(fingerprint, aspects);
+        }
+        if (!cli.parameters.body) {
+            cli.parameters.body = prBodyFromFingerprint(fingerprint, aspects);
+        }
 
         if (result) {
             return p;
@@ -122,15 +137,23 @@ export function runFingerprintAppliersBySha(aspects: Aspect[]): CodeTransform<Ap
             options: QueryNoCacheOptions,
         });
 
+        const fingerprint = {
+            type,
+            name,
+            data: JSON.parse(fp.SourceFingerprint.data),
+            sha: fp.SourceFingerprint.sha,
+        };
         const result = await pushFingerprint(
             (p as GitProject),
             aspects,
-            {
-                type,
-                name,
-                data: JSON.parse(fp.SourceFingerprint.data),
-                sha: fp.SourceFingerprint.sha,
-            });
+            fingerprint);
+
+        if (!cli.parameters.title) {
+            cli.parameters.title = applyFingerprintTitle(fingerprint, aspects);
+        }
+        if (!cli.parameters.body) {
+            cli.parameters.body = prBodyFromFingerprint(fingerprint, aspects);
+        }
 
         if (result) {
             return p;

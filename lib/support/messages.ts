@@ -86,6 +86,12 @@ export function applyFingerprintTitle(fp: FP, aspects: Aspect[]): string {
     }
 }
 
+export function prBodyFromFingerprint(fp: FP, aspects: Aspect[]): string {
+    const fingerprint = toName(fp.type, fp.name);
+    const intro = `Apply target fingerprint ${codeLine(fingerprint)}`;
+    return `${intro}\n\n[fingerprint:${fingerprint}=${fp.sha}]`;
+}
+
 export function prBody(vote: Vote, aspects: Aspect[]): string {
     const title: string =
         orDefault(
