@@ -31,7 +31,7 @@ export function displayValue(aspect: Aspect, fp: FP): string {
     if (!!aspect.toDisplayableFingerprint) {
         return aspect.toDisplayableFingerprint(fp);
     } else {
-        return JSON.stringify(fp.data);
+        return JSON.stringify(fp.data, undefined, 2);
     }
 }
 
