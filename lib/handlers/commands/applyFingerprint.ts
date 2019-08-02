@@ -34,6 +34,7 @@ import {
 import {
     bold,
     codeLine,
+    italic,
 } from "@atomist/slack-messages";
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import {
@@ -68,7 +69,7 @@ async function pushFingerprint(
     if (!!aspect && !!aspect.apply) {
         const result: boolean = await aspect.apply(p, fp);
         if (result) {
-            logger.info(`Successfully applied fingerprint ${fp.name}`);
+            logger.info(`Successfully applied policy ${fp.name}`);
         }
         return result;
     }
@@ -82,13 +83,22 @@ async function pushFingerprint(
 export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<ApplyTargetFingerprintParameters> {
     return async (p, cli) => {
 
+        const { type, name } = fromName(cli.parameters.targetfingerprint);
+        const aspect = aspectOf({ type }, aspects);
+        let details;
+        if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+            details = `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
+        } else {
+            details = codeLine(cli.parameters.targetfingerprint);
+        }
+
         const message = slackInfoMessage(
-            "Apply Fingerprint Target",
-            `Applying fingerprint target ${codeLine(`${cli.parameters.targetfingerprint}`)} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
+            "Apply Policy",
+            `Applying policy to ${bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}:`)}
+
+${details}`);
 
         await cli.addressChannels(message, { id: cli.parameters.msgId });
-
-        const { type, name } = fromName(cli.parameters.targetfingerprint);
 
         const fingerprint = await queryPreferences(
             cli.context.graphClient,
@@ -119,13 +129,22 @@ export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<Appl
 export function runFingerprintAppliersBySha(aspects: Aspect[]): CodeTransform<ApplyTargetFingerprintByShaParameters> {
     return async (p, cli) => {
 
+        const { type, name } = fromName(cli.parameters.targetfingerprint);
+        const aspect = aspectOf({ type }, aspects);
+        let details;
+        if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+            details = `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
+        } else {
+            details = codeLine(cli.parameters.targetfingerprint);
+        }
+
         const message = slackInfoMessage(
-            "Apply Fingerprint Target",
-            `Applying fingerprint target ${codeLine(`${cli.parameters.targetfingerprint}`)} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
+            "Apply Policy",
+            `Applying policy to ${bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}:`)}
+
+${details}`);
 
         await cli.addressChannels(message, { id: cli.parameters.msgId });
-
-        const { type, name } = fromName(cli.parameters.targetfingerprint);
 
         const fp = await cli.context.graphClient.query<GetFpBySha.Query, GetFpBySha.Variables>({
             name: "GetFpBySha",
@@ -172,9 +191,23 @@ function runEveryFingerprintApplication(aspects: Aspect[]): CodeTransform<ApplyT
 
         const fingerprints = cli.parameters.fingerprints.split(",").map(fp => fp.trim());
 
+        const details = fingerprints.map(f => {
+            const { type, name } = fromName(f);
+            const aspect = aspectOf({ type }, aspects);
+            let detail;
+            if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+                detail = `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
+            } else {
+                detail = codeLine(f);
+            }
+            return detail;
+        });
+
         const message = slackInfoMessage(
-            "Apply Fingerprint Targets",
-            `Applying fingerprint targets ${fingerprints.map(codeLine).join(", ")} to ${bold(`${p.id.owner}/${p.id.repo}`)}`);
+            "Apply Policies",
+            `Applying policies to ${bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)}:
+
+${details.join("\n")}`);
 
         await cli.addressChannels(message, { id: cli.parameters.msgId });
 
@@ -304,7 +337,7 @@ export const BroadcastFingerprintMandateName = "BroadcastFingerprintMandate";
 
 export function broadcastFingerprintMandate(
     sdm: SoftwareDeliveryMachine,
-    registrations: Aspect[],
+    aspects: Aspect[],
 ): CommandHandlerRegistration<BroadcastFingerprintMandateParameters> {
     return {
         name: BroadcastFingerprintMandateName,
@@ -340,10 +373,20 @@ export function broadcastFingerprintMandate(
                 );
             }
 
+            const aspect = aspectOf({ type }, aspects);
+            let details;
+            if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+                details = `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
+            } else {
+                details = codeLine(i.parameters.fingerprint);
+            }
+
             await createJob<ApplyTargetFingerprintParameters>({
                 command: ApplyTargetFingerprintName,
-                description: `Applying target of fingerprint ${codeLine(i.parameters.fingerprint)}`,
-                name: `ApplyTargetFingerprint/${i.parameters.fingerprint}`,
+                description: `Applying policy:
+
+${details}`,
+                name: `ApplyPolicy/${i.parameters.fingerprint}`,
                 parameters: refs.map(r => ({
                     title: i.parameters.title,
                     body: i.parameters.body,
@@ -358,8 +401,8 @@ export function broadcastFingerprintMandate(
             }, i.context);
 
             const message = slackSuccessMessage(
-                "Boardcast Fingerprint Target",
-                `Successfully scheduled job to apply target for fingerprint ${codeLine(i.parameters.fingerprint)} to ${
+                "Boardcast Policy Update",
+                `Successfully scheduled job to apply policy ${details} to ${
                     refs.length} ${refs.length > 1 ? "repositories" : "repository"}`);
 
             // replace the previous message where we chose this action

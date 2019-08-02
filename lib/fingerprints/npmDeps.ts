@@ -164,9 +164,9 @@ export const applyNpmDepsFingerprint: ApplyFingerprint<FP<NpmDepData>> = async (
 /* tslint:disable:max-line-length */
 export const diffNpmDepsFingerprints: DiffSummaryFingerprint = (diff, target) => {
     return {
-        title: "New NPM Package Target",
+        title: "New NPM Package Policy",
         description:
-            `Target version for NPM package ${bold(diff.from.data[0])} is ${codeLine(target.data[1])}.\nProject ${bold(`${diff.owner}/${diff.repo}/${diff.branch}`)} is currently configured to use version ${codeLine(diff.to.data[1])}.`,
+            `Policy version for NPM package ${bold(diff.from.data[0])} is ${codeLine(target.data[1])}.\nProject ${bold(`${diff.owner}/${diff.repo}/${diff.branch}`)} is currently configured to use version ${codeLine(diff.to.data[1])}.`,
     };
 };
 

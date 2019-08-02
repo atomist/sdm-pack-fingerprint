@@ -20,7 +20,7 @@ import {
 } from "../..";
 
 export function displayName(aspect: Aspect, fp: FP): string {
-    if (!!aspect.toDisplayableFingerprintName) {
+    if (!!aspect && !!aspect.toDisplayableFingerprintName) {
         return aspect.toDisplayableFingerprintName(fp.name);
     } else {
         return fp.name;
@@ -28,7 +28,7 @@ export function displayName(aspect: Aspect, fp: FP): string {
 }
 
 export function displayValue(aspect: Aspect, fp: FP): string {
-    if (!!aspect.toDisplayableFingerprint) {
+    if (!!aspect && !!aspect.toDisplayableFingerprint) {
         return aspect.toDisplayableFingerprint(fp);
     } else {
         return JSON.stringify(fp.data, undefined, 2);

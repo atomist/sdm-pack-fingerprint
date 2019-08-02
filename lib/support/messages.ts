@@ -21,6 +21,7 @@ import {
 import {
     codeBlock,
     codeLine,
+    italic,
 } from "@atomist/slack-messages";
 import { toName } from "../adhoc/preferences";
 import {
@@ -83,18 +84,21 @@ export function getDiffSummary(diff: Diff, target: FP, aspect: Aspect): undefine
 export function applyFingerprintTitle(fp: FP, aspects: Aspect[]): string {
     const aspect = aspectOf(fp, aspects);
     if (!!aspect) {
-        return `Apply target fingerprint ${displayName(aspect, fp)}`;
+        return `Apply policy for ${displayName(aspect, fp)}`;
     } else {
-        return `Apply target fingerprint ${fp.name}`;
+        return `Apply policy for ${fp.name}`;
     }
 }
 
 export function prBodyFromFingerprint(fp: FP, aspects: Aspect[]): string {
     const aspect = aspectOf(fp, aspects);
     const fingerprint = toName(fp.type, fp.name);
-    const intro = `Apply target fingerprint ${codeLine(fingerprint)}:`;
+    const intro = `Apply policy ${codeLine(fingerprint)}:`;
     const description = `${displayName(aspect, fp)} (${displayValue(aspect, fp)})`;
-    return `${intro}\n\n${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${fp.sha}]`;
+    return `${intro}
+
+${italic(aspect.displayName)}
+${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${fp.sha}]`;
 }
 
 export function prBody(vote: Vote, aspects: Aspect[]): string {
@@ -107,8 +111,14 @@ export function prBody(vote: Vote, aspects: Aspect[]): string {
             () => vote.summary.description,
             `no summary`);
     const fingerprint = toName(vote.fpTarget.type, vote.fpTarget.name);
-    const intro = `Apply target fingerprint ${codeLine(fingerprint)}:`;
+    const intro = `Apply policy ${codeLine(fingerprint)}:`;
     const aspect = aspectOf(vote.fpTarget, aspects);
     const description = `${displayName(aspect, vote.fpTarget)} (${displayValue(aspect, vote.fpTarget)})`;
-    return `${intro}\n\n**${title}**\n${summary}\n\n${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${vote.fpTarget.sha}]`;
+    return `${intro}
+
+**${title}**
+${summary}
+
+${italic(aspect.displayName)}
+${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${vote.fpTarget.sha}]`;
 }

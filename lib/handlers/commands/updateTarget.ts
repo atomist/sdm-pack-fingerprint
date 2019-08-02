@@ -194,7 +194,7 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
             } else {
                 await cli.addressChannels(slackSuccessMessage(
                     "New Fingerprint Target",
-                    `Successfully set new target for fingerprint ${codeLine(toName(fp.type, fp.name))}`))
+                    `Successfully set new target for fingerprint ${codeLine(toName(fp.type, fp.name))}`));
             }
         },
     };
