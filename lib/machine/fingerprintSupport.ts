@@ -201,7 +201,7 @@ class LazyPullRequest extends editModes.PullRequest {
     }
 
     get branch(): string {
-        return `${this.options.branchPrefix || "apply-target-fingerprint"}-${Date.now()}`
+        return `${this.options.branchPrefix || "apply-target-fingerprint"}-${Date.now()}`;
     }
 
     get title(): string {
@@ -222,7 +222,7 @@ class LazyPullRequest extends editModes.PullRequest {
         return {
             method: autoMerge.method || AutoMergeMethod.Squash,
             mode: autoMerge.mode || AutoMergeMode.ApprovedReview,
-        }
+        };
     }
 }
 
