@@ -80,9 +80,9 @@ export function getDiffSummary(diff: Diff, target: FP, aspect: Aspect): undefine
 export function applyFingerprintTitle(fp: FP, aspects: Aspect[]): string {
     const aspect = aspectOf(fp, aspects);
     if (!!aspect) {
-        return `Apply fingerprint ${displayName(aspect, fp)} (${displayValue(aspect, fp)})`;
+        return `Apply target fingerprint ${displayName(aspect, fp)} (${displayValue(aspect, fp)})`;
     } else {
-        return `Apply fingerprint ${fp.name}`;
+        return `Apply target fingerprint ${fp.name}`;
     }
 }
 

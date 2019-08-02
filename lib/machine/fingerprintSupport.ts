@@ -166,6 +166,9 @@ export interface FingerprintOptions {
 
 export const DefaultTransformPresentation: TransformPresentation<ApplyTargetParameters> = createPullRequestTransformPresentation();
 
+/**
+ * Options to configure the PullRequest creation
+ */
 export interface PullRequestTransformPresentationOptions {
     branchPrefix?: string;
     title?: string;
@@ -177,11 +180,21 @@ export interface PullRequestTransformPresentationOptions {
     };
 }
 
+/**
+ * Creates the default TransformPresentation for raising PullRequests
+ */
 export function createPullRequestTransformPresentation(options: PullRequestTransformPresentationOptions = {})
     : TransformPresentation<ApplyTargetParameters> {
     return (ci, p) => new LazyPullRequest(options, ci.parameters, p);
 }
 
+/**
+ * Lazy implementation of PullRequest to defer creation of title and body etc to when they
+ * are actually needed
+ *
+ * This allows us to better format the properties of the PullRequest as we have access to the
+ * parameters instance.
+ */
 class LazyPullRequest extends editModes.PullRequest {
 
     private readonly fingerprint: string;
@@ -205,7 +218,7 @@ class LazyPullRequest extends editModes.PullRequest {
     }
 
     get title(): string {
-        return this.options.title || this.parameters.title || `Apply fingerprint target (${this.fingerprint})`;
+        return this.options.title || this.parameters.title || `Apply target fingerprint (${this.fingerprint})`;
     }
 
     get body(): string {

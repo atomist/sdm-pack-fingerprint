@@ -21,6 +21,10 @@ export {
     diffOnlyHandler,
     DefaultTargetDiffHandler,
     DefaultTransformPresentation,
+    PullRequestTransformPresentationOptions,
+    FingerprintImpactHandlerConfig,
+    FingerprintOptions,
+    RegisterFingerprintImpactHandler,
 } from "./lib/machine/fingerprintSupport";
 export {
     BaseAspect,
