@@ -145,7 +145,7 @@ export class UpdateTargetFingerprintParameters {
     public targetfingerprint: string;
 
     @Parameter({ required: false, type: "boolean" })
-    public broadcast: boolean
+    public broadcast: boolean;
 }
 
 export const UpdateTargetFingerprintName = "RegisterTargetFingerprint";
