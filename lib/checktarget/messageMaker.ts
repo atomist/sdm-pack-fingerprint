@@ -35,6 +35,7 @@ import {
     Attachment,
     bold,
     codeLine,
+    italic,
     SlackMessage,
 } from "@atomist/slack-messages";
 import {
@@ -78,7 +79,7 @@ export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult
  */
 function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
     return slackInfoMessage(
-        orDefault(() => vote.summary.title, "New Target"),
+        orDefault(() => vote.summary.title, "Policy Update"),
         orDefault(() => vote.summary.description, vote.text), {
             actions: [
                 buttonForCommand(
@@ -97,7 +98,7 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
                         },
                     }),
                 buttonForCommand(
-                    { text: "Set New Target" },
+                    { text: "Set Policy" },
                     UpdateTargetFingerprintName,
                     {
                         msgId: params.msgId,
@@ -127,14 +128,17 @@ export function ignoreCommand(aspects: Aspect[]): CommandHandlerRegistration<Ign
                 const { type, name } = fromName(f);
                 const aspect = aspectOf({ type }, aspects);
                 if (!!aspect && !!aspect.toDisplayableFingerprintName) {
-                    return aspect.toDisplayableFingerprintName(name);
+                    return `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
+                } else {
+                    return codeLine(f);
                 }
-                return name;
             });
 
             const msg = slackInfoMessage(
-                "New Fingerprint Target",
-                `Dismissed fingerprint target updates for ${fingerprints.map(codeLine).join(", ")}`,
+                "Policy Updates",
+                `Dismissed policy updates for fingerprints:
+
+${fingerprints.join("\n")}`,
             );
 
             // collapse the message
@@ -171,10 +175,10 @@ function applyAll(params: MessageMakerParams): Attachment {
     });
 
     return {
-        title: "Apply all Changes",
-        text: `Apply all changes from ${params.voteResults.failedVotes.map(vote => codeLine(vote.name)).join(", ")}`,
+        title: "Apply all Policies",
+        text: `Apply all ${params.voteResults.failedVotes.length} policies?}`,
         color: "#D7B958",
-        fallback: "Fingerprint Update",
+        fallback: "Apply Policies",
         mrkdwn_in: ["text"],
         actions: [
             buttonForCommand(
@@ -207,8 +211,8 @@ export const messageMaker: MessageMaker = async params => {
     const message: SlackMessage = {
         attachments: [
             {
-                text: `Fingerprint differences detected on ${bold(`${params.coord.owner}/${params.coord.repo}/${params.coord.branch}`)}`,
-                fallback: "Fingerprint diffs",
+                text: `Differences from set policy detected on ${bold(`${params.coord.owner}/${params.coord.repo}/${params.coord.branch}`)}`,
+                fallback: "Policy differences",
             },
             ...params.voteResults.failedVotes.map(vote => oneFingerprint(params, vote)),
         ],

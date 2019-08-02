@@ -30,6 +30,8 @@ import {
     slackWarningMessage,
 } from "@atomist/sdm";
 import {
+    bold,
+    codeBlock,
     codeLine,
     italic,
     user,
@@ -46,9 +48,12 @@ import {
 } from "../../machine/Aspect";
 import {
     aspectOf,
-    displayName,
+    displayValue,
 } from "../../machine/Aspects";
-import { applyFingerprintTitle } from "../../support/messages";
+import {
+    applyFingerprintTitle,
+    prBodyFromFingerprint,
+} from "../../support/messages";
 import { FindOtherRepos } from "../../typings/types";
 import {
     ApplyTargetFingerprintName,
@@ -62,10 +67,23 @@ export function askAboutBroadcast(
     msgId: string): Promise<void> {
 
     const author = _.get(cli.context.source, "slack.user.id") || _.get(cli.context.source, "web.identity.sub");
+
+    const { type, name } = fromName(fp.name);
+    const aspect = aspectOf({ type }, aspects);
+    let details;
+    if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+        details = `${italic(aspect.displayName)}
+${codeBlock(`${aspect.toDisplayableFingerprintName(name)} (${displayValue(aspect, fp)})`)}`;
+    } else {
+        details = codeLine(fp.name);
+    }
+
     const id = msgId || guid();
     const message = slackQuestionMessage(
-        "Broadcast Fingerprint Target",
-        `Shall we send every affected repository a nudge or pull request for the new  ${codeLine(toName(fp.type, fp.name))} target?`,
+        "Broadcast Policy",
+        `Shall we send every affected repository a nudge or pull request for the new policy?
+
+${details}`,
         {
             actions: [
                 actionableButton(
@@ -87,7 +105,7 @@ export function askAboutBroadcast(
                     BroadcastFingerprintMandateName,
                     {
                         title: applyFingerprintTitle(fp, aspects),
-                        body: applyFingerprintTitle(fp, aspects),
+                        body: prBodyFromFingerprint(fp, aspects),
                         branch: "master",
                         fingerprint: toName(fp.type, fp.name),
                         msgId: id,
@@ -119,13 +137,18 @@ function targetUpdateMessage(cli: CommandListenerInvocation<BroadcastFingerprint
                              name: string): string {
 
     const aspect = aspectOf({ type }, aspects);
-    const displayableName = !!aspect ? displayName(aspect, { type, name, data: {}, sha: "" }) : name;
+    let details;
+    if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+        details = `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
+    } else {
+        details = codeLine(toName(type, name));
+    }
 
-    return `${user(cli.parameters.author)} has updated the target version of ${codeLine(displayableName)}.
+    return `${user(cli.parameters.author)} has updated the policy of ${details}.
 
-    The reason provided is:
+The reason provided is:
 
-    ${italic(cli.parameters.reason)}`;
+${italic(cli.parameters.reason)}`;
 }
 
 interface FingerprintedRepo {
@@ -176,11 +199,19 @@ function broadcastNudge(aspects: Aspect[]): CommandListener<BroadcastFingerprint
             },
             (owner: string, repo: string, channel: string) => {
                 const { type, name } = fromName(cli.parameters.fingerprint);
-                const message = slackWarningMessage("Fingerprint Target", targetUpdateMessage(cli, aspects, type, name), cli.context);
+                const message = slackWarningMessage("Policy Update", targetUpdateMessage(cli, aspects, type, name), cli.context);
+
+                const aspect = aspectOf({ type }, aspects);
+                let details;
+                if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+                    details = `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
+                } else {
+                    details = codeLine(toName(type, name));
+                }
 
                 message.attachments.push({
-                    text: `Shall we update repository to use the new ${codeLine(name)} target?`,
-                    fallback: `Shall we update repository to use the new ${codeLine(name)} target?`,
+                    text: `Shall we update repository ${bold(`${owner}/${repo}`)} to the new policy for ${details}?`,
+                    fallback: `Policy Update`,
                     actions: [
                         buttonForCommand(
                             {
@@ -190,7 +221,7 @@ function broadcastNudge(aspects: Aspect[]): CommandListener<BroadcastFingerprint
                             {
                                 msgId,
                                 targetfingerprint: cli.parameters.fingerprint,
-                                title: `Updated target for ${name}`,
+                                title: applyFingerprintTitle({ name } as any, aspects),
                                 body: cli.parameters.reason,
                             },
                         ),

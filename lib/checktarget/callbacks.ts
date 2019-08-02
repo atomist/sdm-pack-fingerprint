@@ -24,7 +24,6 @@ import {
 import {
     checkFingerprintTargets,
     commaSeparatedList,
-    renderData,
     voteResults,
 } from "@atomist/clj-editors";
 import {
@@ -135,8 +134,6 @@ export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfi
         const result = voteResults<Vote>(vs);
 
         let goalState;
-        logger.debug(`ballot result ${renderData(result)} for ${renderData(vs)} and ${coord}`);
-
         if (result.failed) {
 
             await config.messageMaker({
