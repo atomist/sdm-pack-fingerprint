@@ -83,7 +83,7 @@ export function getDiffSummary(diff: Diff, target: FP, aspect: Aspect): undefine
 export function applyFingerprintTitle(fp: FP, aspects: Aspect[]): string {
     const aspect = aspectOf(fp, aspects);
     if (!!aspect) {
-        return `Apply target fingerprint ${displayName(aspect, fp)} (${displayValue(aspect, fp)})`;
+        return `Apply target fingerprint ${displayName(aspect, fp)}`;
     } else {
         return `Apply target fingerprint ${fp.name}`;
     }
@@ -92,7 +92,7 @@ export function applyFingerprintTitle(fp: FP, aspects: Aspect[]): string {
 export function prBodyFromFingerprint(fp: FP, aspects: Aspect[]): string {
     const aspect = aspectOf(fp, aspects);
     const fingerprint = toName(fp.type, fp.name);
-    const intro = `Apply target fingerprint ${codeLine(fingerprint)}`;
+    const intro = `Apply target fingerprint ${codeLine(fingerprint)}:`;
     const description = `${displayName(aspect, fp)} (${displayValue(aspect, fp)})`;
     return `${intro}\n\n${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${fp.sha}]`;
 }
@@ -102,11 +102,13 @@ export function prBody(vote: Vote, aspects: Aspect[]): string {
         orDefault(
             () => vote.summary.title,
             applyFingerprintTitle(vote.fpTarget, aspects));
-    const description: string =
+    const summary: string =
         orDefault(
             () => vote.summary.description,
             `no summary`);
     const fingerprint = toName(vote.fpTarget.type, vote.fpTarget.name);
     const intro = `Apply target fingerprint ${codeLine(fingerprint)}:`;
-    return `${intro}\n\n#### ${title}\n${description}\n\n[fingerprint:${fingerprint}=${vote.fpTarget.sha}]`;
+    const aspect = aspectOf(vote.fpTarget, aspects);
+    const description = `${displayName(aspect, vote.fpTarget)} (${displayValue(aspect, vote.fpTarget)})`;
+    return `${intro}\n\n#### ${title}\n${summary}\n\n${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${vote.fpTarget.sha}]`;
 }
