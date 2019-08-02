@@ -103,6 +103,7 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
                         msgId: params.msgId,
                         targetfingerprint: toName(vote.fpTarget.type, vote.fpTarget.name),
                         sha: vote.fingerprint.sha,
+                        broadcast: true,
                     },
                 ),
             ],
