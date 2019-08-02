@@ -110,5 +110,5 @@ export function prBody(vote: Vote, aspects: Aspect[]): string {
     const intro = `Apply target fingerprint ${codeLine(fingerprint)}:`;
     const aspect = aspectOf(vote.fpTarget, aspects);
     const description = `${displayName(aspect, vote.fpTarget)} (${displayValue(aspect, vote.fpTarget)})`;
-    return `${intro}\n\n#### ${title}\n${summary}\n\n${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${vote.fpTarget.sha}]`;
+    return `${intro}\n\n**${title}**\n${summary}\n\n${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${vote.fpTarget.sha}]`;
 }
