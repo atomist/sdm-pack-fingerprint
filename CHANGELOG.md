@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased](https://github.com/atomist/sdm-pack-fingerprints/compare/4.0.2...HEAD)
 
+### Changed
+
+-   Remove the usage of gobal aspects map. [#111](https://github.com/atomist/sdm-pack-fingerprints/issues/111)
+
 ### Fixed
 
 -   Update diff handler for npm project deps. [#107](https://github.com/atomist/sdm-pack-fingerprints/issues/107)
