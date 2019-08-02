@@ -222,7 +222,7 @@ class LazyPullRequest {
     }
 
     get body(): string {
-         return this.options.body || this.parameters.body || this.title;
+         return `${this.options.body || this.parameters.body || this.title}\n\n[atomist:generated]`;
     }
     get message(): string {
         return this.options.message || this.title;
