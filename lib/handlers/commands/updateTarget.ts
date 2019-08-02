@@ -29,8 +29,10 @@ import {
     actionableButton,
     CommandHandlerRegistration,
     slackQuestionMessage,
+    slackSuccessMessage,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
+import { codeLine } from "@atomist/slack-messages";
 import { Aspect } from "../../..";
 import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
 import {
@@ -189,6 +191,10 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
             await (setFPTarget(cli.context.graphClient))(type, name, fingerprint);
             if (!!cli.parameters.broadcast) {
                 return askAboutBroadcast(cli, aspects, fingerprint, cli.parameters.msgId);
+            } else {
+                await cli.addressChannels(slackSuccessMessage(
+                    "New Fingerprint Target",
+                    `Successfully set new target for fingerprint ${codeLine(toName(fp.type, fp.name))}`))
             }
         },
     };
