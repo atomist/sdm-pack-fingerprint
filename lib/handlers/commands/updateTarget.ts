@@ -143,6 +143,9 @@ export class UpdateTargetFingerprintParameters {
 
     @Parameter({ required: true })
     public targetfingerprint: string;
+
+    @Parameter({ required: false, type: "boolean" })
+    public broadcast: boolean
 }
 
 export const UpdateTargetFingerprintName = "RegisterTargetFingerprint";
@@ -184,7 +187,9 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
             };
 
             await (setFPTarget(cli.context.graphClient))(type, name, fingerprint);
-            return askAboutBroadcast(cli, aspects, fingerprint, cli.parameters.msgId);
+            if (!!cli.parameters.broadcast) {
+                return askAboutBroadcast(cli, aspects, fingerprint, cli.parameters.msgId);
+            }
         },
     };
 }
