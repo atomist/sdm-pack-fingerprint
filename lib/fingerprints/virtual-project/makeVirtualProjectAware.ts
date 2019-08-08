@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Project} from "@atomist/automation-client";
+import { Project } from "@atomist/automation-client";
 import {
     ApplyFingerprint,
     Aspect,
@@ -27,8 +27,11 @@ import {
 } from "./VirtualProjectFinder";
 
 import * as _ from "lodash";
-import {AtomicAspect, isAtomicAspect} from "../../machine/AtomicAspect";
-import {localProjectUnder} from "./support/localProjectUnder";
+import {
+    AtomicAspect,
+    isAtomicAspect,
+} from "../../machine/AtomicAspect";
+import { localProjectUnder } from "./support/localProjectUnder";
 
 export type EligibleAspect = Aspect | AtomicAspect;
 
