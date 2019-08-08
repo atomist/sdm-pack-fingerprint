@@ -16,8 +16,8 @@
 
 import { InMemoryProject } from "@atomist/automation-client";
 import * as assert from "assert";
-import {fileNamesVirtualProjectFinder} from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
-import {VirtualProjectStatus} from "../../../lib/fingerprints/virtual-project/VirtualProjectFinder";
+import { fileNamesVirtualProjectFinder } from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
+import { VirtualProjectStatus } from "../../../lib/fingerprints/virtual-project/VirtualProjectFinder";
 
 const GradleAndNodeSubprojectFinder = fileNamesVirtualProjectFinder("build.gradle", "package.json");
 

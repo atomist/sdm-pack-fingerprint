@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import {LocalProject, NodeFsLocalProject, RepoRef} from "@atomist/automation-client";
+import {
+    LocalProject,
+    NodeFsLocalProject,
+    RepoRef,
+} from "@atomist/automation-client";
 import * as tmp from "tmp-promise";
 
 tmp.setGracefulCleanup();

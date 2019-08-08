@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import {isVirtualProjectsInfo, VirtualProject, VirtualProjectFinder, VirtualProjectStatus} from "./VirtualProjectFinder";
+import {
+    isVirtualProjectsInfo,
+    VirtualProject,
+    VirtualProjectFinder,
+    VirtualProjectStatus,
+} from "./VirtualProjectFinder";
 
 /**
  * Return a subproject finder of all these

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import {fileIterator, gatherFromFiles} from "@atomist/automation-client/lib/project/util/projectUtils";
+import {
+    fileIterator,
+    gatherFromFiles,
+} from "@atomist/automation-client/lib/project/util/projectUtils";
 import * as path from "path";
 import {
     RootIsOnlyProject,

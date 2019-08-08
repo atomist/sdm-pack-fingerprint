@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-import {isLocalProject, NodeFsLocalProject, Project, RemoteRepoRef} from "@atomist/automation-client";
+import {
+    isLocalProject,
+    NodeFsLocalProject,
+    Project,
+    RemoteRepoRef,
+} from "@atomist/automation-client";
 import * as path from "path";
-import {Descender} from "../makeVirtualProjectAware";
+import { Descender } from "../makeVirtualProjectAware";
 
 export const localProjectUnder: Descender = async (p: Project, pathWithin: string) => {
     if (!isLocalProject(p)) {

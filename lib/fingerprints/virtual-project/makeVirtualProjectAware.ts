@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-import {Project} from "@atomist/automation-client";
-import {ApplyFingerprint, Aspect, ExtractFingerprint, FP} from "../../machine/Aspect";
-import {VirtualProjectFinder, VirtualProjectStatus} from "./VirtualProjectFinder";
+import { Project } from "@atomist/automation-client";
+import {
+    ApplyFingerprint,
+    Aspect,
+    ExtractFingerprint,
+    FP,
+} from "../../machine/Aspect";
+import {
+    VirtualProjectFinder,
+    VirtualProjectStatus,
+} from "./VirtualProjectFinder";
 
 import * as _ from "lodash";
-import {localProjectUnder} from "./support/localProjectUnder";
+import { localProjectUnder } from "./support/localProjectUnder";
 
 /**
  * Function that knows how to return a virtual project

@@ -15,12 +15,19 @@
  */
 
 import {sha256} from "@atomist/clj-editors";
-import {makeApplyVirtualProjectAware, makeExtractorVirtualProjectAware} from "../../../lib/fingerprints/virtual-project/makeVirtualProjectAware";
-import {ApplyFingerprint, ExtractFingerprint, FP} from "../../../lib/machine/Aspect";
+import {
+    makeApplyVirtualProjectAware,
+    makeExtractorVirtualProjectAware,
+} from "../../../lib/fingerprints/virtual-project/makeVirtualProjectAware";
+import {
+    ApplyFingerprint,
+    ExtractFingerprint,
+    FP,
+} from "../../../lib/machine/Aspect";
 
 import * as assert from "assert";
-import {fileNamesVirtualProjectFinder} from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
-import {tempProject} from "./tempProject";
+import { fileNamesVirtualProjectFinder } from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
+import { tempProject } from "./tempProject";
 
 const extractThing: ExtractFingerprint = async p => {
     const t = await p.getFile("Thing");
