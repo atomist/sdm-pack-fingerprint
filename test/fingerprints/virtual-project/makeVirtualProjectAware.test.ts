@@ -118,6 +118,22 @@ describe("makeVirtualProjectAware", () => {
 
     describe("aspect", () => {
 
+        it("should return aspect when no virtual project finder is supplied", async () => {
+            const aspect: Aspect = {
+                name: "thing",
+                displayName: "thinger",
+                stats: {
+                    basicStatsPath: "count",
+                },
+                extract: extractThing,
+                apply: applyThing,
+                toDisplayableFingerprint: fp => "thingie",
+                toDisplayableFingerprintName: fp => "thingish",
+            };
+            const multified = makeVirtualProjectAware(aspect, undefined);
+            assert.strictEqual(multified, aspect);
+        });
+
         it("should allow no apply", async () => {
             const aspect: Aspect = {
                 name: "thing",

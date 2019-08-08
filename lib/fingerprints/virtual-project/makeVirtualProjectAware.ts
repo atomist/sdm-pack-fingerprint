@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Project } from "@atomist/automation-client";
+import {Project} from "@atomist/automation-client";
 import {
     ApplyFingerprint,
     Aspect,
@@ -27,22 +27,30 @@ import {
 } from "./VirtualProjectFinder";
 
 import * as _ from "lodash";
-import { localProjectUnder } from "./support/localProjectUnder";
+import {AtomicAspect, isAtomicAspect} from "../../machine/AtomicAspect";
+import {localProjectUnder} from "./support/localProjectUnder";
+
+export type EligibleAspect = Aspect | AtomicAspect;
 
 /**
  * Make this aspect work with virtual projects as found by the given
  * VirtualProjectFinder
  * @param {Aspect} aspect to make virtual project aware
- * @param {VirtualProjectFinder} virtualProjectFinder
+ * @param {VirtualProjectFinder} virtualProjectFinder. If not supplied, return the
+ * original aspect.
  * @return {Aspect}
  */
-export function makeVirtualProjectAware(aspect: Aspect, virtualProjectFinder: VirtualProjectFinder): Aspect {
-    return {
-        ...aspect,
-        // Wrap these two functions
-        extract: makeExtractorVirtualProjectAware(aspect.extract, virtualProjectFinder),
-        apply: aspect.apply ? makeApplyVirtualProjectAware(aspect.apply, virtualProjectFinder) : undefined,
-    };
+export function makeVirtualProjectAware<A extends EligibleAspect>(aspect: A, virtualProjectFinder: VirtualProjectFinder): A {
+    return !!virtualProjectFinder ? {
+            ...aspect,
+            // Wrap extract. AtomistAspects don't need wrapping as the aspects they build on
+            // should have been wrapped
+            extract: isAtomicAspect(aspect) ?
+                undefined :
+                makeExtractorVirtualProjectAware((aspect as Aspect).extract, virtualProjectFinder),
+            apply: aspect.apply ? makeApplyVirtualProjectAware(aspect.apply, virtualProjectFinder) : undefined,
+        } :
+        aspect;
 }
 
 /**
