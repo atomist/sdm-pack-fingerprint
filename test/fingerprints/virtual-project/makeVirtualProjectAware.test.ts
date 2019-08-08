@@ -28,9 +28,9 @@ import {
 } from "../../../lib/machine/Aspect";
 
 import * as assert from "assert";
-import {cachingVirtualProjectFinder} from "../../../lib/fingerprints/virtual-project/cachingVirtualProjectFinder";
-import {fileNamesVirtualProjectFinder} from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
-import {tempProject} from "./tempProject";
+import { cachingVirtualProjectFinder } from "../../../lib/fingerprints/virtual-project/cachingVirtualProjectFinder";
+import { fileNamesVirtualProjectFinder } from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
+import { tempProject } from "./tempProject";
 
 const extractThing: ExtractFingerprint = async p => {
     const t = await p.getFile("Thing");

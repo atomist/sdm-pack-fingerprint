@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-import {Project} from "@atomist/automation-client";
-import {VirtualProjectFinder, VirtualProjectInfo} from "./VirtualProjectFinder";
+import { Project } from "@atomist/automation-client";
+import {
+    VirtualProjectFinder,
+    VirtualProjectInfo,
+} from "./VirtualProjectFinder";
 
 type DecoratedProject = Project & { virtualProjectInfo?: VirtualProjectInfo };
 
