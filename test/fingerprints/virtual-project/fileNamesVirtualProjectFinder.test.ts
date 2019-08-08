@@ -16,12 +16,13 @@
 
 import { InMemoryProject } from "@atomist/automation-client";
 import * as assert from "assert";
+import {cachingVirtualProjectFinder} from "../../../lib/fingerprints/virtual-project/cachingVirtualProjectFinder";
 import { fileNamesVirtualProjectFinder } from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
 import { VirtualProjectStatus } from "../../../lib/fingerprints/virtual-project/VirtualProjectFinder";
 
-const GradleAndNodeSubprojectFinder = fileNamesVirtualProjectFinder(
+const GradleAndNodeSubprojectFinder = cachingVirtualProjectFinder(fileNamesVirtualProjectFinder(
     "build.gradle",
-    "package.json");
+    "package.json"));
 
 describe("fileNamesVirtualProjectFinder", () => {
 
