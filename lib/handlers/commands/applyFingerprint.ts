@@ -358,7 +358,7 @@ export function broadcastFingerprintMandate(
             }, i.context);
 
             const message = slackSuccessMessage(
-                "Boardcast Fingerprint Target",
+                "Broadcast Fingerprint Target",
                 `Successfully scheduled job to apply target for fingerprint ${codeLine(i.parameters.fingerprint)} to ${
                     refs.length} ${refs.length > 1 ? "repositories" : "repository"}`);
 
