@@ -17,17 +17,17 @@
 import {sha256} from "@atomist/clj-editors";
 import {
     makeApplyVirtualProjectAware,
-    makeExtractorVirtualProjectAware,
+    makeExtractorVirtualProjectAware, makeVirtualProjectAware,
 } from "../../../lib/fingerprints/virtual-project/makeVirtualProjectAware";
 import {
-    ApplyFingerprint,
+    ApplyFingerprint, Aspect,
     ExtractFingerprint,
     FP,
 } from "../../../lib/machine/Aspect";
 
 import * as assert from "assert";
-import { fileNamesVirtualProjectFinder } from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
-import { tempProject } from "./tempProject";
+import {fileNamesVirtualProjectFinder} from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
+import {tempProject} from "./tempProject";
 
 const extractThing: ExtractFingerprint = async p => {
     const t = await p.getFile("Thing");
@@ -110,6 +110,48 @@ describe("makeVirtualProjectAware", () => {
             await apply(p, {data} as any);
             assert.strictEqual(await p.totalFileCount(), 4);
             assert(await p.getFile("x/AnotherThing"));
+        });
+
+    });
+
+    describe("aspect", () => {
+
+        it("should allow no apply", async () => {
+            const aspect: Aspect = {
+                name: "thing",
+                displayName: "thinger",
+                stats: {
+                    basicStatsPath: "count",
+                },
+                extract: extractThing,
+                toDisplayableFingerprint: fp => "thingie",
+                toDisplayableFingerprintName: fp => "thingish",
+            };
+            const multified = makeVirtualProjectAware(aspect, MavenAndNodeSubprojectFinder);
+            assert.strictEqual(multified.apply, undefined);
+        });
+
+        it("should preserve properties", async () => {
+            const aspect: Aspect = {
+                name: "thing",
+                displayName: "thinger",
+                stats: {
+                    basicStatsPath: "count",
+                },
+                extract: extractThing,
+                apply: applyThing,
+                toDisplayableFingerprint: fp => "thingie",
+                toDisplayableFingerprintName: fp => "thingish",
+            };
+            const multified = makeVirtualProjectAware(aspect, MavenAndNodeSubprojectFinder);
+            assert.strictEqual(multified.name, aspect.name);
+            assert.strictEqual(multified.displayName, aspect.displayName);
+            assert.strictEqual(multified.toDisplayableFingerprintName, aspect.toDisplayableFingerprintName);
+            assert.strictEqual(multified.toDisplayableFingerprint, aspect.toDisplayableFingerprint);
+            assert.deepStrictEqual(multified.extract.toString(),
+                makeExtractorVirtualProjectAware(aspect.extract, MavenAndNodeSubprojectFinder).toString());
+            assert.deepStrictEqual(multified.apply.toString(),
+                makeApplyVirtualProjectAware(aspect.apply, MavenAndNodeSubprojectFinder).toString());
         });
 
     });

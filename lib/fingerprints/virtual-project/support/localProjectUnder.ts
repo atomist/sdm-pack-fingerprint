@@ -21,22 +21,30 @@ import {
     RemoteRepoRef,
 } from "@atomist/automation-client";
 import * as path from "path";
-import { Descender } from "../makeVirtualProjectAware";
 
-export const localProjectUnder: Descender = async (p: Project, pathWithin: string) => {
-    if (!isLocalProject(p)) {
+/**
+ * Return a virtual project with the given directory as root.
+ * Updateable, with changes affecting the original project.
+ * Inexpensive to invoke as the project created is a lightweight reference to the
+ * same content on disk.
+ * @param {Project} rootProject original project. Must be a LocalProject.
+ * @param {string} pathUnder path under the root to be the based directory
+ * of the new project
+ * @return {Promise<Project>}
+ */
+export async function localProjectUnder(rootProject: Project, pathUnder: string): Promise<Project> {
+    if (!isLocalProject(rootProject)) {
         throw new Error("Only local projects are supported");
     }
-    const rid = p.id as RemoteRepoRef;
+    const rid = rootProject.id as RemoteRepoRef;
     const newId: RemoteRepoRef = {
         ...rid,
-        path: pathWithin,
+        path: pathUnder,
     };
-    const virtualProject = await NodeFsLocalProject.fromExistingDirectory(
+    return NodeFsLocalProject.fromExistingDirectory(
         newId,
-        path.join(p.baseDir, pathWithin),
+        path.join(rootProject.baseDir, pathUnder),
         async () => {
         },
     );
-    return virtualProject;
-};
+}

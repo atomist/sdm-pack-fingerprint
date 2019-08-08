@@ -22,7 +22,8 @@ import {
 } from "./VirtualProjectFinder";
 
 /**
- * Return a subproject finder of all these
+ * Return the first virtual project finder of the arguments
+ * that matches. Evaluation is serial but can be short circuited.
  * @param {VirtualProjectFinder} finders
  * @return {VirtualProjectFinder}
  */

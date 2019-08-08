@@ -30,21 +30,31 @@ import * as _ from "lodash";
 import { localProjectUnder } from "./support/localProjectUnder";
 
 /**
- * Function that knows how to return a virtual project
- * that will behave like the original paths except for path mapping
+ * Make this aspect work with virtual projects as found by the given
+ * VirtualProjectFinder
+ * @param {Aspect} aspect to make virtual project aware
+ * @param {VirtualProjectFinder} virtualProjectFinder
+ * @return {Aspect}
  */
-export type Descender = (p: Project, pathUnder: string) => Promise<Project>;
+export function makeVirtualProjectAware(aspect: Aspect, virtualProjectFinder: VirtualProjectFinder): Aspect {
+    return {
+        ...aspect,
+        // Wrap these two functions
+        extract: makeExtractorVirtualProjectAware(aspect.extract, virtualProjectFinder),
+        apply: aspect.apply ? makeApplyVirtualProjectAware(aspect.apply, virtualProjectFinder) : undefined,
+    };
+}
 
 /**
  * Turn this fingerprint into a multi fingerprint
  * @param {ExtractFingerprint} ef extractor
- * @param virtualProjectFinder subproject finder
+ * @param virtualProjectFinder virtual project finder
  * @return {ExtractFingerprint}
  */
 export function makeExtractorVirtualProjectAware(ef: ExtractFingerprint,
                                                  virtualProjectFinder: VirtualProjectFinder): (p: Project) => Promise<FP[]> {
     return async p => {
-        const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder, localProjectUnder);
+        const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
         return _.flatten(await Promise.all(virtualProjects.map(vp =>
                 extractFrom(ef, vp)
                     .then(extracted =>
@@ -61,10 +71,10 @@ export function makeExtractorVirtualProjectAware(ef: ExtractFingerprint,
     };
 }
 
-async function virtualProjectsIn(p: Project, virtualProjectFinder: VirtualProjectFinder, descender: Descender): Promise<Project[]> {
+async function virtualProjectsIn(p: Project, virtualProjectFinder: VirtualProjectFinder): Promise<Project[]> {
     const virtualProjectInfo = await virtualProjectFinder.findVirtualProjectInfo(p);
     if (virtualProjectInfo.status === VirtualProjectStatus.IdentifiedPaths) {
-        return Promise.all(virtualProjectInfo.virtualProjects.map(sp => descender(p, sp.path)));
+        return Promise.all(virtualProjectInfo.virtualProjects.map(sp => localProjectUnder(p, sp.path)));
     }
     return [p];
 }
@@ -77,27 +87,10 @@ async function extractFrom(ef: ExtractFingerprint, p: Project): Promise<FP[]> {
 }
 
 export function makeApplyVirtualProjectAware(af: ApplyFingerprint,
-                                             virtualProjectFinder: VirtualProjectFinder,
-                                             descender: Descender = localProjectUnder): ApplyFingerprint {
+                                             virtualProjectFinder: VirtualProjectFinder): ApplyFingerprint {
     return async (p, fp) => {
-        const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder, descender);
+        const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
         const results = await Promise.all(virtualProjects.map(vp => af(vp, fp)));
         return !results.includes(false);
-    };
-}
-
-/**
- * Make this aspect work with virtual projects as found by the given
- * VirtualProjectFinder
- * @param {Aspect} aspect to make virtual project aware
- * @param {VirtualProjectFinder} virtualProjectFinder
- * @return {Aspect}
- */
-export function makeVirtualProjectAware(aspect: Aspect, virtualProjectFinder: VirtualProjectFinder): Aspect {
-    return {
-        // TODO does this keep methods?
-        ...aspect,
-        extract: makeExtractorVirtualProjectAware(aspect.extract, virtualProjectFinder),
-        apply: aspect.apply ? makeApplyVirtualProjectAware(aspect.apply, virtualProjectFinder) : undefined,
     };
 }

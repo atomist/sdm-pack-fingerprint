@@ -73,6 +73,9 @@ export const RootIsOnlyProject: NoVirtualProjectsInfo = {
 
 export type VirtualProjectInfo = VirtualProjectsInfo | NoVirtualProjectsInfo;
 
+/**
+ * Did we find multiple virtual projects?
+ */
 export function isVirtualProjectsInfo(vpi: VirtualProjectInfo): vpi is VirtualProjectsInfo {
     return vpi.status === VirtualProjectStatus.IdentifiedPaths;
 }
@@ -84,5 +87,10 @@ export interface VirtualProjectFinder {
 
     readonly name: string;
 
+    /**
+     * Determine virtual project information for this project
+     * @param {Project} project
+     * @return {Promise<VirtualProjectInfo>}
+     */
     findVirtualProjectInfo: (project: Project) => Promise<VirtualProjectInfo>;
 }
