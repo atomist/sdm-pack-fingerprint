@@ -187,6 +187,11 @@ export interface BaseAspect<FPI extends FP = FP> {
      * calculated by default.
      */
     stats?: AspectStats;
+
+    /**
+     * Does this aspect apply only to the root of a repository, rather than multiple subprojects?
+     */
+    readonly baseOnly?: boolean;
 }
 
 /**

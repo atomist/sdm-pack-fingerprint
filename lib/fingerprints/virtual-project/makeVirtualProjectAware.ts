@@ -44,7 +44,7 @@ export type EligibleAspect = Aspect | AtomicAspect;
  * @return {Aspect}
  */
 export function makeVirtualProjectAware<A extends EligibleAspect>(aspect: A, virtualProjectFinder: VirtualProjectFinder): A {
-    return !!virtualProjectFinder ? {
+    return !!virtualProjectFinder && !aspect.baseOnly ? {
             ...aspect,
             // Wrap extract. AtomistAspects don't need wrapping as the aspects they build on
             // should have been wrapped
