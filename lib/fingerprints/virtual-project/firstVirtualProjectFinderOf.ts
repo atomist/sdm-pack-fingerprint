@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import {logger} from "@atomist/automation-client";
+import { logger } from "@atomist/automation-client";
 import {
-    isVirtualProjectsInfo, RootIsOnlyProject,
+    isVirtualProjectsInfo,
+    RootIsOnlyProject,
     VirtualProject,
     VirtualProjectFinder,
     VirtualProjectStatus,

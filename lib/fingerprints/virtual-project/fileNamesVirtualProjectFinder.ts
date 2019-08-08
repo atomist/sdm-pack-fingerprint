@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-import {logger, projectUtils} from "@atomist/automation-client";
-import {RootIsOnlyProject, VirtualProjectFinder, VirtualProjectStatus} from "./VirtualProjectFinder";
+import {
+    logger,
+    projectUtils,
+} from "@atomist/automation-client";
+import {
+    RootIsOnlyProject,
+    VirtualProjectFinder,
+    VirtualProjectStatus,
+} from "./VirtualProjectFinder";
 
 import * as _ from "lodash";
 import * as pathlib from "path";
