@@ -14,49 +14,54 @@
  * limitations under the License.
  */
 
-import {
-    fileIterator,
-    gatherFromFiles,
-} from "@atomist/automation-client/lib/project/util/projectUtils";
-import * as path from "path";
-import {
-    RootIsOnlyProject,
-    VirtualProjectFinder,
-    VirtualProjectStatus,
-} from "./VirtualProjectFinder";
+import {logger, projectUtils} from "@atomist/automation-client";
+import {RootIsOnlyProject, VirtualProjectFinder, VirtualProjectStatus} from "./VirtualProjectFinder";
+
+import * as _ from "lodash";
+import * as pathlib from "path";
 
 /**
- * Return a VirtualProjectFinder that infers subprojects from filenames that may be
+ * Identify directories in which any file matching any glob pattern is found as virtual projects.
+ * If they are found in the root, just return it
+ * @param {string} globs
+ * @return {VirtualProjectFinder}
+ */
+export function globsVirtualProjectFinder(...globs: string[]): VirtualProjectFinder {
+    return {
+        name: `file glob [${globs}]`,
+        findVirtualProjectInfo: async p => {
+            const virtualPaths = _.uniq((await projectUtils.gatherFromFiles(p, globs, async f => f))
+                .map(f => ({
+                    dir: pathlib.dirname(f.path),
+                    name: f.name,
+                })));
+            logger.debug(`Virtual paths for '${globs}' were ${JSON.stringify(virtualPaths)}`);
+
+            if (virtualPaths.length === 0) {
+                return {
+                    status: VirtualProjectStatus.Unknown,
+                };
+            }
+            if (virtualPaths.some(vp => vp.dir === ".")) {
+                return RootIsOnlyProject;
+            }
+            return {
+                status: VirtualProjectStatus.IdentifiedPaths,
+                virtualProjects: virtualPaths.map(vp => ({
+                    path: vp.dir,
+                    reason: `has file: ${vp.name}`,
+                })),
+            };
+        },
+    };
+}
+
+/**
+ * Return a VirtualProjectFinder that infers virtual projects from filenames (NOT paths) that may be
  * anywhere. E.g. every directory that contains a Maven pom.xml might be
  * considered a subproject.
  * If any of these files exists in the root, don't look further.
  */
 export function fileNamesVirtualProjectFinder(...filenames: string[]): VirtualProjectFinder {
-    return {
-        name: "fileNames: " + filenames.join(","),
-        findVirtualProjectInfo: async p => {
-            // First check if any file exists in root
-            // noinspection LoopStatementThatDoesntLoopJS
-            for await (const _ of fileIterator(p, filenames)) {
-                return RootIsOnlyProject;
-            }
-            const virtualProjects = await gatherFromFiles(p,
-                filenames.map(f => "**/" + f),
-                async f => {
-                    return {
-                        path: path.dirname(f.path),
-                        reason: "has file: " + f.name,
-                    };
-                });
-            if (virtualProjects.length > 0) {
-                return {
-                    status: VirtualProjectStatus.IdentifiedPaths,
-                    virtualProjects,
-                };
-            }
-            return {
-                status: VirtualProjectStatus.Unknown,
-            };
-        },
-    };
+    return globsVirtualProjectFinder(...filenames.map(n => `**/${n}`));
 }

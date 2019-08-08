@@ -82,6 +82,6 @@ export * from "./lib/machine/DerivedAspect";
 export * from "./lib/machine/Ideal";
 
 export * from "./lib/fingerprints/virtual-project/VirtualProjectFinder";
-export * from "./lib/fingerprints/virtual-project/virtualProjectsFinders";
+export * from "./lib/fingerprints/virtual-project/firstVirtualProjectFinderOf";
 export * from "./lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
 export * from "./lib/fingerprints/virtual-project/makeVirtualProjectAware";

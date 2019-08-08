@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
+import {logger} from "@atomist/automation-client";
 import {
-    isVirtualProjectsInfo,
+    isVirtualProjectsInfo, RootIsOnlyProject,
     VirtualProject,
     VirtualProjectFinder,
     VirtualProjectStatus,
@@ -29,22 +30,30 @@ import {
  */
 export function firstVirtualProjectFinderOf(...finders: VirtualProjectFinder[]): VirtualProjectFinder {
     return {
-        name: "Composite subproject finder",
+        name: finders.map(f => `(${f.name})`).join(" then "),
         findVirtualProjectInfo: async p => {
             const virtualProjects: VirtualProject[] = [];
             for (const finder of finders) {
-                const r = await finder.findVirtualProjectInfo(p);
-                if (!isVirtualProjectsInfo(r)) {
-                    return r;
+                const vpi = await finder.findVirtualProjectInfo(p);
+                logger.debug(`Finder ${finder.name} returned ${JSON.stringify(vpi)}`);
+
+                if (vpi.status === VirtualProjectStatus.RootOnly) {
+                    // We have definitely determined it's root only and don't need to keep looking
+                    return RootIsOnlyProject;
                 }
-                virtualProjects.push(...r.virtualProjects);
+                if (isVirtualProjectsInfo(vpi)) {
+                    virtualProjects.push(...vpi.virtualProjects);
+                }
+                // If we get here, this finder returned Unknown status. Keep going...
             }
-            return {
-                status: VirtualProjectStatus.IdentifiedPaths,
-                virtualProjects,
-            };
+            return virtualProjects.length > 0 ?
+                {
+                    status: VirtualProjectStatus.IdentifiedPaths,
+                    virtualProjects,
+                } :
+                {
+                    status: VirtualProjectStatus.Unknown,
+                };
         },
     };
 }
-
-// TODO any of would parallelize

@@ -14,17 +14,27 @@
  * limitations under the License.
  */
 
-import { InMemoryProject } from "@atomist/automation-client";
+import {InMemoryProject} from "@atomist/automation-client";
 import * as assert from "assert";
-import { fileNamesVirtualProjectFinder } from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
-import { VirtualProjectStatus } from "../../../lib/fingerprints/virtual-project/VirtualProjectFinder";
+import {fileNamesVirtualProjectFinder} from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
+import {VirtualProjectStatus} from "../../../lib/fingerprints/virtual-project/VirtualProjectFinder";
 
-const GradleAndNodeSubprojectFinder = fileNamesVirtualProjectFinder("build.gradle", "package.json");
+const GradleAndNodeSubprojectFinder = fileNamesVirtualProjectFinder(
+    "build.gradle",
+    "package.json");
 
 describe("fileNamesVirtualProjectFinder", () => {
 
+    it("says this is a top-level project if there's a build.gradle at root with only one path specified", async () => {
+        const project = InMemoryProject.of({path: "build.gradle", content: "whatever"});
+        const result = await fileNamesVirtualProjectFinder("build.gradle").findVirtualProjectInfo(project);
+        assert.deepStrictEqual(result, {
+            status: VirtualProjectStatus.RootOnly,
+        });
+    });
+
     it("says this is a top-level project if there's a build.gradle at root", async () => {
-        const project = InMemoryProject.of({ path: "build.gradle", content: "whatever" });
+        const project = InMemoryProject.of({path: "build.gradle", content: "whatever"});
         const result = await GradleAndNodeSubprojectFinder.findVirtualProjectInfo(project);
         assert.deepStrictEqual(result, {
             status: VirtualProjectStatus.RootOnly,
@@ -32,7 +42,7 @@ describe("fileNamesVirtualProjectFinder", () => {
     });
 
     it("says this is unknown if there's no build.gradle at all", async () => {
-        const project = InMemoryProject.of({ path: "something/else", content: "whatever" });
+        const project = InMemoryProject.of({path: "something/else", content: "whatever"});
         const result = await GradleAndNodeSubprojectFinder.findVirtualProjectInfo(project);
         assert.deepStrictEqual(result, {
             status: VirtualProjectStatus.Unknown,
@@ -41,9 +51,26 @@ describe("fileNamesVirtualProjectFinder", () => {
 
     it("finds multiple projects if there is no root build.gradle but some down in dirs", async () => {
         const project = InMemoryProject.of(
-            { path: "something/else/build.gradle", content: "whatever" },
-            { path: "somewhere/build.gradle", content: "stuff" });
+            {path: "something/else/build.gradle", content: "whatever"},
+            {path: "somewhere/build.gradle", content: "stuff"});
         const result = await GradleAndNodeSubprojectFinder.findVirtualProjectInfo(project);
+        assert.deepStrictEqual(result, {
+            status: VirtualProjectStatus.IdentifiedPaths,
+            virtualProjects: [{
+                path: "something/else",
+                reason: "has file: build.gradle",
+            }, {
+                path: "somewhere",
+                reason: "has file: build.gradle",
+            }],
+        });
+    });
+
+    it("finds multiple projects if there is no root build.gradle but some down in dirs with single file type", async () => {
+        const project = InMemoryProject.of(
+            {path: "something/else/build.gradle", content: "whatever"},
+            {path: "somewhere/build.gradle", content: "stuff"});
+        const result = await fileNamesVirtualProjectFinder("build.gradle").findVirtualProjectInfo(project);
         assert.deepStrictEqual(result, {
             status: VirtualProjectStatus.IdentifiedPaths,
             virtualProjects: [{
@@ -58,9 +85,9 @@ describe("fileNamesVirtualProjectFinder", () => {
 
     it("finds multiple projects for Gradle and npm", async () => {
         const project = InMemoryProject.of(
-            { path: "something/else/build.gradle", content: "whatever" },
-            { path: "somewhere/build.gradle", content: "stuff" },
-            { path: "nodeynode/package.json", content: "stuff" });
+            {path: "something/else/build.gradle", content: "whatever"},
+            {path: "somewhere/build.gradle", content: "stuff"},
+            {path: "nodeynode/package.json", content: "stuff"});
         const result = await GradleAndNodeSubprojectFinder.findVirtualProjectInfo(project);
         assert.deepStrictEqual(result, {
             status: VirtualProjectStatus.IdentifiedPaths,
@@ -68,20 +95,20 @@ describe("fileNamesVirtualProjectFinder", () => {
                 path: "something/else",
                 reason: "has file: build.gradle",
             },
-            {
-                path: "somewhere",
-                reason: "has file: build.gradle",
-            }, {
-                path: "nodeynode",
-                reason: "has file: package.json",
-            }],
+                {
+                    path: "somewhere",
+                    reason: "has file: build.gradle",
+                }, {
+                    path: "nodeynode",
+                    reason: "has file: package.json",
+                }],
         });
     });
 
     it("ignores deeper build.gradles if one exists at root", async () => {
         const project = InMemoryProject.of(
-            { path: "something/else/build.gradle", content: "whatever" },
-            { path: "build.gradle", content: "stuff" },
+            {path: "something/else/build.gradle", content: "whatever"},
+            {path: "build.gradle", content: "stuff"},
         );
         const result = await GradleAndNodeSubprojectFinder.findVirtualProjectInfo(project);
         assert.deepStrictEqual(result, {
