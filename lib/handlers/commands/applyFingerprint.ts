@@ -402,7 +402,7 @@ ${details}`,
 
             const message = slackSuccessMessage(
                 "Boardcast Policy Update",
-                `Successfully scheduled job to apply policy ${details} to ${
+                `Successfully scheduled job to apply target for fingerprint ${codeLine(i.parameters.fingerprint)} to $
                     refs.length} ${refs.length > 1 ? "repositories" : "repository"}`);
 
             // replace the previous message where we chose this action
