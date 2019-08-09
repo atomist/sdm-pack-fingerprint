@@ -32,7 +32,6 @@ import {
     ExtractFingerprint,
     FP,
     sha256,
-    Vote,
 } from "../..";
 import { setNewTargetFingerprint } from "../handlers/commands/updateTarget";
 import {
@@ -122,6 +121,7 @@ export const createNpmCoordinatesFingerprint: ExtractFingerprint = async p => {
         const coords = { name: jsonData.name, version: jsonData.version };
         fingerprints.push(
             {
+                type: NpmCoordinates.name,
                 name: NpmCoordinates.name,
                 abbreviation: NpmCoordinates.name,
                 version: "0.0.1",
@@ -204,20 +204,18 @@ export const NpmCoordinates: Aspect = {
     toDisplayableFingerprint: fp => fp.data,
     workflows: [
         diffOnlyHandler(
-            (ctx, diff) => {
-                if (diff.channel) {
-                    return setNewTargetFingerprint(
-                        ctx.context,
-                        NpmDeps,
-                        createNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
-                        diff.channel);
-                } else {
-                    return new Promise<Vote>(
-                        (resolve, reject) => {
-                            resolve({ abstain: true });
-                        },
-                    );
-                }
+            (ctx, diffs) => {
+                return Promise.all(_.map(diffs, diff => {
+                    if (diff.channel) {
+                        return setNewTargetFingerprint(
+                            ctx.context,
+                            NpmDeps,
+                            createNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
+                            diff.channel);
+                    } else {
+                        return { abstain: true };
+                    }
+                }));
             },
         ),
     ],
