@@ -17,6 +17,7 @@
 import { LocalProject } from "@atomist/automation-client";
 import {
     applyFingerprint,
+    DiffData,
     mavenCoordinates,
     mavenDeps,
     renderProjectLibDiff,
@@ -29,7 +30,7 @@ export const MavenDeps: Aspect = {
     extract: p => mavenDeps((p as LocalProject).baseDir),
     apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
     toDisplayableFingerprint: fp => fp.name,
-    summary: renderProjectLibDiff,
+    summary: (diff, target) => renderProjectLibDiff(diff as DiffData, target),
 };
 
 export const MavenCoordinates: Aspect = {
