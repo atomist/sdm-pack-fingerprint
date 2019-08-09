@@ -41,6 +41,7 @@ export const backpackFingerprint: ExtractFingerprint = async p => {
         const data: any = _.get(packagejson, "backpack-react-scripts.externals", "");
 
         const fp: FP = {
+            type: Backpack.name,
             name: Backpack.name,
             abbreviation: "backpack",
             version: "0.0.1",
