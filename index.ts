@@ -74,6 +74,9 @@ export {
     MavenDeps,
     MavenCoordinates,
 } from "./lib/fingerprints/maven";
+export {
+    ApplyTargetParameters,
+} from "./lib/handlers/commands/applyFingerprint";
 export * from "./lib/fingerprints/jsonFiles";
 
 export * from "./lib/machine/AtomicAspect";
