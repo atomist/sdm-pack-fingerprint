@@ -38,6 +38,11 @@ export interface FP<DATA = any> {
     data: DATA;
     version?: string;
     abbreviation?: string;
+
+    /**
+     * Path within the repository. Undefined means root.
+     */
+    path?: string;
 }
 
 export interface Vote {
@@ -182,6 +187,11 @@ export interface BaseAspect<FPI extends FP = FP> {
      * calculated by default.
      */
     stats?: AspectStats;
+
+    /**
+     * Does this aspect apply only to the root of a repository, rather than multiple subprojects?
+     */
+    readonly baseOnly?: boolean;
 }
 
 /**
