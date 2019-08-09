@@ -117,6 +117,8 @@ export interface BaseAspect<FPI extends FP = FP> {
 
     /**
      * Displayable name of this aspect. Used only for reporting.
+     * Set to undefined to prevent this aspect influencing
+     * display to users.
      */
     readonly displayName: string;
 
