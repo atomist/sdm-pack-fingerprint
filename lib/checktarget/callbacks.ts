@@ -24,6 +24,7 @@ import {
 import {
     checkFingerprintTargets,
     commaSeparatedList,
+    DiffData,
     voteResults,
 } from "@atomist/clj-editors";
 import {
@@ -195,6 +196,6 @@ export async function checkFingerprintTarget(
         targetsQuery,
         fingerprintOutOfSyncCallback(ctx, diff, aspect),
         fingerprintInSyncCallback(ctx, diff),
-        diff,
+        diff as DiffData,
     );
 }
