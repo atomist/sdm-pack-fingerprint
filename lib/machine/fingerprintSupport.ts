@@ -68,7 +68,6 @@ import {
     FingerprintDiffHandler,
     FingerprintHandler,
     FP,
-    Vote,
 } from "./Aspect";
 import {
     computeFingerprints,
@@ -101,16 +100,20 @@ export interface FingerprintImpactHandlerConfig {
 export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, registrations: Aspect[]) => FingerprintHandler;
 
 export const DefaultTargetDiffHandler: FingerprintDiffHandler =
-    async (ctx, diff, aspect) => {
-        const v: Vote = await checkFingerprintTarget(
-            ctx.context,
-            diff,
-            aspect,
-            async () => {
-                return diff.targets;
-            },
-        );
-        return v;
+    async (ctx, diffs, aspect) => {
+        const abs = _.filter(diffs, diff => !diff.from);
+        return [
+            ... await Promise.all(
+                    _.map (
+                        _.difference(diffs, abs), diff => checkFingerprintTarget(
+                            ctx.context,
+                            diff,
+                            aspect,
+                            async () => diff.targets ))),
+            ... _.map(abs, () => {
+                return {abstain: true};
+             }),
+        ];
     };
 
 /**
@@ -119,14 +122,14 @@ export const DefaultTargetDiffHandler: FingerprintDiffHandler =
  * @param handler the FingerprintDiffHandler to wrap
  */
 export function diffOnlyHandler(handler: FingerprintDiffHandler): FingerprintDiffHandler {
-    return async (context, diff, aspect) => {
-        if (diff.from && diff.to.sha !== diff.from.sha) {
-            return handler(context, diff, aspect);
-        } else {
-            return {
-                abstain: true,
-            };
-        }
+    return async (context, diffs, aspect) => {
+        const toDiff = _.filter(diffs, diff => diff.from && diff.to.sha !== diff.from.sha);
+        return [
+            ... await handler(context, toDiff, aspect),
+            ... _.map(_.difference(diffs, toDiff), () => {
+                return {abstain: true};
+             }),
+        ];
     };
 }
 
