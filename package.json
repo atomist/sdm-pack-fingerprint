@@ -24,10 +24,10 @@
     "url": "https://github.com/atomist/sdm-pack-fingerprints/issues"
   },
   "dependencies": {
-    "@atomist/clj-editors": "0.7.5",
+    "@atomist/clj-editors": "0.8.2-master.20190816115246",
     "@atomist/slack-messages": "^1.1.1",
     "@cljs-oss/module-deps": "^1.1.1",
-    "lodash": "^4.17.14"
+    "lodash": "^4.17.15"
   },
   "peerDependencies": {
     "@atomist/automation-client": ">=1.6.0",
@@ -53,7 +53,7 @@
     "tmp-promise": "^2.0.2",
     "ts-node": "8.3.0",
     "tslint": "^5.18.0",
-    "typedoc": "^0.14.2",
+    "typedoc": "^0.15.0",
     "typescript": "^3.5.3"
   },
   "directories": {
