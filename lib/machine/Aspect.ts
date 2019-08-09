@@ -60,7 +60,7 @@ export interface Vote {
  * Difference between two fingerprints
  */
 export interface Diff {
-    from: FP;
+    from?: FP;
     to: FP;
     data: {
         from: any[];

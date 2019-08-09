@@ -90,7 +90,7 @@ async function handleDiffs(
         },
     };
     let diffVotes: Vote[] = [];
-    if (previous && fp.sha !== previous.sha) {
+    if (!previous || previous && fp.sha !== previous.sha) {
         diffVotes = await Promise.all(
             handlers
                 .filter(h => h.diffHandler)
