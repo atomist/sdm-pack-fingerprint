@@ -20,6 +20,7 @@ import {
     AutoMergeMethod,
     AutoMergeMode,
 } from "@atomist/automation-client/lib/operations/edit/editModes";
+import { DiffData } from "@atomist/clj-editors";
 import {
     ExtensionPack,
     Fingerprint,
@@ -102,15 +103,19 @@ export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, re
 
 export const DefaultTargetDiffHandler: FingerprintDiffHandler =
     async (ctx, diff, aspect) => {
-        const v: Vote = await checkFingerprintTarget(
-            ctx.context,
-            diff,
-            aspect,
-            async () => {
-                return diff.targets;
-            },
-        );
-        return v;
+        if (!diff.from) {
+            return {abstain: true};
+        } else {
+            const v: Vote = await checkFingerprintTarget(
+                ctx.context,
+                diff as DiffData,
+                aspect,
+                async () => {
+                    return diff.targets;
+                },
+            );
+            return v;
+        }
     };
 
 /**
