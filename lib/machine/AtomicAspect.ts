@@ -58,6 +58,7 @@ function createCompositeFingerprint(prefix: string, fingerprints: FP[]): FP {
     return fingerprints.length === 0 ?
         undefined :
         {
+            type: prefix + fingerprints.map(fp => fp.type).join("&"),
             name: prefix + fingerprints.map(fp => fp.name).join("&"),
             version: "0.1.0",
             abbreviation: prefix,

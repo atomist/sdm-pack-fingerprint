@@ -69,50 +69,55 @@ interface MissingInfo {
  * @param i PushImpactListenerInvocation
  */
 async function handleDiffs(
-    fp: FP,
-    previous: FP,
+    fps: FP[],
+    previous: Record<string, FP>,
     info: MissingInfo,
     handlers: FingerprintHandler[],
     aspect: Aspect,
     i: PushImpactListenerInvocation): Promise<Vote[]> {
 
-    const diff: DiffContext = {
-        ...info,
-        from: previous,
-        to: fp,
-        branch: i.push.branch,
-        owner: i.push.repo.owner,
-        repo: i.push.repo.name,
-        sha: i.push.after.sha,
-        data: {
-            from: [],
-            to: [],
-        },
-    };
-    let diffVotes: Vote[] = [];
-    if (previous && fp.sha !== previous.sha) {
-        diffVotes = await Promise.all(
-            handlers
-                .filter(h => h.diffHandler)
-                .filter(h => h.selector(fp))
-                .map(h => h.diffHandler(i, diff, aspect)));
+    if (!fps || fps.length < 1) {
+        return [];
     }
-    const currentVotes: Vote[] = await Promise.all(
-        handlers
-            .filter(h => h.handler)
-            .filter(h => h.selector(fp))
-            .map(h => h.handler(i, diff, aspect)));
 
-    let aspectVotes: Vote[] = [];
+    const diffs = _.filter(_.map(fps, fp => {
+        const from = previous[`${fp.type}::${fp.name}`];
+        const diff: DiffContext = {
+            ...info,
+            from,
+            to: fp,
+            branch: i.push.branch,
+            owner: i.push.repo.owner,
+            repo: i.push.repo.name,
+            sha: i.push.after.sha,
+            data: {
+                from: [],
+                to: [],
+            },
+        };
+        return diff;
+    }), diff => !diff.from || diff.to.sha !== diff.from.sha);
+
+    const selectedHandlers = _.filter(handlers, h => h.selector(fps[0]));
+
+    const handlerVotes = _.flatten(await Promise.all(_.map(selectedHandlers, async h => {
+        const voats: Vote[] = [];
+        if (h.diffHandler) {
+            voats.push(...await h.diffHandler(i, diffs, aspect));
+        }
+        if (h.handler) {
+            voats.push(...await h.handler(i, diffs, aspect));
+        }
+        return voats;
+    })));
+
     if (aspect.workflows) {
-        aspectVotes = await Promise.all(aspect.workflows.map(h => h(i, diff, aspect)));
+        handlerVotes.push(... _.flatten(await Promise.all(_.map(aspect.workflows, wf => {
+            return wf(i, diffs, aspect);
+        }))));
     }
 
-    return [].concat(
-        diffVotes,
-        currentVotes,
-        aspectVotes,
-    );
+    return handlerVotes;
 }
 
 async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<Record<string, FP>> {
@@ -129,7 +134,7 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
     return results.Commit[0].analysis.reduce<Record<string, FP>>(
         (record: Record<string, FP>, fp: GetAllFpsOnSha.Analysis) => {
             if (fp.name) {
-                record[fp.name] = {
+                record[`${fp.type}::${fp.name}`] = {
                     sha: fp.sha,
                     data: JSON.parse(fp.data),
                     name: fp.name,
@@ -237,7 +242,7 @@ export function fingerprintRunner(
     };
 
     return async (i: PushImpactListenerInvocation) => {
-        const p: Project = i.project;
+        const p = i.project;
 
         let previous: Record<string, FP> = {};
 
@@ -248,23 +253,23 @@ export function fingerprintRunner(
         }
         logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
-        const allFps: FP[] = await computer(fingerprinters, p);
+        const allFps = (await computer(fingerprinters, p));
 
-        logger.debug(renderData(allFps));
+        logger.debug(`Prosessing fingerprints: ${renderData(allFps)}`);
 
         await sendFingerprintToAtomist(i, allFps, previous);
 
         try {
             const info = await missingInfo(i);
-            const allVotes: Vote[] = (await Promise.all(
-                allFps.map(fp => {
-                    const fpAspect: Aspect = fingerprinters.find(aspects => aspects.name === (fp.type || fp.name));
-                    return handleDiffs(fp, previous[fp.name], info, handlers, fpAspect, i);
+            const byType = _.groupBy(allFps, fp => fp.type);
+
+            const allVotes = _.flatten(await Promise.all(
+                _.map(byType, (fps, type) => {
+                    // aspect name is same as fingerprint type!
+                    const fpAspect = fingerprinters.find(aspects => aspects.name === type);
+                    return handleDiffs(fps, previous, info, handlers, fpAspect, i);
                 }),
-            )).reduce<Vote[]>(
-                (acc, vts) => acc.concat(vts),
-                [],
-            );
+            ));
             logger.debug(`Votes:  ${renderData(allVotes)}`);
             await tallyVotes(allVotes, handlers, i, info);
         } catch (e) {

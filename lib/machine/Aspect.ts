@@ -31,13 +31,12 @@ import * as _ from "lodash";
  * @param DATA type parameter for data
  */
 export interface FP<DATA = any> {
-    type?: string;
+    type: string;
     name: string;
     sha: string;
     data: DATA;
     version?: string;
     abbreviation?: string;
-
     /**
      * Path within the repository. Undefined means root.
      */
@@ -234,7 +233,7 @@ export interface DiffContext extends Diff {
     targets: GetFpTargets.Query;
 }
 
-export type FingerprintDiffHandler = (context: SdmContext, diff: DiffContext, aspect: Aspect) => Promise<Vote>;
+export type FingerprintDiffHandler = (context: SdmContext, diff: DiffContext[], aspect: Aspect) => Promise<Vote[]>;
 
 /**
  * Handles differences between fingerprints across pushes and between targets.
