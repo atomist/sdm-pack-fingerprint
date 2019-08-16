@@ -19,7 +19,8 @@ import {
     SlackFileMessage,
 } from "@atomist/automation-client";
 import {
-    DiffData, renderDiff,
+    DiffData,
+    renderDiff,
 } from "@atomist/clj-editors";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
