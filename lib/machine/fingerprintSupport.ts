@@ -63,6 +63,7 @@ import {
     setTargetFingerprintFromLatestMaster,
     updateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
+import { promiseAllSeq } from "../support/util";
 import {
     Aspect,
     FingerprintDiffHandler,
@@ -103,16 +104,14 @@ export const DefaultTargetDiffHandler: FingerprintDiffHandler =
     async (ctx, diffs, aspect) => {
         const abs = _.filter(diffs, diff => !diff.from);
         return [
-            ... await Promise.all(
+            ... await promiseAllSeq(
                     _.map (
                         _.difference(diffs, abs), diff => checkFingerprintTarget(
                             ctx.context,
                             diff,
                             aspect,
                             async () => diff.targets ))),
-            ... _.map(abs, () => {
-                return {abstain: true};
-             }),
+            ... _.map(abs, () => ({abstain: true})),
         ];
     };
 
@@ -126,9 +125,7 @@ export function diffOnlyHandler(handler: FingerprintDiffHandler): FingerprintDif
         const toDiff = _.filter(diffs, diff => diff.from && diff.to.sha !== diff.from.sha);
         return [
             ... await handler(context, toDiff, aspect),
-            ... _.map(_.difference(diffs, toDiff), () => {
-                return {abstain: true};
-             }),
+            ... _.map(_.difference(diffs, toDiff), () => ({abstain: true})),
         ];
     };
 }

@@ -42,6 +42,7 @@ import {
     DefaultTargetDiffHandler,
     diffOnlyHandler,
 } from "../machine/fingerprintSupport";
+import { promiseAllSeq } from "../support/util";
 
 /**
  * [lib, version]
@@ -205,7 +206,7 @@ export const NpmCoordinates: Aspect = {
     workflows: [
         diffOnlyHandler(
             (ctx, diffs) => {
-                return Promise.all(_.map(diffs, diff => {
+                return promiseAllSeq(_.map(diffs, async diff => {
                     if (diff.channel) {
                         return setNewTargetFingerprint(
                             ctx.context,
