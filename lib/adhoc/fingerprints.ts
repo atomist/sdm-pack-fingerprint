@@ -24,7 +24,6 @@ import {
 } from "@atomist/clj-editors";
 import { PushImpactListenerInvocation } from "@atomist/sdm";
 import { FP } from "../machine/Aspect";
-import { promiseAllSeq } from "../support/util";
 import {
     AddFingerprints,
     FindOtherRepos,
@@ -86,7 +85,7 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
         );
 
         await partitionByFeature(fps, async partitioned => {
-            await promiseAllSeq(partitioned.map(async ({ type, additions }) => {
+            await Promise.all(partitioned.map(async ({ type, additions }) => {
                 logger.info(`Upload ${additions.length} fingerprints of type ${type}`);
                 await i.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
                     {

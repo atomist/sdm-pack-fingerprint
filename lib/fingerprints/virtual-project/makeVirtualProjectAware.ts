@@ -26,7 +26,10 @@ import {
     VirtualProjectStatus,
 } from "./VirtualProjectFinder";
 import * as _ from "lodash";
-import { promiseAllSeq } from "../../support/util";
+import {
+    AtomicAspect,
+    isAtomicAspect,
+} from "../../machine/AtomicAspect";
 import { localProjectUnder } from "./support/localProjectUnder";
 
 /**
@@ -58,7 +61,7 @@ export function makeExtractorVirtualProjectAware(ef: ExtractFingerprint,
                                                  virtualProjectFinder: VirtualProjectFinder): (p: Project) => Promise<FP[]> {
     return async p => {
         const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
-        return _.flatten(await promiseAllSeq(virtualProjects.map(vp =>
+        return _.flatten(await Promise.all(virtualProjects.map(vp =>
                 extractFrom(ef, vp)
                     .then(extracted =>
                         extracted
@@ -77,7 +80,7 @@ export function makeExtractorVirtualProjectAware(ef: ExtractFingerprint,
 async function virtualProjectsIn(p: Project, virtualProjectFinder: VirtualProjectFinder): Promise<Project[]> {
     const virtualProjectInfo = await virtualProjectFinder.findVirtualProjectInfo(p);
     if (virtualProjectInfo.status === VirtualProjectStatus.IdentifiedPaths) {
-        return promiseAllSeq(virtualProjectInfo.virtualProjects.map(sp => localProjectUnder(p, sp.path)));
+        return Promise.all(virtualProjectInfo.virtualProjects.map(sp => localProjectUnder(p, sp.path)));
     }
     return [p];
 }
@@ -93,7 +96,7 @@ export function makeApplyVirtualProjectAware(af: ApplyFingerprint,
                                              virtualProjectFinder: VirtualProjectFinder): ApplyFingerprint {
     return async (p, fp) => {
         const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
-        const results = await promiseAllSeq(virtualProjects.map(vp => af(vp, fp)));
+        const results = await Promise.all(virtualProjects.map(vp => af(vp, fp)));
         return !results.includes(false);
     };
 }

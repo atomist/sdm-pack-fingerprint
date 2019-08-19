@@ -32,7 +32,6 @@ import { getFPTargets } from "../adhoc/preferences";
 import { votes } from "../checktarget/callbacks";
 import { messageMaker } from "../checktarget/messageMaker";
 import { GitCoordinate } from "../support/messages";
-import { promiseAllSeq } from "../support/util";
 import {
     GetAllFpsOnSha,
     GetFpTargets,
@@ -101,7 +100,7 @@ async function handleDiffs(
 
     const selectedHandlers = _.filter(handlers, h => h.selector(fps[0]));
 
-    const handlerVotes = _.flatten(await promiseAllSeq(_.map(selectedHandlers, async h => {
+    const handlerVotes = _.flatten(await Promise.all(_.map(selectedHandlers, async h => {
         const voats: Vote[] = [];
         if (h.diffHandler) {
             voats.push(...await h.diffHandler(i, diffs, aspect));
@@ -113,7 +112,7 @@ async function handleDiffs(
     })));
 
     if (aspect.workflows) {
-        handlerVotes.push(... _.flatten(await promiseAllSeq(_.map(aspect.workflows, wf => {
+        handlerVotes.push(... _.flatten(await Promise.all(_.map(aspect.workflows, wf => {
             return wf(i, diffs, aspect);
         }))));
     }
@@ -183,7 +182,7 @@ export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[
 export type FingerprintComputer = (fingerprinters: Aspect[], p: Project) => Promise<FP[]>;
 
 export const computeFingerprints: FingerprintComputer = async (fingerprinters, p) => {
-    const allFps: FP[] = (await promiseAllSeq(
+    const allFps: FP[] = (await Promise.all(
         fingerprinters.map(
             x => x.extract(p),
         ),
@@ -254,7 +253,7 @@ export function fingerprintRunner(
         }
         logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
-        const allFps = await computer(fingerprinters, p);
+        const allFps = (await computer(fingerprinters, p));
 
         logger.debug(`Prosessing fingerprints: ${renderData(allFps)}`);
 
@@ -264,7 +263,7 @@ export function fingerprintRunner(
             const info = await missingInfo(i);
             const byType = _.groupBy(allFps, fp => fp.type);
 
-            const allVotes = _.flatten(await promiseAllSeq(
+            const allVotes = _.flatten(await Promise.all(
                 _.map(byType, (fps, type) => {
                     // aspect name is same as fingerprint type!
                     const fpAspect = fingerprinters.find(aspects => aspects.name === type);
