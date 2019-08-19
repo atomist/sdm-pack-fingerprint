@@ -49,10 +49,3 @@ export function orDefault<T>(cb: () => T, x: T): T {
         return x;
     }
 }
-
-export async function promiseAllSeq<T>(things: Array<Promise<T>>): Promise<T[]> {
-    return _.reduce(things, async (acc, thing) => {
-     (await acc).push(await thing);
-     return acc;
-    }, Promise.resolve([] as T[]));
-}

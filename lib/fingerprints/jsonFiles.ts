@@ -23,7 +23,6 @@ import {
     sha256,
 } from "../..";
 import { Aspect } from "../machine/Aspect";
-import { promiseAllSeq } from "../support/util";
 
 export interface FileFingerprint extends FP {
     data: {
@@ -56,7 +55,7 @@ export function createFilesFingerprint(type: string,
                                        ...filenames: string[]): ExtractFingerprint<FileFingerprint> {
     return async p => {
         const fps: FileFingerprint[] = [];
-        await promiseAllSeq(
+        await Promise.all(
             filenames.map(async filename => {
                     const file = await p.getFile(filename);
 
