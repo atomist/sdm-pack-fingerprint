@@ -27,13 +27,7 @@ import {
 } from "./VirtualProjectFinder";
 
 import * as _ from "lodash";
-import {
-    AtomicAspect,
-    isAtomicAspect,
-} from "../../machine/AtomicAspect";
 import { localProjectUnder } from "./support/localProjectUnder";
-
-export type EligibleAspect = Aspect | AtomicAspect;
 
 /**
  * Make this aspect work with virtual projects as found by the given
@@ -43,14 +37,12 @@ export type EligibleAspect = Aspect | AtomicAspect;
  * original aspect.
  * @return {Aspect}
  */
-export function makeVirtualProjectAware<A extends EligibleAspect>(aspect: A, virtualProjectFinder: VirtualProjectFinder): A {
+export function makeVirtualProjectAware<A extends Aspect>(aspect: A, virtualProjectFinder: VirtualProjectFinder): A {
     return !!virtualProjectFinder && !aspect.baseOnly ? {
             ...aspect,
             // Wrap extract. AtomistAspects don't need wrapping as the aspects they build on
             // should have been wrapped
-            extract: isAtomicAspect(aspect) ?
-                undefined :
-                makeExtractorVirtualProjectAware((aspect as Aspect).extract, virtualProjectFinder),
+            extract: makeExtractorVirtualProjectAware(aspect.extract, virtualProjectFinder),
             apply: aspect.apply ? makeApplyVirtualProjectAware(aspect.apply, virtualProjectFinder) : undefined,
         } :
         aspect;
