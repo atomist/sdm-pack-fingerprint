@@ -27,11 +27,11 @@ import {
     PushImpactListenerInvocation,
 } from "@atomist/sdm";
 import * as _ from "lodash";
-import {sendFingerprintToAtomist} from "../adhoc/fingerprints";
-import {getFPTargets} from "../adhoc/preferences";
-import {votes} from "../checktarget/callbacks";
-import {messageMaker} from "../checktarget/messageMaker";
-import {GitCoordinate} from "../support/messages";
+import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
+import { getFPTargets } from "../adhoc/preferences";
+import { votes } from "../checktarget/callbacks";
+import { messageMaker } from "../checktarget/messageMaker";
+import { GitCoordinate } from "../support/messages";
 import {
     GetAllFpsOnSha,
     GetFpTargets,

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {InMemoryProject} from "@atomist/automation-client";
+import { InMemoryProject } from "@atomist/automation-client";
 import {sha256} from "@atomist/clj-editors";
 import * as assert from "assert";
-import {Aspect} from "../../lib/machine/Aspect";
-import {computeFingerprints} from "../../lib/machine/runner";
+import { Aspect } from "../../lib/machine/Aspect";
+import { computeFingerprints } from "../../lib/machine/runner";
 
 function alwaysFindAspect(name: string): Aspect {
     return {
