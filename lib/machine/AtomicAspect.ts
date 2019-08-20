@@ -21,7 +21,7 @@ import {
     FingerprintSelector,
     FP,
 } from "./Aspect";
-import {aspectOf} from "./Aspects";
+import { aspectOf } from "./Aspects";
 
 /**
  * Create a composite aspect from the given other aspects or extractors.
