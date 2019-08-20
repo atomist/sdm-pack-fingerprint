@@ -23,9 +23,13 @@ import {
 } from "../../lib/fingerprints/npmDeps";
 import {
     Aspect,
-    ExtractFingerprint, FP,
+    ExtractFingerprint,
+    FP,
 } from "../../lib/machine/Aspect";
-import {atomicAspect, isAtomicAspect} from "../../lib/machine/AtomicAspect";
+import {
+    atomicAspect,
+    isAtomicAspect,
+} from "../../lib/machine/AtomicAspect";
 
 describe("atomicAspect", () => {
 

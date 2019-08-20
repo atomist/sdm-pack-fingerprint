@@ -21,7 +21,7 @@ import {
     FingerprintSelector,
     FP,
 } from "./Aspect";
-import {aspectOf} from "./Aspects";
+import { aspectOf } from "./Aspects";
 
 /**
  * Aspect derived from existing fingerprints.
