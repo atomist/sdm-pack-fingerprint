@@ -148,7 +148,8 @@ export interface Aspect<FPI extends FP = FP> {
     extract: ExtractFingerprint<FPI>;
 
     /**
-     * Function to consolidate fingerprints found by all fingerprinters.
+     * Function to create any new fingerprint based on fingerprinters
+     * found by extract method.
      */
     consolidate?: (fps: FP[]) => Promise<FPI>;
 

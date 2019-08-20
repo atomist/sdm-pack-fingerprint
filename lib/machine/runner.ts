@@ -27,11 +27,11 @@ import {
     PushImpactListenerInvocation,
 } from "@atomist/sdm";
 import * as _ from "lodash";
-import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
-import { getFPTargets } from "../adhoc/preferences";
-import { votes } from "../checktarget/callbacks";
-import { messageMaker } from "../checktarget/messageMaker";
-import { GitCoordinate } from "../support/messages";
+import {sendFingerprintToAtomist} from "../adhoc/fingerprints";
+import {getFPTargets} from "../adhoc/preferences";
+import {votes} from "../checktarget/callbacks";
+import {messageMaker} from "../checktarget/messageMaker";
+import {GitCoordinate} from "../support/messages";
 import {
     GetAllFpsOnSha,
     GetFpTargets,
@@ -161,7 +161,7 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
         } catch (e) {
             return {
                 ...info,
-                targets: { TeamConfiguration: [] },
+                targets: {TeamConfiguration: []},
             };
         }
     } else {
@@ -169,13 +169,15 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
     }
 }
 
+/**
+ * Function that can compute fingerprints from a push
+ */
 export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
 
 export type FingerprintComputer = (fingerprinters: Aspect[], p: Project) => Promise<FP[]>;
 
 export const computeFingerprints: FingerprintComputer = async (fingerprinters, p) => {
-
-    const allFps: FP[] = (await Promise.all(
+    const extractedFingerprints: FP[] = (await Promise.all(
         fingerprinters.map(
             x => x.extract(p),
         ),
@@ -193,7 +195,13 @@ export const computeFingerprints: FingerprintComputer = async (fingerprinters, p
         },
         [],
     );
-    return allFps;
+
+    const consolidatedFingerprints = await Promise.all(
+        fingerprinters
+            .filter(a => !!a.consolidate)
+            .map(a => a.consolidate(extractedFingerprints)));
+
+    return [...extractedFingerprints, ...consolidatedFingerprints];
 };
 
 /**
