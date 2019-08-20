@@ -121,7 +121,7 @@ ${details}`);
         if (result) {
             return p;
         } else {
-            return { edited: false, success: true, target: p };
+            return { edited: false, success: result, target: p };
         }
     };
 }
@@ -177,7 +177,12 @@ ${details}`);
         if (result) {
             return p;
         } else {
-            return { edited: false, success: true, target: p };
+            logger.info("unable to appply");
+            return {
+                edited: false,
+                success: result,
+                target: p,
+            };
         }
     };
 }
@@ -362,13 +367,13 @@ export function broadcastFingerprintMandate(
                                 x.sha !== fp.sha;
                         }))
                         .map(x => {
-                                return {
-                                    owner: x.repo.owner,
-                                    repo: x.repo.name,
-                                    url: "url",
-                                    branch: "master",
-                                };
-                            },
+                            return {
+                                owner: x.repo.owner,
+                                repo: x.repo.name,
+                                url: "url",
+                                branch: "master",
+                            };
+                        },
                         ),
                 );
             }
