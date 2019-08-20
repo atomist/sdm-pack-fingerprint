@@ -17,7 +17,6 @@
 import {
     HandlerContext,
     Project,
-    ReviewComment,
 } from "@atomist/automation-client";
 import { SdmContext } from "@atomist/sdm";
 import { GitCoordinate } from "../support/messages";
@@ -179,12 +178,6 @@ export interface Aspect<FPI extends FP = FP> {
      * @return {string}
      */
     toDisplayableFingerprintName?(fingerprintName: string): string;
-
-    /**
-     * Validate the aspect. Return undefined or the empty array if there are no problems.
-     * @return {Promise<ReviewComment[]>}
-     */
-    validate?(fpi: FPI): Promise<ReviewComment[]>;
 
     /**
      * Based on the given fingerprint type and name, suggest ideals
