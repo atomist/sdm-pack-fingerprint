@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-import { logger } from "@atomist/automation-client";
+import {logger} from "@atomist/automation-client";
 import {
     ApplyFingerprint,
-    ExtractFingerprint,
-    FP,
+    ExtractFingerprint, FP,
     sha256,
 } from "../..";
-import { Aspect } from "../machine/Aspect";
+import {Aspect} from "../machine/Aspect";
 
-export interface FileFingerprint extends FP {
-    data: {
-        filename: string;
-        content: string;
-    };
+export interface FileFingerprintData {
+    filename: string;
+    content: string;
 }
 
 /**
@@ -51,9 +48,9 @@ export function createFileFingerprint(...filenames: string[]): ExtractFingerprin
  */
 export function createFilesFingerprint(type: string,
                                        canonicalize: (content: string) => any,
-                                       ...filenames: string[]): ExtractFingerprint<FileFingerprint> {
+                                       ...filenames: string[]): ExtractFingerprint<FileFingerprintData> {
     return async p => {
-        const fps: FileFingerprint[] = [];
+        const fps: Array<FP<FileFingerprintData>> = [];
         await Promise.all(
             filenames.map(async filename => {
                     const file = await p.getFile(filename);
@@ -113,9 +110,9 @@ export const JsonFile: Aspect = {
 export function filesAspect(opts: {
                                 type: string,
                                 canonicalize: (content: string) => any,
-                            } & Pick<Aspect<FileFingerprint>, "name" | "displayName" |
+                            } & Pick<Aspect<FileFingerprintData>, "name" | "displayName" |
                                 "toDisplayableFingerprintName" | "toDisplayableFingerprint">,
-                            ...files: string[]): Aspect<FileFingerprint> {
+                            ...files: string[]): Aspect<FileFingerprintData> {
     return {
         ...opts,
         extract: createFilesFingerprint(

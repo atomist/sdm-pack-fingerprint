@@ -44,12 +44,12 @@ export interface FP<DATA = any> {
     path?: string;
 }
 
-export interface Vote {
+export interface Vote<DATA = any> {
     abstain: boolean;
     decision?: string;
     name?: string;
-    fingerprint?: FP;
-    fpTarget?: FP;
+    fingerprint?: FP<DATA>;
+    fpTarget?: FP<DATA>;
     diff?: Diff;
     text?: string;
     summary?: { title: string, description: string };
@@ -58,9 +58,9 @@ export interface Vote {
 /**
  * Difference between two fingerprints
  */
-export interface Diff {
-    from: FP;
-    to: FP;
+export interface Diff<DATA = any> {
+    from: FP<DATA>;
+    to: FP<DATA>;
     data: {
         from: any[];
         to: any[];
@@ -77,14 +77,14 @@ export interface Diff {
  * Extract fingerprint(s) from the given project.
  * Return undefined or the empty array if no fingerprints found.
  */
-export type ExtractFingerprint<FPI extends FP = FP> = (p: Project) => Promise<FPI | FPI[]>;
+export type ExtractFingerprint<DATA = any> = (p: Project) => Promise<FP<DATA> | Array<FP<DATA>>>;
 
 export type FingerprintSelector = (fingerprint: FP) => boolean;
 
 /**
  * Apply the given fingerprint to the project
  */
-export type ApplyFingerprint<FPI extends FP = FP> = (p: Project, fp: FPI) => Promise<boolean>;
+export type ApplyFingerprint<DATA = any> = (p: Project, fp: FP<DATA>) => Promise<boolean>;
 
 export interface DiffSummary {
     title: string;
@@ -97,9 +97,9 @@ export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
  * Implemented by types that know how to compare two fingerprints,
  * for example by quality or up-to-dateness
  */
-export interface FingerprintComparator<FPI extends FP = FP> {
+export interface FingerprintComparator<DATA> {
     readonly name: string;
-    comparator: (a: FPI, b: FPI) => number;
+    comparator: (a: FP<DATA>, b: FP<DATA>) => number;
 }
 
 /**
@@ -115,7 +115,7 @@ export interface FingerprintComparator<FPI extends FP = FP> {
  * extracted fingerprints, or extracted throughout the delivery lifecycle
  * from Atomist events.
  */
-export interface Aspect<FPI extends FP = FP> {
+export interface Aspect<DATA = any> {
 
     /**
      * Displayable name of this aspect. Used only for reporting.
@@ -144,18 +144,18 @@ export interface Aspect<FPI extends FP = FP> {
      * Function to extract fingerprint(s) from this project.
      * Return an empty array if none.
      */
-    extract: ExtractFingerprint<FPI>;
+    extract: ExtractFingerprint<DATA>;
 
     /**
      * Function to create any new fingerprint based on fingerprinters
      * found by extract method.
      */
-    consolidate?: (fps: FP[]) => Promise<FPI>;
+    consolidate?: (fps: FP[]) => Promise<DATA>;
 
     /**
      * Function to apply the given fingerprint instance to a project
      */
-    apply?: ApplyFingerprint<FPI>;
+    apply?: ApplyFingerprint<DATA>;
 
     summary?: DiffSummaryFingerprint;
 
@@ -163,13 +163,13 @@ export interface Aspect<FPI extends FP = FP> {
      * Functions that can be used to compare fingerprint instances managed by this
      * aspect.
      */
-    comparators?: Array<FingerprintComparator<FPI>>;
+    comparators?: Array<FingerprintComparator<DATA>>;
 
     /**
      * Convert a fingerprint value to a human readable string
      * fpi.data is a reasonable default
      */
-    toDisplayableFingerprint?(fpi: FPI): string;
+    toDisplayableFingerprint?(fpi: FP<DATA>): string;
 
     /**
      * Convert a fingerprint name such as "npm-project-dep::atomist::automation-client"

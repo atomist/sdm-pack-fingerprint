@@ -24,7 +24,6 @@ import {
     ApplyFingerprint,
     Aspect,
     ExtractFingerprint,
-    FP,
 } from "../../../lib/machine/Aspect";
 
 import * as assert from "assert";
@@ -46,7 +45,7 @@ const extractThing: ExtractFingerprint = async p => {
     };
 };
 
-const applyThing: ApplyFingerprint<FP<{ path: string, content: string }>> = async (p, fpi) => {
+const applyThing: ApplyFingerprint<{ path: string, content: string }> = async (p, fpi) => {
     await p.addFile(fpi.data.path, fpi.data.content);
     return true;
 };
