@@ -18,30 +18,10 @@ import { sha256 } from "@atomist/clj-editors";
 import {
     ApplyFingerprint,
     Aspect,
-    BaseAspect,
     FingerprintSelector,
     FP,
 } from "./Aspect";
 import { aspectOf } from "./Aspects";
-
-/**
- * Aspect derived from existing fingerprints.
- * Surfaces as a single fingerprint. Implementations must
- * also support atomic application.
- */
-export interface AtomicAspect<FPI extends FP = FP> extends BaseAspect<FPI> {
-
-    /**
-     * Function to extract fingerprint(s) from this project
-     */
-    consolidate: (fps: FP[]) => Promise<FPI>;
-
-}
-
-export function isAtomicAspect(aspect: BaseAspect): aspect is AtomicAspect {
-    const maybe = aspect as AtomicAspect;
-    return !!maybe.consolidate;
-}
 
 /**
  * Create a composite aspect from the given other aspects or extractors.
@@ -57,7 +37,7 @@ export function atomicAspect(
         "comparators" | "toDisplayableFingerprint" | "toDisplayableFingerprintName" | "name">,
     narrower: FingerprintSelector,
     aspect0: Aspect,
-    ...aspects: Aspect[]): AtomicAspect {
+    ...aspects: Aspect[]): Aspect {
     const prefix = aspectData.displayName + ":";
     const allAspects = [aspect0, ...aspects];
     const apply: ApplyFingerprint = allAspects.some(f => !f.apply) ?
@@ -66,6 +46,7 @@ export function atomicAspect(
     return {
         ...aspectData,
         apply,
+        extract: async () => [],
         consolidate: async fps => {
             // Extract a single composite fingerprint
             return createCompositeFingerprint(prefix, fps.filter(narrower));
@@ -87,7 +68,6 @@ function createCompositeFingerprint(prefix: string, fingerprints: FP[]): FP {
 
 function applyAll(aspects: Aspect[], narrower: FingerprintSelector): ApplyFingerprint {
     return async (p, fp) => {
-
         for (const individualFingerprint of fp.data) {
             const aspect = aspectOf(individualFingerprint, aspects);
             if (!!aspect && !!aspect.apply) {

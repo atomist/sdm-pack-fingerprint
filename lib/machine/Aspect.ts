@@ -104,7 +104,6 @@ export interface FingerprintComparator<FPI extends FP = FP> {
 }
 
 /**
- * Common properties for all aspects.
  * Aspects add the ability to manage a particular type of fingerprint:
  * for example, helping with convergence across an organization and supporting
  * visualization. Aspects are typically extracted from a Project (see Aspect)
@@ -112,8 +111,12 @@ export interface FingerprintComparator<FPI extends FP = FP> {
  * an intermediate representation such as a ProjectAnalysis (DerivedAspect).
  * The structure (that is, the data payload) of all fingerprints emitted by an aspect
  * should be the same.
+ *
+ * Fingerprints may be extracted from a Project, consolidated from previously
+ * extracted fingerprints, or extracted throughout the delivery lifecycle
+ * from Atomist events.
  */
-export interface BaseAspect<FPI extends FP = FP> {
+export interface Aspect<FPI extends FP = FP> {
 
     /**
      * Displayable name of this aspect. Used only for reporting.
@@ -137,6 +140,17 @@ export interface BaseAspect<FPI extends FP = FP> {
      * people can do about their results.
      */
     readonly documentationUrl?: string;
+
+    /**
+     * Function to extract fingerprint(s) from this project.
+     * Return an empty array if none.
+     */
+    extract: ExtractFingerprint<FPI>;
+
+    /**
+     * Function to consolidate fingerprints found by all fingerprinters.
+     */
+    consolidate?: (fps: FP[]) => Promise<FPI>;
 
     /**
      * Function to apply the given fingerprint instance to a project
@@ -196,11 +210,6 @@ export interface BaseAspect<FPI extends FP = FP> {
     readonly baseOnly?: boolean;
 }
 
-export function isRegularAspect(a: BaseAspect): a is Aspect {
-    const maybe = a as Aspect;
-    return !!maybe.extract;
-}
-
 /**
  * Type for default stats that can be calculated on any feature.
  */
@@ -238,20 +247,8 @@ export interface AspectStats {
 /**
  * Does this aspect support entropy, or is it turned off?
  */
-export function supportsEntropy(ba: BaseAspect): boolean {
+export function supportsEntropy(ba: Aspect): boolean {
     return _.get(ba, "stats.defaultStatStatus.entropy", true) !== false;
-}
-
-/**
- * Aspect that extracts fingerprints directly from a Project.
- */
-export interface Aspect<FPI extends FP = FP> extends BaseAspect<FPI> {
-
-    /**
-     * Function to extract fingerprint(s) from this project
-     */
-    extract: ExtractFingerprint<FPI>;
-
 }
 
 export interface DiffContext extends Diff {

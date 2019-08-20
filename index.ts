@@ -27,7 +27,6 @@ export {
     RegisterFingerprintImpactHandler,
 } from "./lib/machine/fingerprintSupport";
 export {
-    BaseAspect,
     Aspect,
     AspectStats,
     ApplyFingerprint,
@@ -80,7 +79,6 @@ export {
 export * from "./lib/fingerprints/jsonFiles";
 
 export * from "./lib/machine/AtomicAspect";
-export * from "./lib/machine/DerivedAspect";
 
 export * from "./lib/machine/Ideal";
 
