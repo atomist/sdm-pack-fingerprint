@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {BaseAspect, FP} from "./Aspect";
 import {BuildListener, BuildListenerInvocation} from "@atomist/sdm";
 import {BuildStatus} from "../typings/types";
+import {BaseAspect, FP} from "./Aspect";
 
 export interface BuildAspect<FPI extends FP = FP> extends BaseAspect<FPI> {
 
