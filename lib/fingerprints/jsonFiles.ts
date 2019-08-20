@@ -17,7 +17,6 @@
 import { logger } from "@atomist/automation-client";
 import {
     ApplyFingerprint,
-    BaseAspect,
     ExtractFingerprint,
     FP,
     sha256,
@@ -114,7 +113,7 @@ export const JsonFile: Aspect = {
 export function filesAspect(opts: {
                                 type: string,
                                 canonicalize: (content: string) => any,
-                            } & Pick<BaseAspect<FileFingerprint>, "name" | "displayName" |
+                            } & Pick<Aspect<FileFingerprint>, "name" | "displayName" |
                                 "toDisplayableFingerprintName" | "toDisplayableFingerprint">,
                             ...files: string[]): Aspect<FileFingerprint> {
     return {

@@ -75,10 +75,10 @@ export interface Diff {
 }
 
 /**
- * Extract fingerprint(s) from the given project.
+ * Extract fingerprint(s) from the given source--by default, a Project.
  * Return undefined or the empty array if no fingerprints found.
  */
-export type ExtractFingerprint<FPI extends FP = FP> = (p: Project) => Promise<FPI | FPI[]>;
+export type ExtractFingerprint<FPI extends FP = FP, FROM = Project> = (f: FROM) => Promise<FPI | FPI[]>;
 
 export type FingerprintSelector = (fingerprint: FP) => boolean;
 
@@ -104,16 +104,17 @@ export interface FingerprintComparator<FPI extends FP = FP> {
 }
 
 /**
- * Common properties for all aspects.
- * Aspects add the ability to manage a particular type of fingerprint:
+ * Aspects can manage a particular type of fingerprint:
  * for example, helping with convergence across an organization and supporting
  * visualization. Aspects are typically extracted from a Project (see Aspect)
  * but may also be built from existing fingerprints (AtomicAspect) or derived from
  * an intermediate representation such as a ProjectAnalysis (DerivedAspect).
  * The structure (that is, the data payload) of all fingerprints emitted by an aspect
  * should be the same.
+ * By default, aspects are extracted from a Project. However, an aspect can be extracted from
+ * anything by specifying a from property and FROM parameter.
  */
-export interface BaseAspect<FPI extends FP = FP> {
+export interface Aspect<FPI extends FP = FP, FROM = Project> {
 
     /**
      * Displayable name of this aspect. Used only for reporting.
@@ -126,6 +127,16 @@ export interface BaseAspect<FPI extends FP = FP> {
      * prefix for all fingerprints that are emitted by this Aspect
      */
     readonly name: string;
+
+    /**
+     * If this isn't extracting from a Project, what does it extract from?
+     */
+    readonly from?: string;
+
+    /**
+     * Function to extract fingerprint(s) from this project
+     */
+    extract: ExtractFingerprint<FPI, FROM>;
 
     /**
      * Link to documentation for this Aspect. This can help people
@@ -196,11 +207,6 @@ export interface BaseAspect<FPI extends FP = FP> {
     readonly baseOnly?: boolean;
 }
 
-export function isRegularAspect(a: BaseAspect): a is Aspect {
-    const maybe = a as Aspect;
-    return !!maybe.extract;
-}
-
 /**
  * Type for default stats that can be calculated on any feature.
  */
@@ -238,20 +244,8 @@ export interface AspectStats {
 /**
  * Does this aspect support entropy, or is it turned off?
  */
-export function supportsEntropy(ba: BaseAspect): boolean {
+export function supportsEntropy(ba: Aspect): boolean {
     return _.get(ba, "stats.defaultStatStatus.entropy", true) !== false;
-}
-
-/**
- * Aspect that extracts fingerprints directly from a Project.
- */
-export interface Aspect<FPI extends FP = FP> extends BaseAspect<FPI> {
-
-    /**
-     * Function to extract fingerprint(s) from this project
-     */
-    extract: ExtractFingerprint<FPI>;
-
 }
 
 export interface DiffContext extends Diff {

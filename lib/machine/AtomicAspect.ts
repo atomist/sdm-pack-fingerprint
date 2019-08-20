@@ -14,33 +14,24 @@
  * limitations under the License.
  */
 
-import { sha256 } from "@atomist/clj-editors";
+import {sha256} from "@atomist/clj-editors";
 import {
     ApplyFingerprint,
     Aspect,
-    BaseAspect,
     FingerprintSelector,
     FP,
 } from "./Aspect";
-import { aspectOf } from "./Aspects";
+import {aspectOf} from "./Aspects";
 
 /**
  * Aspect derived from existing fingerprints.
  * Surfaces as a single fingerprint. Implementations must
  * also support atomic application.
  */
-export interface AtomicAspect<FPI extends FP = FP> extends BaseAspect<FPI> {
+export type AtomicAspect<FPI extends FP = FP> = Aspect<FPI, FPI[]>;
 
-    /**
-     * Function to extract fingerprint(s) from this project
-     */
-    consolidate: (fps: FP[]) => Promise<FPI>;
-
-}
-
-export function isAtomicAspect(aspect: BaseAspect): aspect is AtomicAspect {
-    const maybe = aspect as AtomicAspect;
-    return !!maybe.consolidate;
+export function isAtomicAspect(aspect: Aspect<FP, any>): aspect is AtomicAspect {
+    return aspect.from === "atomic";
 }
 
 /**
@@ -65,8 +56,9 @@ export function atomicAspect(
         applyAll(allAspects, narrower);
     return {
         ...aspectData,
+        from: "atomic",
         apply,
-        consolidate: async fps => {
+        extract: async fps => {
             // Extract a single composite fingerprint
             return createCompositeFingerprint(prefix, fps.filter(narrower));
         },
