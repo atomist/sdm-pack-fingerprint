@@ -196,6 +196,11 @@ export interface BaseAspect<FPI extends FP = FP> {
     readonly baseOnly?: boolean;
 }
 
+export function isRegularAspect(a: BaseAspect): a is Aspect {
+    const maybe = a as Aspect;
+    return !!maybe.extract;
+}
+
 /**
  * Type for default stats that can be calculated on any feature.
  */
