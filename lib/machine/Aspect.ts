@@ -17,7 +17,6 @@
 import {
     HandlerContext,
     Project,
-    ReviewComment,
 } from "@atomist/automation-client";
 import { SdmContext } from "@atomist/sdm";
 import { GitCoordinate } from "../support/messages";
@@ -95,15 +94,6 @@ export interface DiffSummary {
 export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
 
 /**
- * Implemented by types that know how to compare two fingerprints,
- * for example by quality or up-to-dateness
- */
-export interface FingerprintComparator<FPI extends FP = FP> {
-    readonly name: string;
-    comparator: (a: FPI, b: FPI) => number;
-}
-
-/**
  * Aspects add the ability to manage a particular type of fingerprint:
  * for example, helping with convergence across an organization and supporting
  * visualization. Aspects are typically extracted from a Project (see Aspect)
@@ -161,12 +151,6 @@ export interface Aspect<FPI extends FP = FP> {
     summary?: DiffSummaryFingerprint;
 
     /**
-     * Functions that can be used to compare fingerprint instances managed by this
-     * aspect.
-     */
-    comparators?: Array<FingerprintComparator<FPI>>;
-
-    /**
      * Convert a fingerprint value to a human readable string
      * fpi.data is a reasonable default
      */
@@ -179,12 +163,6 @@ export interface Aspect<FPI extends FP = FP> {
      * @return {string}
      */
     toDisplayableFingerprintName?(fingerprintName: string): string;
-
-    /**
-     * Validate the aspect. Return undefined or the empty array if there are no problems.
-     * @return {Promise<ReviewComment[]>}
-     */
-    validate?(fpi: FPI): Promise<ReviewComment[]>;
 
     /**
      * Based on the given fingerprint type and name, suggest ideals
