@@ -100,21 +100,20 @@ async function handleDiffs(
 
     const selectedHandlers = _.filter(handlers, h => h.selector(fps[0]));
 
-    const handlerVotes = _.flatten(await Promise.all(_.map(selectedHandlers, async h => {
-        const voats: Vote[] = [];
+    const handlerVotes: Vote[] = [];
+    for (const h of selectedHandlers) {
         if (h.diffHandler) {
-            voats.push(...await h.diffHandler(i, diffs, aspect));
+            handlerVotes.push(...await h.diffHandler(i, diffs, aspect));
         }
         if (h.handler) {
-            voats.push(...await h.handler(i, diffs, aspect));
+            handlerVotes.push(...await h.handler(i, diffs, aspect));
         }
-        return voats;
-    })));
+    }
 
     if (aspect.workflows) {
-        handlerVotes.push(... _.flatten(await Promise.all(_.map(aspect.workflows, wf => {
-            return wf(i, diffs, aspect);
-        }))));
+        for (const wf of aspect.workflows) {
+            _.concat(handlerVotes, await wf(i, diffs, aspect));
+        }
     }
 
     return handlerVotes;
@@ -166,7 +165,7 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
         } catch (e) {
             return {
                 ...info,
-                targets: {TeamConfiguration: []},
+                targets: { TeamConfiguration: [] },
             };
         }
     } else {
@@ -174,39 +173,24 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
     }
 }
 
-/**
- * Function that can compute fingerprints from a push
- */
 export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
 
 export type FingerprintComputer = (fingerprinters: Aspect[], p: Project) => Promise<FP[]>;
 
 export const computeFingerprints: FingerprintComputer = async (fingerprinters, p) => {
-    const allFps: FP[] = (await Promise.all(
-        fingerprinters.map(
-            x => x.extract(p),
-        ),
-    )).reduce<FP[]>(
-        (acc, fps) => {
-            if (fps && !(fps instanceof Array)) {
-                acc.push(fps);
-                return acc;
-            } else if (fps) {
-                // TODO does concat return the larger array?
-                return acc.concat(fps);
+
+    const extacted: FP[] = [];
+    for (const x of fingerprinters) {
+        const fpOrFps = await x.extract(p);
+        if (fpOrFps) {
+            if (Array.isArray(fpOrFps)) {
+                _.concat(extacted, fpOrFps);
             } else {
-                return acc;
+                extacted.push( fpOrFps );
             }
-        },
-        [],
-    );
-
-    const consolidatedFingerprints = await Promise.all(
-        fingerprinters
-            .filter(a => !!a.consolidate)
-            .map(a => a.consolidate(extractedFingerprints)));
-
-    return [...extractedFingerprints, ...consolidatedFingerprints];
+        }
+    }
+    return extacted;
 };
 
 /**
@@ -253,7 +237,7 @@ export function fingerprintRunner(
         }
         logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
-        const allFps = (await computer(fingerprinters, p));
+        const allFps = await computer(fingerprinters, p);
 
         logger.debug(`Prosessing fingerprints: ${renderData(allFps)}`);
 
@@ -263,13 +247,13 @@ export function fingerprintRunner(
             const info = await missingInfo(i);
             const byType = _.groupBy(allFps, fp => fp.type);
 
-            const allVotes = _.flatten(await Promise.all(
-                _.map(byType, (fps, type) => {
-                    // aspect name is same as fingerprint type!
+            const allVotes: Vote[] = [];
+            Object.entries(byType).forEach(
+                async ([type, fps]) => {
                     const fpAspect = fingerprinters.find(aspects => aspects.name === type);
-                    return handleDiffs(fps, previous, info, handlers, fpAspect, i);
-                }),
-            ));
+                    _.concat(allVotes, await handleDiffs(fps, previous, info, handlers, fpAspect, i));
+                },
+            );
             logger.debug(`Votes:  ${renderData(allVotes)}`);
             await tallyVotes(allVotes, handlers, i, info);
         } catch (e) {

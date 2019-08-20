@@ -51,30 +51,26 @@ export function createFilesFingerprint(type: string,
                                        ...filenames: string[]): ExtractFingerprint<FileFingerprintData> {
     return async p => {
         const fps: FileFingerprint[] = [];
-        await Promise.all(
-            filenames.map(async filename => {
-                    const file = await p.getFile(filename);
-
-                    if (file) {
-                        const content = await file.getContent();
-                        const canonicalized = canonicalize(content);
-                        fps.push(
-                            {
-                                type,
-                                name: filename,
-                                abbreviation: `file-${filename}`,
-                                version: "0.0.1",
-                                data: {
-                                    content,
-                                    filename,
-                                },
-                                sha: sha256(JSON.stringify(canonicalized)),
-                            },
-                        );
-                    }
-                },
-            ));
-
+        for (const filename of filenames) {
+            const file = await p.getFile(filename);
+            if (file) {
+                const content = await file.getContent();
+                const canonicalized = canonicalize(content);
+                fps.push(
+                    {
+                        type,
+                        name: filename,
+                        abbreviation: `file-${filename}`,
+                        version: "0.0.1",
+                        data: {
+                            content,
+                            filename,
+                        },
+                        sha: sha256(JSON.stringify(canonicalized)),
+                    },
+                );
+            }
+        }
         return fps;
     };
 }

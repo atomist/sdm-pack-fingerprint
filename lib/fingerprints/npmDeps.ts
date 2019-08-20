@@ -37,6 +37,7 @@ import { setNewTargetFingerprint } from "../handlers/commands/updateTarget";
 import {
     Aspect,
     DiffSummaryFingerprint,
+    Vote,
 } from "../machine/Aspect";
 import {
     DefaultTargetDiffHandler,
@@ -204,18 +205,20 @@ export const NpmCoordinates: Aspect = {
     toDisplayableFingerprint: fp => fp.data,
     workflows: [
         diffOnlyHandler(
-            (ctx, diffs) => {
-                return Promise.all(_.map(diffs, diff => {
+            async (ctx, diffs) => {
+                const votes: Vote[] = [];
+                for (const diff of diffs) {
                     if (diff.channel) {
-                        return setNewTargetFingerprint(
+                        votes.push(await setNewTargetFingerprint(
                             ctx.context,
                             NpmDeps,
                             createNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
-                            diff.channel);
+                            diff.channel));
                     } else {
-                        return { abstain: true };
+                        votes.push({ abstain: true });
                     }
-                }));
+                }
+                return votes;
             },
         ),
     ],

@@ -68,6 +68,7 @@ import {
     FingerprintDiffHandler,
     FingerprintHandler,
     FP,
+    Vote,
 } from "./Aspect";
 import {
     computeFingerprints,
@@ -102,18 +103,17 @@ export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, re
 export const DefaultTargetDiffHandler: FingerprintDiffHandler =
     async (ctx, diffs, aspect) => {
         const abs = _.filter(diffs, diff => !diff.from);
-        return [
-            ... await Promise.all(
-                    _.map (
-                        _.difference(diffs, abs), diff => checkFingerprintTarget(
-                            ctx.context,
-                            diff,
-                            aspect,
-                            async () => diff.targets ))),
-            ... _.map(abs, () => {
-                return {abstain: true};
-             }),
-        ];
+        const checked: Vote[] = [];
+        for (const diff of _.difference(diffs, abs)) {
+            checked.push(await checkFingerprintTarget(
+                ctx.context,
+                diff,
+                aspect,
+                async () => diff.targets ));
+        }
+        return _.concat(
+            checked,
+            _.map(abs, () => ({abstain: true})));
     };
 
 /**
