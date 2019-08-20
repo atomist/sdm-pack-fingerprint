@@ -92,7 +92,7 @@ export function deconstructNpmDepsFingerprintName(fingerprintName: string): stri
     }
 }
 
-export const createNpmDepsFingerprints: ExtractFingerprint<FP<NpmDepData>> = async p => {
+export const createNpmDepsFingerprints: ExtractFingerprint<NpmDepData> = async p => {
     const file = await p.getFile("package.json");
 
     if (file) {
@@ -137,7 +137,7 @@ export const createNpmCoordinatesFingerprint: ExtractFingerprint = async p => {
 
 };
 
-export const applyNpmDepsFingerprint: ApplyFingerprint<FP<NpmDepData>> = async (p, fp) => {
+export const applyNpmDepsFingerprint: ApplyFingerprint<NpmDepData> = async (p, fp) => {
     const pckage = fp.data[0];
     const version = fp.data[1];
     const file = await p.getFile("package.json");
@@ -183,7 +183,7 @@ const NpmDepsName = "npm-project-deps";
 /**
  * Aspect emitting 0 or more npm dependencies fingerprints.
  */
-export const NpmDeps: Aspect<FP<NpmDepData>> = {
+export const NpmDeps: Aspect<NpmDepData> = {
     displayName: "NPM dependencies",
     name: NpmDepsName,
     extract: createNpmDepsFingerprints,
