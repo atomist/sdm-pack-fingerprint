@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import {logger} from "@atomist/automation-client";
+import { logger } from "@atomist/automation-client";
 import {
     ApplyFingerprint,
     ExtractFingerprint,
     FP,
     sha256,
 } from "../..";
-import {Aspect} from "../machine/Aspect";
+import { Aspect } from "../machine/Aspect";
 
 export interface FileFingerprint extends FP {
     data: {
