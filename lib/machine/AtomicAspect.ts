@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { sha256 } from "@atomist/clj-editors";
+// tslint:disable:deprecation
 import { chainTransforms } from "@atomist/sdm";
+import { sha256 } from "../..";
 import {
     ApplyFingerprint,
     Aspect,

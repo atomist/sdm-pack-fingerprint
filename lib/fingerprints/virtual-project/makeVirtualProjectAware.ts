@@ -15,6 +15,7 @@
  */
 
 import { Project } from "@atomist/automation-client";
+// tslint:disable:deprecation
 import { chainTransforms } from "@atomist/sdm";
 import * as _ from "lodash";
 import {
