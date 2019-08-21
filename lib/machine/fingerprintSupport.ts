@@ -102,18 +102,18 @@ export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, re
 
 export const DefaultTargetDiffHandler: FingerprintDiffHandler =
     async (ctx, diffs, aspect) => {
-        const abs = _.filter(diffs, diff => !diff.from);
+        const abs = diffs.filter(diff => !diff.from);
         const checked: Vote[] = [];
         for (const diff of _.difference(diffs, abs)) {
             checked.push(await checkFingerprintTarget(
                 ctx.context,
                 diff,
                 aspect,
-                async () => diff.targets ));
+                async () => diff.targets));
         }
         return _.concat(
             checked,
-            _.map(abs, () => ({abstain: true})));
+            abs.map(() => ({ abstain: true })));
     };
 
 /**
@@ -123,12 +123,10 @@ export const DefaultTargetDiffHandler: FingerprintDiffHandler =
  */
 export function diffOnlyHandler(handler: FingerprintDiffHandler): FingerprintDiffHandler {
     return async (context, diffs, aspect) => {
-        const toDiff = _.filter(diffs, diff => diff.from && diff.to.sha !== diff.from.sha);
+        const toDiff = diffs.filter(diff => diff.from && diff.to.sha !== diff.from.sha);
         return [
-            ... await handler(context, toDiff, aspect),
-            ... _.map(_.difference(diffs, toDiff), () => {
-                return {abstain: true};
-             }),
+            ...await handler(context, toDiff, aspect),
+            ..._.difference(diffs, toDiff).map(() => ({ abstain: true })),
         ];
     };
 }
@@ -225,14 +223,17 @@ class LazyPullRequest {
     }
 
     get body(): string {
-         return `${this.options.body || this.parameters.body || this.title}\n\n[atomist:generated]`;
+        return `${this.options.body || this.parameters.body || this.title}\n\n[atomist:generated]`;
     }
+
     get message(): string {
         return this.options.message || this.title;
     }
+
     get targetBranch(): string {
         return this.project.id.branch;
     }
+
     get autoMerge(): AutoMerge {
         const autoMerge = _.get(this.options, "autoMerge") || {};
         return {

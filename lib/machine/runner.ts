@@ -76,7 +76,7 @@ async function handleDiffs(
         return [];
     }
 
-    const diffs = _.filter(_.map(fps, fp => {
+    const diffs = fps.map(fp => {
         const from = previous[`${fp.type}::${fp.name}`];
         const diff: DiffContext = {
             ...info,
@@ -92,9 +92,9 @@ async function handleDiffs(
             },
         };
         return diff;
-    }), diff => !diff.from || diff.to.sha !== diff.from.sha);
+    }).filter(diff => !diff.from || diff.to.sha !== diff.from.sha);
 
-    const selectedHandlers = _.filter(handlers, h => h.selector(fps[0]));
+    const selectedHandlers = handlers.filter(h => h.selector(fps[0]));
 
     const handlerVotes: Vote[] = [];
     for (const h of selectedHandlers) {
@@ -143,7 +143,7 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
         {});
 }
 
-async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo> {
+async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo | undefined> {
 
     const info = {
         providerId: _.get(i, "push.repo.org.provider.providerId"),
@@ -164,9 +164,8 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
                 targets: { TeamConfiguration: [] },
             };
         }
-    } else {
-        throw new Error(`PushImpactListenerInvocation missing providerId or push id.  Info not available.`);
     }
+    return undefined;
 }
 
 export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
@@ -246,17 +245,19 @@ export function fingerprintRunner(
 
         try {
             const info = await missingInfo(i);
-            const byType = _.groupBy(allFps, fp => fp.type);
+            if (!!info) {
+                const byType = _.groupBy(allFps, fp => fp.type);
 
-            const allVotes: Vote[] = [];
-            Object.entries(byType).forEach(
-                async ([type, fps]) => {
-                    const fpAspect = fingerprinters.find(aspects => aspects.name === type);
-                    _.concat(allVotes, await handleDiffs(fps, previous, info, handlers, fpAspect, i));
-                },
-            );
-            logger.debug(`Votes:  ${renderData(allVotes)}`);
-            await tallyVotes(allVotes, handlers, i, info);
+                const allVotes: Vote[] = [];
+                Object.entries(byType).forEach(
+                    async ([type, fps]) => {
+                        const fpAspect = fingerprinters.find(aspects => aspects.name === type);
+                        _.concat(allVotes, await handleDiffs(fps, previous, info, handlers, fpAspect, i));
+                    },
+                );
+                logger.debug(`Votes:  ${renderData(allVotes)}`);
+                await tallyVotes(allVotes, handlers, i, info);
+            }
         } catch (e) {
             logger.warn(`Not handling diffs (${e.message})`);
         }
