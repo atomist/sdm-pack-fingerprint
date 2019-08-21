@@ -22,7 +22,6 @@ import {
     CodeTransform,
     SdmContext,
 } from "@atomist/sdm";
-
 import * as _ from "lodash";
 import { GitCoordinate } from "../support/messages";
 import { GetFpTargets } from "../typings/types";

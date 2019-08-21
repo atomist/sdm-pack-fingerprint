@@ -25,6 +25,10 @@ export interface PolicyLog {
 
     manage?: ManagePolicyLog;
     apply?: ApplyPolicyLog;
+    manage?: ManagePolicyLog
+    apply?: ApplyPolicyLog
+
+    ts?: number;
 }
 
 export interface ManagePolicyLog {
@@ -62,5 +66,10 @@ export enum ApplyPolicyState {
 }
 
 export async function sendPolicyLog(log: PolicyLog, ctx: HandlerContext): Promise<void> {
-    await ctx.messageClient.send(log, addressEvent("PolicyLog"));
+    await ctx.messageClient.send(
+        {
+            ...log,
+            ts: Date.now(),
+        },
+        addressEvent("PolicyLog"));
 }
