@@ -43,9 +43,6 @@ export enum ManagePolicyAction {
 }
 
 export interface ApplyPolicyLog {
-    _name: string;
-    _owner: string;
-    _provider: string;
 
     _sha: string;
     _prId?: string;

@@ -89,9 +89,6 @@ async function pushFingerprint(
                     type: fp.type,
                     name: fp.name,
                     apply: {
-                        _name: p.id.repo,
-                        _owner: p.id.owner,
-                        _provider: undefined, // where to get the provider from
                         _sha: p.id.sha,
                         branch: p.id.branch,
                         state: ApplyPolicyState.Failure,
@@ -108,9 +105,6 @@ async function pushFingerprint(
                 type: fp.type,
                 name: fp.name,
                 apply: {
-                    _name: p.id.repo,
-                    _owner: p.id.owner,
-                    _provider: undefined, // where to get the provider from
                     _sha: p.id.sha,
                     branch: p.id.branch,
                     state: ApplyPolicyState.Failure,
