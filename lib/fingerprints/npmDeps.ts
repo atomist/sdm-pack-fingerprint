@@ -26,7 +26,7 @@ import {
     bold,
     codeLine,
 } from "@atomist/slack-messages";
-import _ = require("lodash");
+import * as _ from "lodash";
 import {
     ApplyFingerprint,
     ExtractFingerprint,
