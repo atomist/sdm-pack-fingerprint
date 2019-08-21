@@ -23,8 +23,8 @@ export interface PolicyLog {
     type: string;
     name: string;
 
-    manage?: ManagePolicyLog
-    apply?: ApplyPolicyLog
+    manage?: ManagePolicyLog;
+    apply?: ApplyPolicyLog;
 }
 
 export interface ManagePolicyLog {
@@ -48,7 +48,7 @@ export interface ApplyPolicyLog {
     _sha: string;
     _prId: string;
 
-    state: ApplyPolicyState
+    state: ApplyPolicyState;
 
     branch: string;
     targetSha: string;
