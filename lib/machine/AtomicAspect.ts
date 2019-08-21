@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import {sha256} from "@atomist/clj-editors";
+// tslint:disable:deprecation
+import { chainTransforms } from "@atomist/sdm";
+import { sha256 } from "../..";
 import {
     ApplyFingerprint,
     Aspect,
@@ -58,6 +60,7 @@ function createCompositeFingerprint(prefix: string, fingerprints: FP[]): FP {
     return fingerprints.length === 0 ?
         undefined :
         {
+            type: prefix + fingerprints.map(fp => fp.type).join("&"),
             name: prefix + fingerprints.map(fp => fp.name).join("&"),
             version: "0.1.0",
             abbreviation: prefix,
@@ -67,16 +70,19 @@ function createCompositeFingerprint(prefix: string, fingerprints: FP[]): FP {
 }
 
 function applyAll(aspects: Aspect[], narrower: FingerprintSelector): ApplyFingerprint {
-    return async (p, fp) => {
-        for (const individualFingerprint of fp.data) {
+    return async (p, papi) => {
+        const transforms: ApplyFingerprint[] = [];
+        for (const individualFingerprint of papi.parameters.fp.data) {
             const aspect = aspectOf(individualFingerprint, aspects);
             if (!!aspect && !!aspect.apply) {
-                const result = await aspect.apply(p, individualFingerprint);
-                if (!result) {
-                    return result;
-                }
+                transforms.push(async (vp, vpapi) => {
+                    return aspect.apply(vp, { ...papi, parameters: { fp: individualFingerprint } });
+                });
             }
         }
-        return true;
+        if (transforms.length > 0) {
+            return chainTransforms(...transforms)(p, papi, papi.parameters);
+        }
+        return p;
     };
 }

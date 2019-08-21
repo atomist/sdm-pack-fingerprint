@@ -15,9 +15,7 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import {
-    consistentHash,
-} from "@atomist/clj-editors";
+import { consistentHash } from "@atomist/clj-editors";
 import {
     codeBlock,
     codeLine,

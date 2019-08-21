@@ -18,12 +18,15 @@ import {
     HandlerContext,
     Project,
 } from "@atomist/automation-client";
-import { SdmContext } from "@atomist/sdm";
+import {
+    CodeTransform,
+    SdmContext,
+} from "@atomist/sdm";
+
+import * as _ from "lodash";
 import { GitCoordinate } from "../support/messages";
 import { GetFpTargets } from "../typings/types";
 import { Ideal } from "./Ideal";
-
-import * as _ from "lodash";
 
 /**
  * Fingerprint interface. An Aspect can emit zero or more fingerprints,
@@ -31,13 +34,12 @@ import * as _ from "lodash";
  * @param DATA type parameter for data
  */
 export interface FP<DATA = any> {
-    type?: string;
+    type: string;
     name: string;
     sha: string;
     data: DATA;
     version?: string;
     abbreviation?: string;
-
     /**
      * Path within the repository. Undefined means root.
      */
@@ -84,7 +86,7 @@ export type FingerprintSelector = (fingerprint: FP) => boolean;
 /**
  * Apply the given fingerprint to the project
  */
-export type ApplyFingerprint<DATA = any> = (p: Project, fp: FP<DATA>) => Promise<boolean>;
+export type ApplyFingerprint<DATA = any> = CodeTransform<{ fp: FP<DATA> }>;
 
 export interface DiffSummary {
     title: string;
@@ -234,7 +236,7 @@ export interface DiffContext extends Diff {
     targets: GetFpTargets.Query;
 }
 
-export type FingerprintDiffHandler = (context: SdmContext, diff: DiffContext, aspect: Aspect) => Promise<Vote>;
+export type FingerprintDiffHandler = (context: SdmContext, diff: DiffContext[], aspect: Aspect) => Promise<Vote[]>;
 
 /**
  * Handles differences between fingerprints across pushes and between targets.

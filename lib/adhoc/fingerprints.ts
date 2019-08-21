@@ -19,9 +19,7 @@ import {
     logger,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
-import {
-    partitionByFeature,
-} from "@atomist/clj-editors";
+import { partitionByFeature } from "@atomist/clj-editors";
 import { PushImpactListenerInvocation } from "@atomist/sdm";
 import { FP } from "../machine/Aspect";
 import {
@@ -85,7 +83,7 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
         );
 
         await partitionByFeature(fps, async partitioned => {
-            await Promise.all(partitioned.map(async ({ type, additions }) => {
+            for (const { type, additions } of partitioned) {
                 logger.info(`Upload ${additions.length} fingerprints of type ${type}`);
                 await i.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
                     {
@@ -100,7 +98,7 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
                         },
                     },
                 );
-            }));
+            }
         });
     } catch (ex) {
         logger.error(`Error sending fingerprints: ${ex.message}`);

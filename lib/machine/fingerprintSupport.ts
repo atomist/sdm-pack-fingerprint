@@ -101,16 +101,19 @@ export interface FingerprintImpactHandlerConfig {
 export type RegisterFingerprintImpactHandler = (sdm: SoftwareDeliveryMachine, registrations: Aspect[]) => FingerprintHandler;
 
 export const DefaultTargetDiffHandler: FingerprintDiffHandler =
-    async (ctx, diff, aspect) => {
-        const v: Vote = await checkFingerprintTarget(
-            ctx.context,
-            diff,
-            aspect,
-            async () => {
-                return diff.targets;
-            },
-        );
-        return v;
+    async (ctx, diffs, aspect) => {
+        const abs = diffs.filter(diff => !diff.from);
+        const checked: Vote[] = [];
+        for (const diff of _.difference(diffs, abs)) {
+            checked.push(await checkFingerprintTarget(
+                ctx.context,
+                diff,
+                aspect,
+                async () => diff.targets));
+        }
+        return _.concat(
+            checked,
+            abs.map(() => ({ abstain: true })));
     };
 
 /**
@@ -119,14 +122,12 @@ export const DefaultTargetDiffHandler: FingerprintDiffHandler =
  * @param handler the FingerprintDiffHandler to wrap
  */
 export function diffOnlyHandler(handler: FingerprintDiffHandler): FingerprintDiffHandler {
-    return async (context, diff, aspect) => {
-        if (diff.from && diff.to.sha !== diff.from.sha) {
-            return handler(context, diff, aspect);
-        } else {
-            return {
-                abstain: true,
-            };
-        }
+    return async (context, diffs, aspect) => {
+        const toDiff = diffs.filter(diff => diff.from && diff.to.sha !== diff.from.sha);
+        return [
+            ...await handler(context, toDiff, aspect),
+            ..._.difference(diffs, toDiff).map(() => ({ abstain: true })),
+        ];
     };
 }
 
@@ -222,14 +223,17 @@ class LazyPullRequest {
     }
 
     get body(): string {
-         return `${this.options.body || this.parameters.body || this.title}\n\n[atomist:generated]`;
+        return `${this.options.body || this.parameters.body || this.title}\n\n[atomist:generated]`;
     }
+
     get message(): string {
         return this.options.message || this.title;
     }
+
     get targetBranch(): string {
         return this.project.id.branch;
     }
+
     get autoMerge(): AutoMerge {
         const autoMerge = _.get(this.options, "autoMerge") || {};
         return {

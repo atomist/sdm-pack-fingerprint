@@ -19,11 +19,11 @@ import {
     SlackFileMessage,
 } from "@atomist/automation-client";
 import {
+    DiffData,
     renderDiff,
 } from "@atomist/clj-editors";
 import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
-import { Diff } from "../machine/Aspect";
 
 export function comparator(path: string): (a: any, b: any) => number {
     return (a, b) => {
@@ -33,7 +33,7 @@ export function comparator(path: string): (a: any, b: any) => number {
     };
 }
 
-export async function renderDiffSnippet(ctx: HandlerContext, diff: Diff): Promise<void> {
+export async function renderDiffSnippet(ctx: HandlerContext, diff: DiffData): Promise<void> {
     const message: SlackFileMessage = {
         content: renderDiff(diff),
         fileType: "text",

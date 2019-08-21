@@ -22,9 +22,7 @@ import {
     SlackFileMessage,
 } from "@atomist/automation-client";
 
-import {
-    renderData,
-} from "@atomist/clj-editors";
+import { renderData } from "@atomist/clj-editors";
 import {
     CommandHandlerRegistration,
     slackQuestionMessage,

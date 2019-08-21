@@ -26,18 +26,18 @@ import {
     bold,
     codeLine,
 } from "@atomist/slack-messages";
-import _ = require("lodash");
+import * as _ from "lodash";
 import {
     ApplyFingerprint,
     ExtractFingerprint,
     FP,
     sha256,
-    Vote,
 } from "../..";
 import { setNewTargetFingerprint } from "../handlers/commands/updateTarget";
 import {
     Aspect,
     DiffSummaryFingerprint,
+    Vote,
 } from "../machine/Aspect";
 import {
     DefaultTargetDiffHandler,
@@ -122,6 +122,7 @@ export const createNpmCoordinatesFingerprint: ExtractFingerprint = async p => {
         const coords = { name: jsonData.name, version: jsonData.version };
         fingerprints.push(
             {
+                type: NpmCoordinates.name,
                 name: NpmCoordinates.name,
                 abbreviation: NpmCoordinates.name,
                 version: "0.0.1",
@@ -137,7 +138,8 @@ export const createNpmCoordinatesFingerprint: ExtractFingerprint = async p => {
 
 };
 
-export const applyNpmDepsFingerprint: ApplyFingerprint<NpmDepData> = async (p, fp) => {
+export const applyNpmDepsFingerprint: ApplyFingerprint<NpmDepData> = async (p, papi) => {
+    const fp = papi.parameters.fp;
     const pckage = fp.data[0];
     const version = fp.data[1];
     const file = await p.getFile("package.json");
@@ -155,10 +157,17 @@ export const applyNpmDepsFingerprint: ApplyFingerprint<NpmDepData> = async (p, f
                 logCommand: true,
             });
         logger.info(log.log);
-        return result.code === 0;
-    } else {
-        return false;
+        if (result.code !== 0) {
+            return {
+                edited: false,
+                success: false,
+                error: new Error(`${codeLine("npm install")} failed to run.`),
+                target: p,
+            };
+        }
     }
+
+    return p;
 };
 
 /* tslint:disable:max-line-length */
@@ -204,20 +213,20 @@ export const NpmCoordinates: Aspect = {
     toDisplayableFingerprint: fp => fp.data,
     workflows: [
         diffOnlyHandler(
-            (ctx, diff) => {
-                if (diff.channel) {
-                    return setNewTargetFingerprint(
-                        ctx.context,
-                        NpmDeps,
-                        createNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
-                        diff.channel);
-                } else {
-                    return new Promise<Vote>(
-                        (resolve, reject) => {
-                            resolve({ abstain: true });
-                        },
-                    );
+            async (ctx, diffs) => {
+                const votes: Vote[] = [];
+                for (const diff of diffs) {
+                    if (diff.channel) {
+                        votes.push(await setNewTargetFingerprint(
+                            ctx.context,
+                            NpmDeps,
+                            createNpmDepFingerprint(diff.to.data.name, diff.to.data.version),
+                            diff.channel));
+                    } else {
+                        votes.push({ abstain: true });
+                    }
                 }
+                return votes;
             },
         ),
     ],

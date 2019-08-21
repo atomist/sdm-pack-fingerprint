@@ -20,12 +20,8 @@ import {
     Project,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
-import {
-    renderData,
-} from "@atomist/clj-editors";
-import {
-    PushImpactListenerInvocation,
-} from "@atomist/sdm";
+import { renderData } from "@atomist/clj-editors";
+import { PushImpactListenerInvocation } from "@atomist/sdm";
 import * as _ from "lodash";
 import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import { getFPTargets } from "../adhoc/preferences";
@@ -69,50 +65,54 @@ interface MissingInfo {
  * @param i PushImpactListenerInvocation
  */
 async function handleDiffs(
-    fp: FP,
-    previous: FP,
+    fps: FP[],
+    previous: Record<string, FP>,
     info: MissingInfo,
     handlers: FingerprintHandler[],
     aspect: Aspect,
     i: PushImpactListenerInvocation): Promise<Vote[]> {
 
-    const diff: DiffContext = {
-        ...info,
-        from: previous,
-        to: fp,
-        branch: i.push.branch,
-        owner: i.push.repo.owner,
-        repo: i.push.repo.name,
-        sha: i.push.after.sha,
-        data: {
-            from: [],
-            to: [],
-        },
-    };
-    let diffVotes: Vote[] = [];
-    if (previous && fp.sha !== previous.sha) {
-        diffVotes = await Promise.all(
-            handlers
-                .filter(h => h.diffHandler)
-                .filter(h => h.selector(fp))
-                .map(h => h.diffHandler(i, diff, aspect)));
+    if (!fps || fps.length < 1) {
+        return [];
     }
-    const currentVotes: Vote[] = await Promise.all(
-        handlers
-            .filter(h => h.handler)
-            .filter(h => h.selector(fp))
-            .map(h => h.handler(i, diff, aspect)));
 
-    let aspectVotes: Vote[] = [];
+    const diffs = fps.map(fp => {
+        const from = previous[`${fp.type}::${fp.name}`];
+        const diff: DiffContext = {
+            ...info,
+            from,
+            to: fp,
+            branch: i.push.branch,
+            owner: i.push.repo.owner,
+            repo: i.push.repo.name,
+            sha: i.push.after.sha,
+            data: {
+                from: [],
+                to: [],
+            },
+        };
+        return diff;
+    }).filter(diff => !diff.from || diff.to.sha !== diff.from.sha);
+
+    const selectedHandlers = handlers.filter(h => h.selector(fps[0]));
+
+    const handlerVotes: Vote[] = [];
+    for (const h of selectedHandlers) {
+        if (h.diffHandler) {
+            handlerVotes.push(...await h.diffHandler(i, diffs, aspect));
+        }
+        if (h.handler) {
+            handlerVotes.push(...await h.handler(i, diffs, aspect));
+        }
+    }
+
     if (aspect.workflows) {
-        aspectVotes = await Promise.all(aspect.workflows.map(h => h(i, diff, aspect)));
+        for (const wf of aspect.workflows) {
+            _.concat(handlerVotes, await wf(i, diffs, aspect));
+        }
     }
 
-    return [].concat(
-        diffVotes,
-        currentVotes,
-        aspectVotes,
-    );
+    return handlerVotes;
 }
 
 async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<Record<string, FP>> {
@@ -129,7 +129,7 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
     return results.Commit[0].analysis.reduce<Record<string, FP>>(
         (record: Record<string, FP>, fp: GetAllFpsOnSha.Analysis) => {
             if (fp.name) {
-                record[fp.name] = {
+                record[`${fp.type}::${fp.name}`] = {
                     sha: fp.sha,
                     data: JSON.parse(fp.data),
                     name: fp.name,
@@ -143,7 +143,7 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
         {});
 }
 
-async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo> {
+async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo | undefined> {
 
     const info = {
         providerId: _.get(i, "push.repo.org.provider.providerId"),
@@ -161,47 +161,36 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
         } catch (e) {
             return {
                 ...info,
-                targets: {TeamConfiguration: []},
+                targets: { TeamConfiguration: [] },
             };
         }
-    } else {
-        throw new Error(`PushImpactListenerInvocation missing providerId or push id.  Info not available.`);
     }
+    return undefined;
 }
 
-/**
- * Function that can compute fingerprints from a push
- */
 export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
 
 export type FingerprintComputer = (fingerprinters: Aspect[], p: Project) => Promise<FP[]>;
 
 export const computeFingerprints: FingerprintComputer = async (fingerprinters, p) => {
-    const extractedFingerprints: FP[] = (await Promise.all(
-        fingerprinters.map(
-            x => x.extract(p),
-        ),
-    )).reduce<FP[]>(
-        (acc, fps) => {
-            if (fps && !(fps instanceof Array)) {
-                acc.push(fps);
-                return acc;
-            } else if (fps) {
-                // TODO does concat return the larger array?
-                return acc.concat(fps);
+
+    const extracted: FP[] = [];
+    for (const x of fingerprinters) {
+        const fpOrFps = await x.extract(p);
+        if (fpOrFps) {
+            if (Array.isArray(fpOrFps)) {
+                _.concat(extracted, fpOrFps);
             } else {
-                return acc;
+                extracted.push( fpOrFps );
             }
-        },
-        [],
-    );
+        }
+    }
 
-    const consolidatedFingerprints = await Promise.all(
-        fingerprinters
-            .filter(a => !!a.consolidate)
-            .map(a => a.consolidate(extractedFingerprints)));
-
-    return [...extractedFingerprints, ...consolidatedFingerprints];
+    const consolidatedFingerprints = [];
+    for (const cfp of fingerprinters.filter(f => !!f.consolidate)) {
+        consolidatedFingerprints.push(await cfp.consolidate(extracted));
+    }
+    return [...extracted, ...consolidatedFingerprints];
 };
 
 /**
@@ -237,7 +226,7 @@ export function fingerprintRunner(
     };
 
     return async (i: PushImpactListenerInvocation) => {
-        const p: Project = i.project;
+        const p = i.project;
 
         let previous: Record<string, FP> = {};
 
@@ -248,25 +237,27 @@ export function fingerprintRunner(
         }
         logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
-        const allFps: FP[] = await computer(fingerprinters, p);
+        const allFps = await computer(fingerprinters, p);
 
-        logger.debug(renderData(allFps));
+        logger.debug(`Processing fingerprints: ${renderData(allFps)}`);
 
         await sendFingerprintToAtomist(i, allFps, previous);
 
         try {
             const info = await missingInfo(i);
-            const allVotes: Vote[] = (await Promise.all(
-                allFps.map(fp => {
-                    const fpAspect: Aspect = fingerprinters.find(aspects => aspects.name === (fp.type || fp.name));
-                    return handleDiffs(fp, previous[fp.name], info, handlers, fpAspect, i);
-                }),
-            )).reduce<Vote[]>(
-                (acc, vts) => acc.concat(vts),
-                [],
-            );
-            logger.debug(`Votes:  ${renderData(allVotes)}`);
-            await tallyVotes(allVotes, handlers, i, info);
+            if (!!info) {
+                const byType = _.groupBy(allFps, fp => fp.type);
+
+                const allVotes: Vote[] = [];
+                Object.entries(byType).forEach(
+                    async ([type, fps]) => {
+                        const fpAspect = fingerprinters.find(aspects => aspects.name === type);
+                        _.concat(allVotes, await handleDiffs(fps, previous, info, handlers, fpAspect, i));
+                    },
+                );
+                logger.debug(`Votes:  ${renderData(allVotes)}`);
+                await tallyVotes(allVotes, handlers, i, info);
+            }
         } catch (e) {
             logger.warn(`Not handling diffs (${e.message})`);
         }

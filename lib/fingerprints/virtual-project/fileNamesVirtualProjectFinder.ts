@@ -18,14 +18,14 @@ import {
     logger,
     projectUtils,
 } from "@atomist/automation-client";
+
+import * as _ from "lodash";
+import * as pathlib from "path";
 import {
     RootIsOnlyProject,
     VirtualProjectFinder,
     VirtualProjectStatus,
 } from "./VirtualProjectFinder";
-
-import * as _ from "lodash";
-import * as pathlib from "path";
 
 /**
  * Identify directories in which any file matching any glob pattern is found as virtual projects.

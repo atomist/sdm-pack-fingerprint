@@ -17,7 +17,8 @@
 import { logger } from "@atomist/automation-client";
 import {
     ApplyFingerprint,
-    ExtractFingerprint, FP,
+    ExtractFingerprint,
+    FP,
     sha256,
 } from "../..";
 import { Aspect } from "../machine/Aspect";
@@ -51,46 +52,42 @@ export function createFilesFingerprint(type: string,
                                        ...filenames: string[]): ExtractFingerprint<FileFingerprintData> {
     return async p => {
         const fps: Array<FP<FileFingerprintData>> = [];
-        await Promise.all(
-            filenames.map(async filename => {
-                    const file = await p.getFile(filename);
-
-                    if (file) {
-                        const content = await file.getContent();
-                        const canonicalized = canonicalize(content);
-                        fps.push(
-                            {
-                                type,
-                                name: filename,
-                                abbreviation: `file-${filename}`,
-                                version: "0.0.1",
-                                data: {
-                                    content,
-                                    filename,
-                                },
-                                sha: sha256(JSON.stringify(canonicalized)),
-                            },
-                        );
-                    }
-                },
-            ));
-
+        for (const filename of filenames) {
+            const file = await p.getFile(filename);
+            if (file) {
+                const content = await file.getContent();
+                const canonicalized = canonicalize(content);
+                fps.push(
+                    {
+                        type,
+                        name: filename,
+                        abbreviation: `file-${filename}`,
+                        version: "0.0.1",
+                        data: {
+                            content,
+                            filename,
+                        },
+                        sha: sha256(JSON.stringify(canonicalized)),
+                    },
+                );
+            }
+        }
         return fps;
     };
 }
 
-export const applyFileFingerprint: ApplyFingerprint<FileFingerprintData> = async (p, fp) => {
+export const applyFileFingerprint: ApplyFingerprint<FileFingerprintData> = async (p, papi) => {
+    const fp = papi.parameters.fp;
     const file = await p.getFile(fp.data.filename);
 
     if (file) {
         logger.info("Update content on an existing file");
         await file.setContent(fp.data.content);
-        return true;
     } else {
         logger.info("Creating new file '%s'", fp.data.filename);
         await p.addFile(fp.data.filename, fp.data.content);
-        return true;
     }
+    return p;
 };
 
 export const JsonFile: Aspect<FileFingerprintData> = {
