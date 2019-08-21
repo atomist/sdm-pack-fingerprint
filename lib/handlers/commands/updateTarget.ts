@@ -295,7 +295,7 @@ export function deleteTargetFingerprint(sdm: SoftwareDeliveryMachine): CommandHa
             );
 
             const author = _.get(cli.context.source, "slack.user.id") || _.get(cli.context.source, "web.identity.sub");
-            
+
             const log: PolicyLog = {
                 type: cli.parameters.type,
                 name: cli.parameters.name,
