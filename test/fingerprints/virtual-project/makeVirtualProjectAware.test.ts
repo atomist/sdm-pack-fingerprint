@@ -27,7 +27,8 @@ import {
 import {
     ApplyFingerprint,
     Aspect,
-    ExtractFingerprint, FP,
+    ExtractFingerprint,
+    FP,
 } from "../../../lib/machine/Aspect";
 import { tempProject } from "./tempProject";
 

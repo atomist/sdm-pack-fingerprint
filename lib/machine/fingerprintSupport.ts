@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Project} from "@atomist/automation-client";
+import { Project } from "@atomist/automation-client";
 import {
     AutoMerge,
     AutoMergeMethod,
@@ -31,16 +31,16 @@ import {
     SoftwareDeliveryMachine,
     TransformPresentation,
 } from "@atomist/sdm";
-import {toArray} from "@atomist/sdm-core/lib/util/misc/array";
+import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
-import {checkFingerprintTarget} from "../checktarget/callbacks";
+import { checkFingerprintTarget } from "../checktarget/callbacks";
 import {
     ignoreCommand,
     messageMaker,
     MessageMaker,
 } from "../checktarget/messageMaker";
-import {makeVirtualProjectAware} from "../fingerprints/virtual-project/makeVirtualProjectAware";
-import {VirtualProjectFinder} from "../fingerprints/virtual-project/VirtualProjectFinder";
+import { makeVirtualProjectAware } from "../fingerprints/virtual-project/makeVirtualProjectAware";
+import { VirtualProjectFinder } from "../fingerprints/virtual-project/VirtualProjectFinder";
 import {
     applyTarget,
     applyTargetBySha,
@@ -48,8 +48,8 @@ import {
     applyTargets,
     broadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
-import {broadcastFingerprintNudge} from "../handlers/commands/broadcast";
-import {FingerprintMenu} from "../handlers/commands/fingerprints";
+import { broadcastFingerprintNudge } from "../handlers/commands/broadcast";
+import { FingerprintMenu } from "../handlers/commands/fingerprints";
 import {
     listFingerprint,
     listFingerprints,

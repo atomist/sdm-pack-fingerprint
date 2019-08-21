@@ -22,7 +22,7 @@ import {
 } from "@atomist/automation-client";
 import { renderData } from "@atomist/clj-editors";
 import { PushImpactListenerInvocation } from "@atomist/sdm";
-import {toArray} from "@atomist/sdm-core/lib/util/misc/array";
+import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
 import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import { getFPTargets } from "../adhoc/preferences";

@@ -23,7 +23,8 @@ import {
 } from "../../lib/fingerprints/npmDeps";
 import {
     Aspect,
-    ExtractFingerprint, FP,
+    ExtractFingerprint,
+    FP,
 } from "../../lib/machine/Aspect";
 import { atomicAspect } from "../../lib/machine/AtomicAspect";
 
