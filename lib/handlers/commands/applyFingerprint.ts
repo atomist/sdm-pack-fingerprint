@@ -334,7 +334,7 @@ export function applyTargetBySha(
         concurrency: {
             maxConcurrent: 1,
             requiresJob: true,
-        }
+        },
     };
 }
 
