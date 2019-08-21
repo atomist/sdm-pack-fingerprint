@@ -19,11 +19,11 @@ import {
     Project,
 } from "@atomist/automation-client";
 import { SdmContext } from "@atomist/sdm";
+
+import * as _ from "lodash";
 import { GitCoordinate } from "../support/messages";
 import { GetFpTargets } from "../typings/types";
 import { Ideal } from "./Ideal";
-
-import * as _ from "lodash";
 
 /**
  * Fingerprint interface. An Aspect can emit zero or more fingerprints,

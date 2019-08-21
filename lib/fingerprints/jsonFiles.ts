@@ -17,7 +17,8 @@
 import { logger } from "@atomist/automation-client";
 import {
     ApplyFingerprint,
-    ExtractFingerprint, FP,
+    ExtractFingerprint,
+    FP,
     sha256,
 } from "../..";
 import { Aspect } from "../machine/Aspect";
@@ -50,7 +51,7 @@ export function createFilesFingerprint(type: string,
                                        canonicalize: (content: string) => any,
                                        ...filenames: string[]): ExtractFingerprint<FileFingerprintData> {
     return async p => {
-        const fps: FileFingerprint[] = [];
+        const fps: Array<FP<FileFingerprintData>> = [];
         for (const filename of filenames) {
             const file = await p.getFile(filename);
             if (file) {

@@ -26,7 +26,6 @@ import {
     bold,
     codeLine,
 } from "@atomist/slack-messages";
-import _ = require("lodash");
 import {
     ApplyFingerprint,
     ExtractFingerprint,
@@ -43,6 +42,7 @@ import {
     DefaultTargetDiffHandler,
     diffOnlyHandler,
 } from "../machine/fingerprintSupport";
+import _ = require("lodash");
 
 /**
  * [lib, version]

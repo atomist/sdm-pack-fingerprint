@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {sha256} from "@atomist/clj-editors";
+import { sha256 } from "@atomist/clj-editors";
 import {
     ApplyFingerprint,
     Aspect,

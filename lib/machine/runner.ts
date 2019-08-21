@@ -20,12 +20,8 @@ import {
     Project,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
-import {
-    renderData,
-} from "@atomist/clj-editors";
-import {
-    PushImpactListenerInvocation,
-} from "@atomist/sdm";
+import { renderData } from "@atomist/clj-editors";
+import { PushImpactListenerInvocation } from "@atomist/sdm";
 import * as _ from "lodash";
 import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import { getFPTargets } from "../adhoc/preferences";
@@ -239,7 +235,7 @@ export function fingerprintRunner(
 
         const allFps = await computer(fingerprinters, p);
 
-        logger.debug(`Prosessing fingerprints: ${renderData(allFps)}`);
+        logger.debug(`Processing fingerprints: ${renderData(allFps)}`);
 
         await sendFingerprintToAtomist(i, allFps, previous);
 

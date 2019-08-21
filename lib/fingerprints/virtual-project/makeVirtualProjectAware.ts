@@ -15,22 +15,18 @@
  */
 
 import { Project } from "@atomist/automation-client";
+import * as _ from "lodash";
 import {
     ApplyFingerprint,
     Aspect,
     ExtractFingerprint,
     FP,
 } from "../../machine/Aspect";
+import { localProjectUnder } from "./support/localProjectUnder";
 import {
     VirtualProjectFinder,
     VirtualProjectStatus,
 } from "./VirtualProjectFinder";
-import * as _ from "lodash";
-import {
-    AtomicAspect,
-    isAtomicAspect,
-} from "../../machine/AtomicAspect";
-import { localProjectUnder } from "./support/localProjectUnder";
 
 /**
  * Make this aspect work with virtual projects as found by the given

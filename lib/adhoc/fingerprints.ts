@@ -19,9 +19,7 @@ import {
     logger,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
-import {
-    partitionByFeature,
-} from "@atomist/clj-editors";
+import { partitionByFeature } from "@atomist/clj-editors";
 import { PushImpactListenerInvocation } from "@atomist/sdm";
 import { FP } from "../machine/Aspect";
 import {
