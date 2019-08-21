@@ -33,6 +33,7 @@ import {
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import { codeLine } from "@atomist/slack-messages";
+import * as _ from "lodash";
 import { Aspect } from "../../..";
 import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
 import {
@@ -42,10 +43,16 @@ import {
     toName,
 } from "../../adhoc/preferences";
 import {
+    ManagePolicyAction,
+    PolicyLog,
+    sendPolicyLog,
+} from "../../log/policyLog";
+import {
     FP,
     Vote,
 } from "../../machine/Aspect";
 import {
+    aspectOf,
     displayName,
     displayValue,
 } from "../../machine/Aspects";
@@ -148,6 +155,10 @@ export class UpdateTargetFingerprintParameters {
 
     @Parameter({ required: false, type: "boolean" })
     public broadcast: boolean;
+
+    @Parameter({ required: false, displayable: true })
+    public reason: string;
+
 }
 
 export const UpdateTargetFingerprintName = "RegisterTargetFingerprint";
@@ -189,6 +200,23 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
             };
 
             await (setFPTarget(cli.context.graphClient))(type, name, fingerprint);
+
+            const author = _.get(cli.context.source, "slack.user.id") || _.get(cli.context.source, "web.identity.sub");
+
+            const log: PolicyLog = {
+                type,
+                name,
+
+                manage: {
+                    action: ManagePolicyAction.Set,
+                    author,
+                    reason: cli.parameters.reason || "Set policy via command",
+                    targetSha: fp.sha,
+                    targetValue: displayValue(aspectOf(fingerprint, aspects), fingerprint),
+                },
+            };
+            await sendPolicyLog(log, cli.context);
+
             if (!!cli.parameters.broadcast) {
                 return askAboutBroadcast(cli, aspects, fingerprint, cli.parameters.msgId);
             } else {
@@ -234,12 +262,18 @@ export function setTargetFingerprint(aspects: Aspect[]): CommandHandlerRegistrat
 
 @Parameters()
 export class DeleteTargetFingerprintParameters {
+
     @Parameter({ required: true })
     public type: string;
+
     @Parameter({ required: true })
     public name: string;
+
     @Parameter({ required: false, displayable: false })
     public msgId: string;
+
+    @Parameter({ required: false, displayable: true })
+    public reason: string;
 }
 
 export function deleteTargetFingerprint(sdm: SoftwareDeliveryMachine): CommandHandlerRegistration<DeleteTargetFingerprintParameters> {
@@ -252,20 +286,27 @@ export function deleteTargetFingerprint(sdm: SoftwareDeliveryMachine): CommandHa
         description: "remove the team target for a particular fingerprint",
         paramsMaker: DeleteTargetFingerprintParameters,
         listener: async cli => {
-            return (deleteFPTarget(cli.context.graphClient))(cli.parameters.type, cli.parameters.name)
-                .then(result => {
-                    return {
-                        code: 0,
-                        message: `successfully deleted ${cli.parameters.name}`,
-                    };
-                })
-                .catch(error => {
-                    logger.error(error);
-                    return {
-                        code: 1,
-                        message: `failed to delete target`,
-                    };
-                });
+            await deleteFPTarget(cli.context.graphClient)(cli.parameters.type, cli.parameters.name);
+            await cli.addressChannels(
+                slackSuccessMessage(
+                    "Remove Policy",
+                    `Successfully set new target for fingerprint ${codeLine(toName(cli.parameters.type, cli.parameters.name))}`,
+                ),
+            );
+
+            const author = _.get(cli.context.source, "slack.user.id") || _.get(cli.context.source, "web.identity.sub");
+            
+            const log: PolicyLog = {
+                type: cli.parameters.type,
+                name: cli.parameters.name,
+
+                manage: {
+                    action: ManagePolicyAction.Unset,
+                    author,
+                    reason: cli.parameters.reason || "Deleted policy via command",
+                },
+            };
+            await sendPolicyLog(log, cli.context);
         },
     };
 }
