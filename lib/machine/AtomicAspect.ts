@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { sha256 } from "@atomist/clj-editors";
+import {sha256} from "@atomist/clj-editors";
 import {
     ApplyFingerprint,
     Aspect,
@@ -34,7 +34,7 @@ import { aspectOf } from "./Aspects";
  */
 export function atomicAspect(
     aspectData: Pick<Aspect, "displayName" | "summary" |
-        "comparators" | "toDisplayableFingerprint" | "toDisplayableFingerprintName" | "name">,
+        "toDisplayableFingerprint" | "toDisplayableFingerprintName" | "name">,
     narrower: FingerprintSelector,
     aspect0: Aspect,
     ...aspects: Aspect[]): Aspect {

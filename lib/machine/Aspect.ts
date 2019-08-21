@@ -17,7 +17,6 @@
 import {
     HandlerContext,
     Project,
-    ReviewComment,
 } from "@atomist/automation-client";
 import { SdmContext } from "@atomist/sdm";
 import { GitCoordinate } from "../support/messages";
@@ -45,12 +44,12 @@ export interface FP<DATA = any> {
     path?: string;
 }
 
-export interface Vote {
+export interface Vote<DATA = any> {
     abstain: boolean;
     decision?: string;
     name?: string;
-    fingerprint?: FP;
-    fpTarget?: FP;
+    fingerprint?: FP<DATA>;
+    fpTarget?: FP<DATA>;
     diff?: Diff;
     text?: string;
     summary?: { title: string, description: string };
@@ -59,9 +58,9 @@ export interface Vote {
 /**
  * Difference between two fingerprints
  */
-export interface Diff {
-    from: FP;
-    to: FP;
+export interface Diff<DATA = any> {
+    from: FP<DATA>;
+    to: FP<DATA>;
     data: {
         from: any[];
         to: any[];
@@ -78,30 +77,21 @@ export interface Diff {
  * Extract fingerprint(s) from the given project.
  * Return undefined or the empty array if no fingerprints found.
  */
-export type ExtractFingerprint<FPI extends FP = FP> = (p: Project) => Promise<FPI | FPI[]>;
+export type ExtractFingerprint<DATA = any> = (p: Project) => Promise<FP<DATA> | Array<FP<DATA>>>;
 
 export type FingerprintSelector = (fingerprint: FP) => boolean;
 
 /**
  * Apply the given fingerprint to the project
  */
-export type ApplyFingerprint<FPI extends FP = FP> = (p: Project, fp: FPI) => Promise<boolean>;
+export type ApplyFingerprint<DATA = any> = (p: Project, fp: FP<DATA>) => Promise<boolean>;
 
 export interface DiffSummary {
     title: string;
     description: string;
 }
 
-export type DiffSummaryFingerprint = (diff: Diff, target: FP) => DiffSummary;
-
-/**
- * Implemented by types that know how to compare two fingerprints,
- * for example by quality or up-to-dateness
- */
-export interface FingerprintComparator<FPI extends FP = FP> {
-    readonly name: string;
-    comparator: (a: FPI, b: FPI) => number;
-}
+export type DiffSummaryFingerprint<DATA = any> = (diff: Diff<DATA>, target: FP<DATA>) => DiffSummary;
 
 /**
  * Aspects add the ability to manage a particular type of fingerprint:
@@ -116,7 +106,7 @@ export interface FingerprintComparator<FPI extends FP = FP> {
  * extracted fingerprints, or extracted throughout the delivery lifecycle
  * from Atomist events.
  */
-export interface Aspect<FPI extends FP = FP> {
+export interface Aspect<DATA = any> {
 
     /**
      * Displayable name of this aspect. Used only for reporting.
@@ -145,32 +135,26 @@ export interface Aspect<FPI extends FP = FP> {
      * Function to extract fingerprint(s) from this project.
      * Return an empty array if none.
      */
-    extract: ExtractFingerprint<FPI>;
+    extract: ExtractFingerprint<DATA>;
 
     /**
      * Function to create any new fingerprint based on fingerprinters
      * found by extract method.
      */
-    consolidate?: (fps: FP[]) => Promise<FPI>;
+    consolidate?: (fps: FP[]) => Promise<FP<DATA>>;
 
     /**
      * Function to apply the given fingerprint instance to a project
      */
-    apply?: ApplyFingerprint<FPI>;
+    apply?: ApplyFingerprint<DATA>;
 
-    summary?: DiffSummaryFingerprint;
-
-    /**
-     * Functions that can be used to compare fingerprint instances managed by this
-     * aspect.
-     */
-    comparators?: Array<FingerprintComparator<FPI>>;
+    summary?: DiffSummaryFingerprint<DATA>;
 
     /**
      * Convert a fingerprint value to a human readable string
      * fpi.data is a reasonable default
      */
-    toDisplayableFingerprint?(fpi: FPI): string;
+    toDisplayableFingerprint?(fp: FP<DATA>): string;
 
     /**
      * Convert a fingerprint name such as "npm-project-dep::atomist::automation-client"
@@ -179,12 +163,6 @@ export interface Aspect<FPI extends FP = FP> {
      * @return {string}
      */
     toDisplayableFingerprintName?(fingerprintName: string): string;
-
-    /**
-     * Validate the aspect. Return undefined or the empty array if there are no problems.
-     * @return {Promise<ReviewComment[]>}
-     */
-    validate?(fpi: FPI): Promise<ReviewComment[]>;
 
     /**
      * Based on the given fingerprint type and name, suggest ideals
