@@ -30,6 +30,7 @@ import {
     slackSuccessMessage,
     SoftwareDeliveryMachine,
     TransformPresentation,
+    TransformResult,
     TransformReturnable,
 } from "@atomist/sdm";
 import {
@@ -42,6 +43,11 @@ import {
     fromName,
     queryPreferences,
 } from "../../adhoc/preferences";
+import {
+    ApplyPolicyState,
+    PolicyLog,
+    sendPolicyLog,
+} from "../../log/policyLog";
 import {
     Aspect,
     FP,
@@ -68,7 +74,56 @@ async function pushFingerprint(
 
     const aspect = aspectOf(fp, aspects);
     if (!!aspect && !!aspect.apply) {
-        return aspect.apply(p, { ...papi, parameters: { fp } });
+
+        let result: TransformReturnable;
+        try {
+            result = (await aspect.apply(p, { ...papi, parameters: { fp } })) as TransformResult;
+
+            if (!!result && !result.success) {
+
+                const message = !!result.error && !!result.error.message
+                    ? result.error.message
+                    : `Policy application failed`;
+
+                const log: PolicyLog = {
+                    type: fp.type,
+                    name: fp.name,
+                    apply: {
+                        _name: p.id.repo,
+                        _owner: p.id.owner,
+                        _provider: undefined, // where to get the provider from
+                        _sha: p.id.sha,
+                        branch: p.id.branch,
+                        state: ApplyPolicyState.Failure,
+                        targetSha: fp.sha,
+                        message,
+                    },
+                };
+                await sendPolicyLog(log, papi.context);
+            }
+
+        } catch (e) {
+
+            const log: PolicyLog = {
+                type: fp.type,
+                name: fp.name,
+                apply: {
+                    _name: p.id.repo,
+                    _owner: p.id.owner,
+                    _provider: undefined, // where to get the provider from
+                    _sha: p.id.sha,
+                    branch: p.id.branch,
+                    state: ApplyPolicyState.Failure,
+                    targetSha: fp.sha,
+                    message: e.message,
+                },
+            };
+            await sendPolicyLog(log, papi.context);
+
+            throw e;
+        }
+
+        return result;
     }
 }
 

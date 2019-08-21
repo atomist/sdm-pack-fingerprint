@@ -48,7 +48,7 @@ export interface ApplyPolicyLog {
     _provider: string;
 
     _sha: string;
-    _prId: string;
+    _prId?: string;
 
     state: ApplyPolicyState;
 
