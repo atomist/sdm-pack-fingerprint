@@ -331,6 +331,10 @@ export function applyTargetBySha(
         transformPresentation: presentation,
         transform: runFingerprintAppliersBySha(aspects),
         autoSubmit: true,
+        concurrency: {
+            maxConcurrent: 1,
+            requiresJob: true,
+        }
     };
 }
 
