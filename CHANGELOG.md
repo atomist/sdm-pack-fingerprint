@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased](https://github.com/atomist/sdm-pack-fingerprints/compare/4.0.4...HEAD)
 
+### Changed
+
+-   Update Aspect/Fingerprint signatures. [#118](https://github.com/atomist/sdm-pack-fingerprints/issues/118)
+
 ## [4.0.4](https://github.com/atomist/sdm-pack-fingerprints/compare/4.0.3...4.0.4) - 2019-08-09
 
 ## [4.0.3](https://github.com/atomist/sdm-pack-fingerprints/compare/4.0.2...4.0.3) - 2019-08-09
