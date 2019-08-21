@@ -68,7 +68,7 @@ async function pushFingerprint(
 
     const aspect = aspectOf(fp, aspects);
     if (!!aspect && !!aspect.apply) {
-        return await aspect.apply(p, { ...papi, parameters: { fp } });
+        return aspect.apply(p, { ...papi, parameters: { fp } });
     }
 }
 
