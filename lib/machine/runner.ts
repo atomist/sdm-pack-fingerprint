@@ -187,7 +187,6 @@ export const computeFingerprints: FingerprintComputer = async (fingerprinters, p
         }
     }
 
-
     const consolidatedFingerprints = [];
     for (const cfp of fingerprinters.filter(f => !!f.consolidate)) {
         consolidatedFingerprints.push(await cfp.consolidate(extracted));
