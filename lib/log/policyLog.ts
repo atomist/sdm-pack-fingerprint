@@ -25,8 +25,6 @@ export interface PolicyLog {
 
     manage?: ManagePolicyLog;
     apply?: ApplyPolicyLog;
-    manage?: ManagePolicyLog
-    apply?: ApplyPolicyLog
 
     ts?: number;
 }
