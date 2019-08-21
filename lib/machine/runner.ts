@@ -175,18 +175,24 @@ export type FingerprintComputer = (fingerprinters: Aspect[], p: Project) => Prom
 
 export const computeFingerprints: FingerprintComputer = async (fingerprinters, p) => {
 
-    const extacted: FP[] = [];
+    const extracted: FP[] = [];
     for (const x of fingerprinters) {
         const fpOrFps = await x.extract(p);
         if (fpOrFps) {
             if (Array.isArray(fpOrFps)) {
-                _.concat(extacted, fpOrFps);
+                _.concat(extracted, fpOrFps);
             } else {
-                extacted.push( fpOrFps );
+                extracted.push( fpOrFps );
             }
         }
     }
-    return extacted;
+
+
+    const consolidatedFingerprints = [];
+    for (const cfp of fingerprinters.filter(f => !!f.consolidate)) {
+        consolidatedFingerprints.push(await cfp.consolidate(extracted));
+    }
+    return [...extracted, ...consolidatedFingerprints];
 };
 
 /**
