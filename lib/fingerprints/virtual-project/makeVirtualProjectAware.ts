@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Project } from "@atomist/automation-client";
+import {Project} from "@atomist/automation-client";
 // tslint:disable:deprecation
-import { chainTransforms } from "@atomist/sdm";
+import {chainTransforms} from "@atomist/sdm";
 import * as _ from "lodash";
 import {
     ApplyFingerprint,
@@ -24,7 +24,7 @@ import {
     ExtractFingerprint,
     FP,
 } from "../../machine/Aspect";
-import { localProjectUnder } from "./support/localProjectUnder";
+import {localProjectUnder} from "./support/localProjectUnder";
 import {
     VirtualProjectFinder,
     VirtualProjectStatus,
@@ -44,6 +44,8 @@ export function makeVirtualProjectAware<A extends Aspect>(aspect: A, virtualProj
             // Wrap extract. AtomistAspects don't need wrapping as the aspects they build on
             // should have been wrapped
             extract: makeExtractorVirtualProjectAware(aspect.extract, virtualProjectFinder),
+            // This won't change
+            consolidate: aspect.consolidate,
             apply: aspect.apply ? makeApplyVirtualProjectAware(aspect.apply, virtualProjectFinder) : undefined,
         } :
         aspect;
@@ -59,7 +61,8 @@ export function makeExtractorVirtualProjectAware(ef: ExtractFingerprint,
                                                  virtualProjectFinder: VirtualProjectFinder): (p: Project) => Promise<FP[]> {
     return async p => {
         const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
-        return _.flatten(await Promise.all(virtualProjects.map(vp =>
+        const allReturns: FP[][] = await Promise.all(virtualProjects
+            .map(vp =>
                 extractFrom(ef, vp)
                     .then(extracted =>
                         extracted
@@ -71,7 +74,8 @@ export function makeExtractorVirtualProjectAware(ef: ExtractFingerprint,
                                 })),
                     ),
             ),
-        ));
+        );
+        return _.flatten(allReturns);
     };
 }
 

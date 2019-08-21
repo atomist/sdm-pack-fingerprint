@@ -27,7 +27,7 @@ import {
 import {
     ApplyFingerprint,
     Aspect,
-    ExtractFingerprint,
+    ExtractFingerprint, FP,
 } from "../../../lib/machine/Aspect";
 import { tempProject } from "./tempProject";
 
@@ -172,6 +172,41 @@ describe("makeVirtualProjectAware", () => {
                 makeExtractorVirtualProjectAware(aspect.extract, MavenAndNodeSubprojectFinder).toString());
             assert.deepStrictEqual(multified.apply.toString(),
                 makeApplyVirtualProjectAware(aspect.apply, MavenAndNodeSubprojectFinder).toString());
+        });
+
+        it("should use consolidate in root", async () => {
+            const aspect: Aspect = {
+                name: "thing",
+                displayName: "thinger",
+                stats: {
+                    basicStatsPath: "count",
+                },
+                extract: extractThing,
+                consolidate: async fps => {
+                    const d = fps[0].data;
+                    return {
+                        name: "consolidated",
+                        type: "consolidated",
+                        data: d,
+                        sha: sha256(JSON.stringify(d)),
+                    };
+                },
+                apply: applyThing,
+                toDisplayableFingerprint: fp => "thingie",
+                toDisplayableFingerprintName: fp => "thingish",
+            };
+            const multified = makeVirtualProjectAware(aspect, MavenAndNodeSubprojectFinder);
+            const data = { yes: true };
+            const fp1: FP = {
+                name: "x",
+                type: "y",
+                data,
+                sha: sha256(JSON.stringify(data)),
+            };
+            const consolidated = await multified.consolidate([fp1]) as FP;
+            assert(!!consolidated);
+            assert.strictEqual(consolidated.name, "consolidated");
+            assert.deepStrictEqual(consolidated.data, data);
         });
 
     });

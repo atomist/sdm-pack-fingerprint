@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Project } from "@atomist/automation-client";
+import {Project} from "@atomist/automation-client";
 import {
     AutoMerge,
     AutoMergeMethod,
@@ -31,14 +31,16 @@ import {
     SoftwareDeliveryMachine,
     TransformPresentation,
 } from "@atomist/sdm";
-import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
+import {toArray} from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
-import { checkFingerprintTarget } from "../checktarget/callbacks";
+import {checkFingerprintTarget} from "../checktarget/callbacks";
 import {
     ignoreCommand,
     messageMaker,
     MessageMaker,
 } from "../checktarget/messageMaker";
+import {makeVirtualProjectAware} from "../fingerprints/virtual-project/makeVirtualProjectAware";
+import {VirtualProjectFinder} from "../fingerprints/virtual-project/VirtualProjectFinder";
 import {
     applyTarget,
     applyTargetBySha,
@@ -46,8 +48,8 @@ import {
     applyTargets,
     broadcastFingerprintMandate,
 } from "../handlers/commands/applyFingerprint";
-import { broadcastFingerprintNudge } from "../handlers/commands/broadcast";
-import { FingerprintMenu } from "../handlers/commands/fingerprints";
+import {broadcastFingerprintNudge} from "../handlers/commands/broadcast";
+import {FingerprintMenu} from "../handlers/commands/fingerprints";
 import {
     listFingerprint,
     listFingerprints,
@@ -113,7 +115,7 @@ export const DefaultTargetDiffHandler: FingerprintDiffHandler =
         }
         return _.concat(
             checked,
-            abs.map(() => ({ abstain: true })));
+            abs.map(() => ({abstain: true})));
     };
 
 /**
@@ -126,7 +128,7 @@ export function diffOnlyHandler(handler: FingerprintDiffHandler): FingerprintDif
         const toDiff = diffs.filter(diff => diff.from && diff.to.sha !== diff.from.sha);
         return [
             ...await handler(context, toDiff, aspect),
-            ..._.difference(diffs, toDiff).map(() => ({ abstain: true })),
+            ..._.difference(diffs, toDiff).map(() => ({abstain: true})),
         ];
     };
 }
@@ -161,6 +163,11 @@ export interface FingerprintOptions {
     handlers?: RegisterFingerprintImpactHandler | RegisterFingerprintImpactHandler[];
 
     transformPresentation?: TransformPresentation<ApplyTargetParameters>;
+
+    /**
+     * If provided, all aspects will be automatically be wrapped to use the VirtualProjectFinder.
+     */
+    virtualProjectFinder?: VirtualProjectFinder;
 }
 
 export const DefaultTransformPresentation: TransformPresentation<ApplyTargetParameters> = createPullRequestTransformPresentation();
@@ -247,12 +254,12 @@ class LazyPullRequest {
  * Install and configure the fingerprint support in this SDM
  */
 export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
-
     return {
         ...metadata(),
         configure: (sdm: SoftwareDeliveryMachine) => {
+            const fingerprints: Aspect[] = toArray(options.aspects)
+                .map(a => makeVirtualProjectAware(a, options.virtualProjectFinder));
 
-            const fingerprints: Aspect[] = toArray(options.aspects);
             // const handlerRegistrations: RegisterFingerprintImpactHandler[]
             //     = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
             // const handlers: FingerprintHandler[] = handlerRegistrations.map(h => h(sdm, fingerprints));
@@ -288,11 +295,10 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
     };
 }
 
-function configure(
-    sdm: SoftwareDeliveryMachine,
-    handlers: RegisterFingerprintImpactHandler[],
-    aspects: Aspect[],
-    editModeMaker: TransformPresentation<ApplyTargetParameters>): void {
+function configure(sdm: SoftwareDeliveryMachine,
+                   handlers: RegisterFingerprintImpactHandler[],
+                   aspects: Aspect[],
+                   editModeMaker: TransformPresentation<ApplyTargetParameters>): void {
 
     sdm.addCommand(listFingerprints(sdm));
     sdm.addCommand(listFingerprint(sdm));

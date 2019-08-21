@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-import { InMemoryProject } from "@atomist/automation-client";
+import {InMemoryProject} from "@atomist/automation-client";
 import {sha256} from "@atomist/clj-editors";
 import * as assert from "assert";
-import { Aspect } from "../../lib/machine/Aspect";
-import { computeFingerprints } from "../../lib/machine/runner";
+import {makeVirtualProjectAware} from "../../lib/fingerprints/virtual-project/makeVirtualProjectAware";
+import {RootIsOnlyProject, VirtualProjectFinder} from "../../lib/fingerprints/virtual-project/VirtualProjectFinder";
+import {Aspect} from "../../lib/machine/Aspect";
+import {computeFingerprints} from "../../lib/machine/runner";
 
 function alwaysFindAspect(name: string): Aspect {
     return {
@@ -40,19 +42,21 @@ function alwaysFindAspect(name: string): Aspect {
 describe("computer", () => {
 
     it("should compute none", async () => {
-        const fps = await computeFingerprints([], InMemoryProject.of());
+        const fps = await computeFingerprints({aspects: []}, InMemoryProject.of());
         assert.strictEqual(fps.length, 0);
     });
 
     it("should compute one", async () => {
-        const fps = await computeFingerprints([alwaysFindAspect("thing")], InMemoryProject.of());
+        const fps = await computeFingerprints({aspects: [alwaysFindAspect("thing")]}, InMemoryProject.of());
         assert.strictEqual(fps.length, 1);
         assert.strictEqual(fps[0].name, "thing");
     });
 
     it("should compute two", async () => {
-        const fps = await computeFingerprints([
-                alwaysFindAspect("foo"), alwaysFindAspect("bar")],
+        const fps = await computeFingerprints({
+                aspects: [
+                    alwaysFindAspect("foo"), alwaysFindAspect("bar")],
+            },
             InMemoryProject.of());
         assert.strictEqual(fps.length, 2);
     });
@@ -75,9 +79,11 @@ describe("computer", () => {
                 };
             },
         };
-        const fps = await computeFingerprints([
-                alwaysFindAspect("foo"), alwaysFindAspect("bar"),
-                consolidater],
+        const fps = await computeFingerprints({
+                aspects: [
+                    alwaysFindAspect("foo"), alwaysFindAspect("bar"),
+                    consolidater],
+            },
             InMemoryProject.of());
         assert.strictEqual(fps.length, 3);
         const found = fps.find(fp => fp.name === "consolidated");
@@ -85,6 +91,27 @@ describe("computer", () => {
         assert.strictEqual(found.name, "consolidated");
         assert.strictEqual(found.data.foo, true);
         assert.strictEqual(found.data.foo, true);
+    });
+
+    it("should call VirtualProjectFinder", async () => {
+        let count = 0;
+        const fakeVpf: VirtualProjectFinder = {
+            name: "fake",
+            findVirtualProjectInfo: async () => {
+                ++count;
+                return RootIsOnlyProject;
+            },
+        };
+        const fps = await computeFingerprints({
+                aspects: [
+                    alwaysFindAspect("foo"),
+                    alwaysFindAspect("bar"),
+                ].map(a => makeVirtualProjectAware(a, fakeVpf)),
+                virtualProjectFinder: fakeVpf,
+            },
+            InMemoryProject.of());
+        assert.strictEqual(fps.length, 2);
+        assert.strictEqual(count, 3, "Should have called virtual project finder 3x");
     });
 
 });

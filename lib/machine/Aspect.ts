@@ -139,10 +139,11 @@ export interface Aspect<DATA = any> {
     extract: ExtractFingerprint<DATA>;
 
     /**
-     * Function to create any new fingerprint based on fingerprinters
-     * found by extract method.
+     * Function to create any new fingerprint based on fingerprints
+     * found by extract method. Implementations must observe the path
+     * (if set) in the original fingerprints.
      */
-    consolidate?: (fps: FP[]) => Promise<FP<DATA>>;
+    consolidate?: (fps: FP[]) => Promise<FP<DATA> | Array<FP<DATA>>>;
 
     /**
      * Function to apply the given fingerprint instance to a project

@@ -75,11 +75,7 @@ function fingerprintOutOfSyncCallback(
 }
 
 /**
- * create callback to be used when fingerprint and target is in sync
- *
- * @param ctx
- * @param diff
- * @param goal
+ * Create callback to be used when fingerprint and target is in sync
  */
 function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff): (fingerprint: FP) => Promise<Vote> {
     return async fingerprint => {
@@ -178,12 +174,6 @@ export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfi
 
 /**
  * check whether the fingerprint in this diff is the same as the target value
- *
- * @param ctx
- * @param diff
- * @param config
- * @param registrations
- * @param targetsQuery
  */
 export async function checkFingerprintTarget(
     ctx: HandlerContext,
