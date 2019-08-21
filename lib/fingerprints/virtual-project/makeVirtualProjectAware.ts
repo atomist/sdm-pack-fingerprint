@@ -15,6 +15,7 @@
  */
 
 import { Project } from "@atomist/automation-client";
+import { chainTransforms } from "@atomist/sdm";
 import * as _ from "lodash";
 import {
     ApplyFingerprint,
@@ -90,9 +91,8 @@ async function extractFrom(ef: ExtractFingerprint, p: Project): Promise<FP[]> {
 
 export function makeApplyVirtualProjectAware(af: ApplyFingerprint,
                                              virtualProjectFinder: VirtualProjectFinder): ApplyFingerprint {
-    return async (p, fp) => {
+    return async (p, papi) => {
         const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
-        const results = await Promise.all(virtualProjects.map(vp => af(vp, fp)));
-        return !results.includes(false);
+        return chainTransforms(...virtualProjects.map(v => (async (vp: any, vpapi: any) => af(v, vpapi))))(p, papi, papi.parameters);
     };
 }

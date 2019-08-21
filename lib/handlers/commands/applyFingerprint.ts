@@ -16,7 +16,6 @@
 
 import {
     GitProject,
-    logger,
     ParameterType,
     QueryNoCacheOptions,
     RepoRef,
@@ -26,10 +25,12 @@ import {
     CodeTransformRegistration,
     CommandHandlerRegistration,
     createJob,
+    PushAwareParametersInvocation,
     slackInfoMessage,
     slackSuccessMessage,
     SoftwareDeliveryMachine,
     TransformPresentation,
+    TransformReturnable,
 } from "@atomist/sdm";
 import {
     bold,
@@ -61,19 +62,14 @@ import {
  */
 async function pushFingerprint(
     p: GitProject,
+    papi: PushAwareParametersInvocation<any>,
     aspects: Aspect[],
-    fp: FP): Promise<boolean> {
+    fp: FP): Promise<TransformReturnable | undefined> {
 
     const aspect = aspectOf(fp, aspects);
-
     if (!!aspect && !!aspect.apply) {
-        const result: boolean = await aspect.apply(p, fp);
-        if (result) {
-            logger.info(`Successfully applied policy ${fp.name}`);
-        }
-        return result;
+        return await aspect.apply(p, { ...papi, parameters: { fp } });
     }
-    return false;
 }
 
 /**
@@ -105,12 +101,6 @@ ${details}`);
             type,
             name);
 
-        const result = await pushFingerprint(
-            (p as GitProject),
-            aspects,
-            fingerprint,
-        );
-
         if (!cli.parameters.title) {
             cli.parameters.title = applyFingerprintTitle(fingerprint, aspects);
         }
@@ -118,11 +108,12 @@ ${details}`);
             cli.parameters.body = prBodyFromFingerprint(fingerprint, aspects);
         }
 
-        if (result) {
-            return p;
-        } else {
-            return { edited: false, success: result, target: p };
-        }
+        return pushFingerprint(
+            (p as GitProject),
+            cli,
+            aspects,
+            fingerprint,
+        );
     };
 }
 
@@ -162,10 +153,6 @@ ${details}`);
             data: JSON.parse(fp.SourceFingerprint.data),
             sha: fp.SourceFingerprint.sha,
         };
-        const result = await pushFingerprint(
-            (p as GitProject),
-            aspects,
-            fingerprint);
 
         if (!cli.parameters.title) {
             cli.parameters.title = applyFingerprintTitle(fingerprint, aspects);
@@ -174,16 +161,11 @@ ${details}`);
             cli.parameters.body = prBodyFromFingerprint(fingerprint, aspects);
         }
 
-        if (result) {
-            return p;
-        } else {
-            logger.info("unable to appply");
-            return {
-                edited: false,
-                success: result,
-                target: p,
-            };
-        }
+        return pushFingerprint(
+            (p as GitProject),
+            cli,
+            aspects,
+            fingerprint);
     };
 }
 
@@ -220,6 +202,7 @@ ${details.join("\n")}`);
             const { type, name } = fromName(fpName.trim());
             const result = await pushFingerprint(
                 (p as GitProject),
+                cli,
                 aspects,
                 await queryPreferences(
                     cli.context.graphClient,
@@ -367,13 +350,13 @@ export function broadcastFingerprintMandate(
                                 x.sha !== fp.sha;
                         }))
                         .map(x => {
-                            return {
-                                owner: x.repo.owner,
-                                repo: x.repo.name,
-                                url: "url",
-                                branch: "master",
-                            };
-                        },
+                                return {
+                                    owner: x.repo.owner,
+                                    repo: x.repo.name,
+                                    url: "url",
+                                    branch: "master",
+                                };
+                            },
                         ),
                 );
             }

@@ -26,7 +26,6 @@ import {
     bold,
     codeLine,
 } from "@atomist/slack-messages";
-import _ = require("lodash");
 import {
     ApplyFingerprint,
     ExtractFingerprint,
@@ -43,6 +42,7 @@ import {
     DefaultTargetDiffHandler,
     diffOnlyHandler,
 } from "../machine/fingerprintSupport";
+import _ = require("lodash");
 
 /**
  * [lib, version]
@@ -138,7 +138,8 @@ export const createNpmCoordinatesFingerprint: ExtractFingerprint = async p => {
 
 };
 
-export const applyNpmDepsFingerprint: ApplyFingerprint<NpmDepData> = async (p, fp) => {
+export const applyNpmDepsFingerprint: ApplyFingerprint<NpmDepData> = async (p, papi) => {
+    const fp = papi.parameters.fp;
     const pckage = fp.data[0];
     const version = fp.data[1];
     const file = await p.getFile("package.json");
@@ -156,10 +157,17 @@ export const applyNpmDepsFingerprint: ApplyFingerprint<NpmDepData> = async (p, f
                 logCommand: true,
             });
         logger.info(log.log);
-        return result.code === 0;
-    } else {
-        return false;
+        if (result.code !== 0) {
+            return {
+                edited: false,
+                success: false,
+                error: new Error(`${codeLine("npm install")} failed to run.`),
+                target: p,
+            };
+        }
     }
+
+    return p;
 };
 
 /* tslint:disable:max-line-length */

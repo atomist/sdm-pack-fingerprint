@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import { logger } from "@atomist/automation-client";
-import {
-    renderData,
-    sha256,
-} from "@atomist/clj-editors";
+import { sha256 } from "@atomist/clj-editors";
 import * as _ from "lodash";
 import {
     ApplyFingerprint,
@@ -59,26 +55,17 @@ export const backpackFingerprint: ExtractFingerprint = async p => {
     }
 };
 
-export const applyBackpackFingerprint: ApplyFingerprint = async (p, fp) => {
-    logger.info(`Apply ${renderData(fp)} to project at ${p.id.url}`);
+export const applyBackpackFingerprint: ApplyFingerprint = async (p, papi) => {
+    if (await p.hasFile("package.json")) {
+        const file = await p.getFile("package.json");
+        const packagejson = JSON.parse(await file.getContent());
 
-    try {
-        if (await p.hasFile("package.json")) {
-            const file = await p.getFile("package.json");
-            const packagejson = JSON.parse(await file.getContent());
+        // tslint:disable-next-line:no-string-literal
+        packagejson["backpack-react-scripts"]["externals"] = papi.parameters.fp.data;
 
-            // tslint:disable-next-line:no-string-literal
-            packagejson["backpack-react-scripts"]["externals"] = fp.data;
-
-            await file.setContent(JSON.stringify(packagejson, undefined, 2));
-            return true;
-        } else {
-            return false;
-        }
-    } catch (error) {
-        logger.error(`caught error ${error}`);
-        return false;
+        await file.setContent(JSON.stringify(packagejson, undefined, 2));
     }
+    return p;
 };
 
 export const Backpack: Aspect = {

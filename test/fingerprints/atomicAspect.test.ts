@@ -108,7 +108,7 @@ describe("atomicAspect", () => {
             name: "foo",
             apply: async p1 => {
                 await p1.addFile("f1", "content");
-                return true;
+                return p1;
             },
         };
         const f2: Aspect = {
@@ -117,7 +117,7 @@ describe("atomicAspect", () => {
             name: "bar",
             apply: async p2 => {
                 await p2.addFile("f2", "content");
-                return true;
+                return p2;
             },
         };
 
@@ -141,7 +141,7 @@ describe("atomicAspect", () => {
 
         // apply consolidated fingerprint and ensure both apply functions run
         const p = InMemoryProject.of();
-        await aspect.apply(p, consolidated);
+        await aspect.apply(p, { parameters: { fp: consolidated } } as any);
         assert(await p.hasFile("f1"));
         assert(await p.hasFile("f2"));
     });

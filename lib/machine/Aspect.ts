@@ -18,7 +18,10 @@ import {
     HandlerContext,
     Project,
 } from "@atomist/automation-client";
-import { SdmContext } from "@atomist/sdm";
+import {
+    CodeTransform,
+    SdmContext,
+} from "@atomist/sdm";
 
 import * as _ from "lodash";
 import { GitCoordinate } from "../support/messages";
@@ -83,7 +86,7 @@ export type FingerprintSelector = (fingerprint: FP) => boolean;
 /**
  * Apply the given fingerprint to the project
  */
-export type ApplyFingerprint<DATA = any> = (p: Project, fp: FP<DATA>) => Promise<boolean>;
+export type ApplyFingerprint<DATA = any> = CodeTransform<{ fp: FP<DATA> }>;
 
 export interface DiffSummary {
     title: string;

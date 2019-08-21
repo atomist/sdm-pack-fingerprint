@@ -76,18 +76,18 @@ export function createFilesFingerprint(type: string,
     };
 }
 
-export const applyFileFingerprint: ApplyFingerprint<FileFingerprintData> = async (p, fp) => {
+export const applyFileFingerprint: ApplyFingerprint<FileFingerprintData> = async (p, papi) => {
+    const fp = papi.parameters.fp;
     const file = await p.getFile(fp.data.filename);
 
     if (file) {
         logger.info("Update content on an existing file");
         await file.setContent(fp.data.content);
-        return true;
     } else {
         logger.info("Creating new file '%s'", fp.data.filename);
         await p.addFile(fp.data.filename, fp.data.content);
-        return true;
     }
+    return p;
 };
 
 export const JsonFile: Aspect<FileFingerprintData> = {

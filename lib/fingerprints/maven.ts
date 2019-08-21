@@ -27,7 +27,7 @@ export const MavenDeps: Aspect = {
     displayName: "Maven dependencies",
     name: "maven-project-deps",
     extract: p => mavenDeps((p as LocalProject).baseDir),
-    apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
+    apply: (p, papi) => applyFingerprint((p as LocalProject).baseDir, papi.parameters.fp),
     toDisplayableFingerprint: fp => fp.name,
     summary: renderProjectLibDiff,
 };
@@ -36,7 +36,7 @@ export const MavenCoordinates: Aspect = {
     displayName: "Maven coordinates",
     name: "maven-project-coordinates",
     extract: p => mavenCoordinates((p as LocalProject).baseDir),
-    apply: (p, fp) => applyFingerprint((p as LocalProject).baseDir, fp),
+    apply: (p, papi) => applyFingerprint((p as LocalProject).baseDir, papi.parameters.fp),
     toDisplayableFingerprint: fp => fp.name,
     summary: diff => {
         return {
