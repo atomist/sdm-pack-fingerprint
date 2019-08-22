@@ -55,6 +55,7 @@ import {
 import { aspectOf } from "../../machine/Aspects";
 import {
     applyFingerprintTitle,
+    fingerprintTag,
     prBodyFromFingerprint,
 } from "../../support/messages";
 import {
@@ -157,6 +158,11 @@ ${details}`);
             cli.parameters.body = prBodyFromFingerprint(fingerprint, aspects);
         }
 
+        if (!cli.parameters.message) {
+            cli.parameters.message =
+                `${applyFingerprintTitle(fingerprint, aspects)}\n\n${fingerprintTag(cli.parameters.targetfingerprint, fingerprint.sha)}`;
+        }
+
         return pushFingerprint(
             (p as GitProject),
             cli,
@@ -208,6 +214,10 @@ ${details}`);
         }
         if (!cli.parameters.body) {
             cli.parameters.body = prBodyFromFingerprint(fingerprint, aspects);
+        }
+        if (!cli.parameters.message) {
+            cli.parameters.message =
+                `${applyFingerprintTitle(fingerprint, aspects)}\n\n${fingerprintTag(cli.parameters.targetfingerprint, fingerprint.sha)}`;
         }
 
         return pushFingerprint(
