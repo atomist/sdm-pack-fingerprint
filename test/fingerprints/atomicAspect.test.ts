@@ -24,8 +24,12 @@ import {
 import {
     Aspect,
     ExtractFingerprint,
+    FP,
 } from "../../lib/machine/Aspect";
 import { atomicAspect } from "../../lib/machine/AtomicAspect";
+
+// Prevent necessary type casts being removed
+//tslint:disable
 
 describe("atomicAspect", () => {
 
@@ -132,7 +136,7 @@ describe("atomicAspect", () => {
             f2);
 
         // create consolidated fingerprint for Atomist Aspect
-        const consolidated = await aspect.consolidate([fp1, fp2]);
+        const consolidated = await aspect.consolidate([fp1, fp2]) as FP;
 
         // check consolidated fingerprint
         assert(!!consolidated);

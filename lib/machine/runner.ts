@@ -22,6 +22,7 @@ import {
 } from "@atomist/automation-client";
 import { renderData } from "@atomist/clj-editors";
 import { PushImpactListenerInvocation } from "@atomist/sdm";
+import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
 import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import { getFPTargets } from "../adhoc/preferences";
@@ -57,7 +58,7 @@ interface MissingInfo {
 /**
  * Give each Aspect the opportunity to evaluate the current FP, the previous FP, and any target FP
  *
- * @param fp current Fingerprint
+ * @param fps current fingerprints
  * @param previous Fingeprint from Push.before (could be nil)
  * @param info missing info
  * @param handlers deprecated handlers
@@ -170,25 +171,26 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
 
 export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
 
-export type FingerprintComputer = (fingerprinters: Aspect[], p: Project) => Promise<FP[]>;
+export type FingerprintComputer = (options: FingerprintOptions, p: Project) => Promise<FP[]>;
 
-export const computeFingerprints: FingerprintComputer = async (fingerprinters, p) => {
-
+export const computeFingerprints: FingerprintComputer = async (options, p) => {
     const extracted: FP[] = [];
-    for (const x of fingerprinters) {
-        const fpOrFps = await x.extract(p);
+    const aspects = toArray(options.aspects);
+    if (options.virtualProjectFinder) {
+        // Seed the VirtualProjectFinder, which may need to cache
+        await options.virtualProjectFinder.findVirtualProjectInfo(p);
+    }
+    for (const x of aspects) {
+        const fpOrFps = toArray(await x.extract(p));
         if (fpOrFps) {
-            if (Array.isArray(fpOrFps)) {
-                extracted.push(...fpOrFps);
-            } else {
-                extracted.push(fpOrFps);
-            }
+            extracted.push(...fpOrFps);
         }
     }
 
     const consolidatedFingerprints = [];
-    for (const cfp of fingerprinters.filter(f => !!f.consolidate)) {
-        consolidatedFingerprints.push(await cfp.consolidate(extracted));
+    for (const cfp of aspects.filter(f => !!f.consolidate)) {
+        const consolidated: FP[] = toArray(await cfp.consolidate(extracted));
+        consolidatedFingerprints.push(...consolidated);
     }
     return [...extracted, ...consolidatedFingerprints];
 };
@@ -199,17 +201,15 @@ export const computeFingerprints: FingerprintComputer = async (fingerprinters, p
 export function fingerprintRunner(
     fingerprinters: Aspect[],
     handlers: FingerprintHandler[],
-    computer: (fingerprinters: Aspect[], p: Project) => Promise<FP[]>,
+    computer: FingerprintComputer,
     options: FingerprintOptions & FingerprintImpactHandlerConfig = {
         aspects: [],
         transformPresentation: DefaultTransformPresentation,
         messageMaker,
     }): FingerprintRunner {
-
     const targetDiffBallot = votes(options);
 
     const tallyVotes = async (vts: Vote[], fingerprintHandlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo) => {
-
         const coordinate: GitCoordinate = {
             owner: i.push.repo.owner,
             repo: i.push.repo.name,
@@ -237,7 +237,7 @@ export function fingerprintRunner(
         }
         logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
-        const allFps = await computer(fingerprinters, p);
+        const allFps = await computer(options, p);
 
         logger.debug(`Processing fingerprints: ${renderData(allFps)}`);
 
