@@ -227,7 +227,7 @@ class LazyPullRequest {
     }
 
     get message(): string {
-        return this.options.message || this.title;
+        return (this.options.message || this.parameters.message || this.title) as string;
     }
 
     get targetBranch(): string {
