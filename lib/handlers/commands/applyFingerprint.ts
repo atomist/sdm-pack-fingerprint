@@ -449,6 +449,7 @@ ${details}`,
                         branch: r.branch,
                     },
                 })),
+                concurrentTasks: 1,
             }, i.context);
 
             const message = slackSuccessMessage(
