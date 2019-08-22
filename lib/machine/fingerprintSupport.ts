@@ -73,7 +73,7 @@ import {
     Vote,
 } from "./Aspect";
 import {
-    computeFingerprints,
+    createFingerprintComputer, FingerprintComputer,
     fingerprintRunner,
 } from "./runner";
 
@@ -250,16 +250,25 @@ class LazyPullRequest {
     }
 }
 
+export interface FingerprintExtensionPack extends ExtensionPack {
+
+    /**
+     * Function to use to calculate fingerprints on a project
+     */
+    fingerprintComputer: FingerprintComputer;
+}
+
 /**
  * Install and configure the fingerprint support in this SDM
  */
-export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
+export function fingerprintSupport(options: FingerprintOptions): FingerprintExtensionPack {
+    const configuredAspects: Aspect[] = toArray(options.aspects)
+        .map(a => makeVirtualProjectAware(a, options.virtualProjectFinder));
+    const fingerprintComputer = createFingerprintComputer(configuredAspects, options.virtualProjectFinder);
     return {
         ...metadata(),
+        fingerprintComputer,
         configure: (sdm: SoftwareDeliveryMachine) => {
-            const fingerprints: Aspect[] = toArray(options.aspects)
-                .map(a => makeVirtualProjectAware(a, options.virtualProjectFinder));
-
             // const handlerRegistrations: RegisterFingerprintImpactHandler[]
             //     = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
             // const handlers: FingerprintHandler[] = handlerRegistrations.map(h => h(sdm, fingerprints));
@@ -267,9 +276,9 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
             const handlers: FingerprintHandler[] = [];
 
             const runner = fingerprintRunner(
-                fingerprints,
+                configuredAspects,
                 handlers,
-                computeFingerprints,
+                fingerprintComputer,
                 {
                     messageMaker,
                     transformPresentation: DefaultTransformPresentation,
@@ -290,7 +299,7 @@ export function fingerprintSupport(options: FingerprintOptions): ExtensionPack {
                 options.pushImpactGoal.withListener(runner);
             }
 
-            configure(sdm, handlerRegistrations, fingerprints, options.transformPresentation || DefaultTransformPresentation);
+            configure(sdm, handlerRegistrations, configuredAspects, options.transformPresentation || DefaultTransformPresentation);
         },
     };
 }

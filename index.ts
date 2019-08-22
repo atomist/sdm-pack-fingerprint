@@ -22,6 +22,7 @@ export {
     DefaultTargetDiffHandler,
     DefaultTransformPresentation,
     PullRequestTransformPresentationOptions,
+    FingerprintExtensionPack,
     FingerprintImpactHandlerConfig,
     FingerprintOptions,
     RegisterFingerprintImpactHandler,
@@ -41,6 +42,7 @@ export {
 } from "./lib/machine/Aspect";
 export {
     fingerprintRunner,
+    FingerprintComputer,
     FingerprintRunner,
 } from "./lib/machine/runner";
 export {

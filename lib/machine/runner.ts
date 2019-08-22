@@ -28,6 +28,7 @@ import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import { getFPTargets } from "../adhoc/preferences";
 import { votes } from "../checktarget/callbacks";
 import { messageMaker } from "../checktarget/messageMaker";
+import {VirtualProjectFinder} from "../fingerprints/virtual-project/VirtualProjectFinder";
 import { GitCoordinate } from "../support/messages";
 import {
     GetAllFpsOnSha,
@@ -171,29 +172,30 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
 
 export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
 
-export type FingerprintComputer = (options: FingerprintOptions, p: Project) => Promise<FP[]>;
+export type FingerprintComputer = (p: Project) => Promise<FP[]>;
 
-export const computeFingerprints: FingerprintComputer = async (options, p) => {
-    const extracted: FP[] = [];
-    const aspects = toArray(options.aspects);
-    if (options.virtualProjectFinder) {
-        // Seed the VirtualProjectFinder, which may need to cache
-        await options.virtualProjectFinder.findVirtualProjectInfo(p);
-    }
-    for (const x of aspects) {
-        const fpOrFps = toArray(await x.extract(p));
-        if (fpOrFps) {
-            extracted.push(...fpOrFps);
+export function createFingerprintComputer(aspects: Aspect[], virtualProjectFinder?: VirtualProjectFinder): FingerprintComputer {
+    return async p => {
+        const extracted: FP[] = [];
+        if (virtualProjectFinder) {
+            // Seed the VirtualProjectFinder, which may need to cache
+            await virtualProjectFinder.findVirtualProjectInfo(p);
         }
-    }
+        for (const x of aspects) {
+            const fpOrFps = toArray(await x.extract(p));
+            if (fpOrFps) {
+                extracted.push(...fpOrFps);
+            }
+        }
 
-    const consolidatedFingerprints = [];
-    for (const cfp of aspects.filter(f => !!f.consolidate)) {
-        const consolidated: FP[] = toArray(await cfp.consolidate(extracted));
-        consolidatedFingerprints.push(...consolidated);
-    }
-    return [...extracted, ...consolidatedFingerprints];
-};
+        const consolidatedFingerprints = [];
+        for (const cfp of aspects.filter(f => !!f.consolidate)) {
+            const consolidated: FP[] = toArray(await cfp.consolidate(extracted));
+            consolidatedFingerprints.push(...consolidated);
+        }
+        return [...extracted, ...consolidatedFingerprints];
+    };
+}
 
 /**
  * Construct our FingerprintRunner for the current registrations
@@ -237,7 +239,7 @@ export function fingerprintRunner(
         }
         logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
-        const allFps = await computer(options, p);
+        const allFps = await computer(p);
 
         logger.debug(`Processing fingerprints: ${renderData(allFps)}`);
 
