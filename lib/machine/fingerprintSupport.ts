@@ -73,7 +73,8 @@ import {
     Vote,
 } from "./Aspect";
 import {
-    createFingerprintComputer, FingerprintComputer,
+    createFingerprintComputer,
+    FingerprintComputer,
     fingerprintRunner,
 } from "./runner";
 

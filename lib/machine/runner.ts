@@ -28,7 +28,7 @@ import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
 import { getFPTargets } from "../adhoc/preferences";
 import { votes } from "../checktarget/callbacks";
 import { messageMaker } from "../checktarget/messageMaker";
-import {VirtualProjectFinder} from "../fingerprints/virtual-project/VirtualProjectFinder";
+import { VirtualProjectFinder } from "../fingerprints/virtual-project/VirtualProjectFinder";
 import { GitCoordinate } from "../support/messages";
 import {
     GetAllFpsOnSha,
