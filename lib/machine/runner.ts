@@ -179,7 +179,7 @@ export const computeFingerprints: FingerprintComputer = async (fingerprinters, p
         const fpOrFps = await x.extract(p);
         if (fpOrFps) {
             if (Array.isArray(fpOrFps)) {
-                _.concat(extracted, fpOrFps);
+                extracted.push(...fpOrFps);
             } else {
                 extracted.push( fpOrFps );
             }
