@@ -96,7 +96,7 @@ export function prBodyFromFingerprint(fp: FP, aspects: Aspect[]): string {
     return `${intro}
 
 ${italic(aspect.displayName)}
-${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${fp.sha}]`;
+${codeBlock(description)}\n\n${fingerprintTag(fingerprint, fp.sha)}`;
 }
 
 export function prBody(vote: Vote, aspects: Aspect[]): string {
@@ -118,5 +118,9 @@ export function prBody(vote: Vote, aspects: Aspect[]): string {
 ${summary}
 
 ${italic(aspect.displayName)}
-${codeBlock(description)}\n\n[fingerprint:${fingerprint}=${vote.fpTarget.sha}]`;
+${codeBlock(description)}\n\n${fingerprintTag(fingerprint, vote.fpTarget.sha)}`;
+}
+
+export function fingerprintTag(fingerprint: string, sha: string): string {
+    return `[fingerprint:${fingerprint}=${sha}]`;
 }
