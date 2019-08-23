@@ -457,18 +457,11 @@ export function broadcastFingerprintMandate(
             }
 
             const aspect = aspectOf({ type }, aspects);
-            let details;
-            if (!!aspect && !!aspect.toDisplayableFingerprintName) {
-                details = `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
-            } else {
-                details = codeLine(i.parameters.fingerprint);
-            }
+            const value = displayValue(aspect, fp);
 
             await createJob<ApplyTargetFingerprintParameters>({
                 command: ApplyTargetFingerprintName,
-                description: `Applying policy:
-
-${details}`,
+                description: `Applying policy ${value}`,
                 name: `ApplyPolicy/${i.parameters.fingerprint}`,
                 parameters: refs.map(r => ({
                     title: i.parameters.title,
