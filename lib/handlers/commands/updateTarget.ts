@@ -210,7 +210,7 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
                 manage: {
                     action: ManagePolicyAction.Set,
                     author,
-                    reason: cli.parameters.reason || `Set policy ${value} via command`,
+                    reason: cli.parameters.reason || `Set policy to ${value}`,
                     targetSha: fp.sha,
                     targetValue: value,
                 },
@@ -303,7 +303,7 @@ export function deleteTargetFingerprint(sdm: SoftwareDeliveryMachine): CommandHa
                 manage: {
                     action: ManagePolicyAction.Unset,
                     author,
-                    reason: cli.parameters.reason || "Disabled policy via command",
+                    reason: cli.parameters.reason || "Disabled policy",
                 },
             };
             await sendPolicyLog(log, cli.context);
