@@ -33,7 +33,10 @@ import {
 } from "@atomist/sdm";
 import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
-import {PublishFingerprints, sendFingerprintsToAtomist} from "../adhoc/fingerprints";
+import {
+    PublishFingerprints,
+    sendFingerprintsToAtomist,
+} from "../adhoc/fingerprints";
 import { checkFingerprintTarget } from "../checktarget/callbacks";
 import {
     ignoreCommand,

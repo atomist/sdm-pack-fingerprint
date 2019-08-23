@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Project} from "@atomist/automation-client";
+import { Project } from "@atomist/automation-client";
 // tslint:disable:deprecation
 import {
     chainTransforms,
@@ -27,7 +27,7 @@ import {
     ExtractFingerprint,
     FP,
 } from "../../machine/Aspect";
-import {localProjectUnder} from "./support/localProjectUnder";
+import { localProjectUnder } from "./support/localProjectUnder";
 import {
     VirtualProjectFinder,
     VirtualProjectStatus,
