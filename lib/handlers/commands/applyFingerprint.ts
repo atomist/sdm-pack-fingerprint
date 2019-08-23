@@ -85,33 +85,46 @@ async function pushFingerprint(
             // Figure out if the edit was successful or not
             let editResult;
             if (isProject(result) ) {
-                editResult = successfulEdit(result, true);
+                editResult = successfulEdit(result, !(await p.gitStatus()).isClean);
             } else if (!result) {
-                editResult = successfulEdit(p, true);
+                editResult = successfulEdit(p, !(await p.gitStatus()).isClean);
             } else {
                 editResult = await confirmEditedness(result);
             }
 
-            if (!!editResult && !editResult.success) {
+            if (!!editResult) {
+                if (!editResult.success) {
+                    const message = !!editResult.error && !!editResult.error.message
+                        ? editResult.error.message
+                        : `Policy application failed`;
 
-                const message = !!editResult.error && !!editResult.error.message
-                    ? editResult.error.message
-                    : `Policy application failed`;
-
-                const log: PolicyLog = {
-                    type: fp.type,
-                    name: fp.name,
-                    apply: {
-                        _sha: (await p.gitStatus()).sha,
-                        branch: p.id.branch,
-                        state: ApplyPolicyState.Failure,
-                        targetSha: fp.sha,
-                        message,
-                    },
-                };
-                await sendPolicyLog(log, papi.context);
+                    const log: PolicyLog = {
+                        type: fp.type,
+                        name: fp.name,
+                        apply: {
+                            _sha: (await p.gitStatus()).sha,
+                            branch: p.id.branch,
+                            state: ApplyPolicyState.Failure,
+                            targetSha: fp.sha,
+                            message,
+                        },
+                    };
+                    await sendPolicyLog(log, papi.context);
+                } else if (!editResult.edited) {
+                    const log: PolicyLog = {
+                        type: fp.type,
+                        name: fp.name,
+                        apply: {
+                            _sha: (await p.gitStatus()).sha,
+                            branch: p.id.branch,
+                            state: ApplyPolicyState.NoChange,
+                            targetSha: fp.sha,
+                            message: `Policy application made no changes`,
+                        },
+                    };
+                    await sendPolicyLog(log, papi.context);
+                }
             }
-
         } catch (e) {
 
             const log: PolicyLog = {

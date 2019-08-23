@@ -58,6 +58,7 @@ export interface ApplyPolicyLog {
 export enum ApplyPolicyState {
     Success = "success",
     Failure = "failure",
+    NoChange = "no_change",
 }
 
 export async function sendPolicyLog(log: PolicyLog, ctx: HandlerContext): Promise<void> {
