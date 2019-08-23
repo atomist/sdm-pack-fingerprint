@@ -182,7 +182,7 @@ export function createFingerprintComputer(aspects: Aspect[], virtualProjectFinde
             await virtualProjectFinder.findVirtualProjectInfo(p);
         }
         for (const x of aspects) {
-            const fpOrFps = toArray(await x.extract(p,i ));
+            const fpOrFps = toArray(await x.extract(p, i ));
             if (fpOrFps) {
                 extracted.push(...fpOrFps);
             }
