@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Project } from "@atomist/automation-client";
+import {Project} from "@atomist/automation-client";
 // tslint:disable:deprecation
 import {
     chainTransforms,
@@ -27,7 +27,7 @@ import {
     ExtractFingerprint,
     FP,
 } from "../../machine/Aspect";
-import { localProjectUnder } from "./support/localProjectUnder";
+import {localProjectUnder} from "./support/localProjectUnder";
 import {
     VirtualProjectFinder,
     VirtualProjectStatus,
@@ -61,7 +61,8 @@ export function makeVirtualProjectAware<A extends Aspect>(aspect: A, virtualProj
  * @return {ExtractFingerprint}
  */
 export function makeExtractorVirtualProjectAware(ef: ExtractFingerprint,
-                                                 virtualProjectFinder: VirtualProjectFinder): (p: Project, i: PushImpactListenerInvocation) => Promise<FP[]> {
+                                                 virtualProjectFinder: VirtualProjectFinder):
+    (p: Project, i: PushImpactListenerInvocation) => Promise<FP[]> {
     return async (p, i) => {
         const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
         const allReturns: FP[][] = await Promise.all(virtualProjects
