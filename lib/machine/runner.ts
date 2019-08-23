@@ -172,17 +172,17 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
 
 export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[]>;
 
-export type FingerprintComputer = (p: Project) => Promise<FP[]>;
+export type FingerprintComputer = (p: Project, i: PushImpactListenerInvocation) => Promise<FP[]>;
 
 export function createFingerprintComputer(aspects: Aspect[], virtualProjectFinder?: VirtualProjectFinder): FingerprintComputer {
-    return async p => {
+    return async (p, i) => {
         const extracted: FP[] = [];
         if (virtualProjectFinder) {
             // Seed the VirtualProjectFinder, which may need to cache
             await virtualProjectFinder.findVirtualProjectInfo(p);
         }
         for (const x of aspects) {
-            const fpOrFps = toArray(await x.extract(p));
+            const fpOrFps = toArray(await x.extract(p,i ));
             if (fpOrFps) {
                 extracted.push(...fpOrFps);
             }
@@ -239,7 +239,7 @@ export function fingerprintRunner(
         }
         logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
-        const allFps = await computer(p);
+        const allFps = await computer(p, i);
 
         logger.debug(`Processing fingerprints: ${renderData(allFps)}`);
 

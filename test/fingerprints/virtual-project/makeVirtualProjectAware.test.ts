@@ -61,14 +61,14 @@ describe("makeVirtualProjectAware", () => {
 
         it("should behave as normal when zero files", async () => {
             const p = await tempProject();
-            const extracted = await makeExtractorVirtualProjectAware(extractThing, MavenAndNodeSubprojectFinder)(p);
+            const extracted = await makeExtractorVirtualProjectAware(extractThing, MavenAndNodeSubprojectFinder)(p, {} as any);
             assert.strictEqual(extracted.length, 0);
         });
 
         it("should behave as normal on root", async () => {
             const data = { path: "Thing", content: "d" };
             const p = await tempProject(data);
-            const fps = await makeExtractorVirtualProjectAware(extractThing, MavenAndNodeSubprojectFinder)(p);
+            const fps = await makeExtractorVirtualProjectAware(extractThing, MavenAndNodeSubprojectFinder)(p, {} as any);
             assert.strictEqual(fps.length, 1);
             const fp = fps[0];
             assert.strictEqual(fp.path, undefined);
@@ -81,7 +81,7 @@ describe("makeVirtualProjectAware", () => {
             const p = await tempProject(
                 { path: "x/pom.xml", content: "xml" },
                 data);
-            const fps = await makeExtractorVirtualProjectAware(extractThing, MavenAndNodeSubprojectFinder)(p);
+            const fps = await makeExtractorVirtualProjectAware(extractThing, MavenAndNodeSubprojectFinder)(p, {} as any);
             assert.strictEqual(fps.length, 1);
             const fp = fps[0];
             assert.strictEqual(fp.path, "x");

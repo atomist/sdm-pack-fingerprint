@@ -16,7 +16,10 @@
 
 import { Project } from "@atomist/automation-client";
 // tslint:disable:deprecation
-import { chainTransforms } from "@atomist/sdm";
+import {
+    chainTransforms,
+    PushImpactListenerInvocation,
+} from "@atomist/sdm";
 import * as _ from "lodash";
 import {
     ApplyFingerprint,
@@ -58,12 +61,12 @@ export function makeVirtualProjectAware<A extends Aspect>(aspect: A, virtualProj
  * @return {ExtractFingerprint}
  */
 export function makeExtractorVirtualProjectAware(ef: ExtractFingerprint,
-                                                 virtualProjectFinder: VirtualProjectFinder): (p: Project) => Promise<FP[]> {
-    return async p => {
+                                                 virtualProjectFinder: VirtualProjectFinder): (p: Project, i: PushImpactListenerInvocation) => Promise<FP[]> {
+    return async (p, i) => {
         const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
         const allReturns: FP[][] = await Promise.all(virtualProjects
             .map(vp =>
-                extractFrom(ef, vp)
+                extractFrom(ef, vp, i)
                     .then(extracted =>
                         extracted
                             .filter(raw => !!raw)
@@ -87,8 +90,8 @@ async function virtualProjectsIn(p: Project, virtualProjectFinder: VirtualProjec
     return [p];
 }
 
-async function extractFrom(ef: ExtractFingerprint, p: Project): Promise<FP[]> {
-    const extracted = await ef(p);
+async function extractFrom(ef: ExtractFingerprint, p: Project, pli: PushImpactListenerInvocation): Promise<FP[]> {
+    const extracted = await ef(p, pli);
     return extracted ?
         Array.isArray(extracted) ? extracted : [extracted] :
         [];

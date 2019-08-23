@@ -97,7 +97,7 @@ describe("npmDeps", () => {
             url: "https://fake.com/foo/foo.git",
         }, ({ path: "package.json", content: dummyPackageJson1 })) as any;
 
-        const fp = await createNpmDepsFingerprints(p);
+        const fp = await createNpmDepsFingerprints(p, {} as any);
 
         assert.deepStrictEqual(fp, [{
             abbreviation: "npmdeps",
@@ -118,7 +118,7 @@ describe("npmDeps", () => {
             url: "https://fake.com/foo/foo.git",
         }, ({ path: "package.json", content: dummyPackageJson })) as any;
 
-        const fp = await createNpmDepsFingerprints(p);
+        const fp = await createNpmDepsFingerprints(p, {} as any);
 
         assert.deepStrictEqual(fp, [{
             abbreviation: "npmdeps",
@@ -139,7 +139,7 @@ describe("npmDeps", () => {
             url: "https://fake.com/foo/foo.git",
         }, ({ path: "package.json", content: dummyPackageJson2 })) as any;
 
-        const fp = await createNpmDepsFingerprints(p);
+        const fp = await createNpmDepsFingerprints(p, {} as any);
 
         assert.deepStrictEqual(fp, [{
             abbreviation: "npmdeps",

@@ -20,6 +20,7 @@ import {
 } from "@atomist/automation-client";
 import {
     CodeTransform,
+    PushImpactListenerInvocation,
     SdmContext,
 } from "@atomist/sdm";
 import * as _ from "lodash";
@@ -78,7 +79,7 @@ export interface Diff<DATA = any> {
  * Extract fingerprint(s) from the given project.
  * Return undefined or the empty array if no fingerprints found.
  */
-export type ExtractFingerprint<DATA = any> = (p: Project) => Promise<FP<DATA> | Array<FP<DATA>>>;
+export type ExtractFingerprint<DATA = any> = (p: Project, pli: PushImpactListenerInvocation) => Promise<FP<DATA> | Array<FP<DATA>>>;
 
 export type FingerprintSelector = (fingerprint: FP) => boolean;
 
