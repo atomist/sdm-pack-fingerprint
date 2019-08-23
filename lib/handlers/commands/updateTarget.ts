@@ -202,7 +202,7 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
             await (setFPTarget(cli.context.graphClient))(type, name, fingerprint);
 
             const author = _.get(cli.context.source, "slack.user.id") || _.get(cli.context.source, "web.identity.sub");
-
+            const value = displayValue(aspectOf(fingerprint, aspects), fingerprint);
             const log: PolicyLog = {
                 type,
                 name,
@@ -210,9 +210,9 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
                 manage: {
                     action: ManagePolicyAction.Set,
                     author,
-                    reason: cli.parameters.reason || "Set policy via command",
+                    reason: cli.parameters.reason || `Set policy ${value} via command`,
                     targetSha: fp.sha,
-                    targetValue: displayValue(aspectOf(fingerprint, aspects), fingerprint),
+                    targetValue: value,
                 },
             };
             await sendPolicyLog(log, cli.context);
