@@ -54,7 +54,10 @@ import {
     Aspect,
     FP,
 } from "../../machine/Aspect";
-import { aspectOf } from "../../machine/Aspects";
+import {
+    aspectOf,
+    displayValue,
+} from "../../machine/Aspects";
 import {
     applyFingerprintTitle,
     fingerprintTag,
@@ -92,11 +95,14 @@ async function pushFingerprint(
                 editResult = await confirmEditedness(result);
             }
 
+            const value = displayValue(aspectOf(fp, aspects), fp);
+
             if (!!editResult) {
                 if (!editResult.success) {
-                    const message = !!editResult.error && !!editResult.error.message
-                        ? editResult.error.message
-                        : `Policy application failed`;
+                    const error = !!editResult.error && !!editResult.error.message
+                        ? `:\n\n${editResult.error.message}`
+                        : "";
+                    const message = `Application of policy ${value} to ${p.id.owner}/${p.id.repo} failed${error}`;
 
                     const log: PolicyLog = {
                         type: fp.type,
@@ -111,6 +117,7 @@ async function pushFingerprint(
                     };
                     await sendPolicyLog(log, papi.context);
                 } else if (!editResult.edited) {
+                    const message = `Application of policy ${value} to ${p.id.owner}/${p.id.repo} made no changes`;
                     const log: PolicyLog = {
                         type: fp.type,
                         name: fp.name,
@@ -119,7 +126,7 @@ async function pushFingerprint(
                             branch: p.id.branch,
                             state: ApplyPolicyState.NoChange,
                             targetSha: fp.sha,
-                            message: `Policy application made no changes`,
+                            message,
                         },
                     };
                     await sendPolicyLog(log, papi.context);
