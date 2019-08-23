@@ -461,7 +461,7 @@ export function broadcastFingerprintMandate(
 
             await createJob<ApplyTargetFingerprintParameters>({
                 command: ApplyTargetFingerprintName,
-                description: `Applying policy ${value}`,
+                description: `Applying policy ${value} to ${refs.length} ${refs.length === 1 ? "repository" : "repositories"}`,
                 name: `ApplyPolicy/${i.parameters.fingerprint}`,
                 parameters: refs.map(r => ({
                     title: i.parameters.title,
