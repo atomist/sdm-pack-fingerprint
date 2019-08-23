@@ -29,6 +29,7 @@ import {
 import {
     findSdmGoalOnCommit,
     Goal,
+    PushImpactListenerInvocation,
     SdmGoalState,
     updateGoal,
     UpdateSdmGoalParams,
@@ -123,9 +124,9 @@ async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, pa
  * @param config
  */
 export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfig):
-    (ctx: HandlerContext, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any> {
+    (pli: PushImpactListenerInvocation, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any> {
 
-    return async (ctx, vs: Vote[], coord, channel) => {
+    return async (i: PushImpactListenerInvocation, vs: Vote[], coord, channel) => {
 
         const result = voteResults<Vote>(vs);
 
@@ -133,11 +134,11 @@ export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfi
         if (result.failed) {
 
             await config.messageMaker({
-                ctx,
+                ctx: i.context,
                 msgId: updateableMessage(
-                    [].concat(
-                        result.failedVotes.map(vote => vote.fingerprint.sha),
-                        result.failedVotes.map(vote => vote.fpTarget.sha)),
+                    [
+                        ...result.failedVotes.map(vote => vote.fingerprint.sha),
+                        ...result.failedVotes.map(vote => vote.fpTarget.sha)],
                     coord),
                 channel,
                 voteResults: result,
@@ -161,7 +162,7 @@ export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfi
         if (config.complianceGoal) {
 
             return editGoal(
-                ctx,
+                i.context,
                 coord,
                 config.complianceGoal,
                 goalState,

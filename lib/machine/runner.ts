@@ -110,7 +110,7 @@ async function handleDiffs(
 
     if (aspect.workflows) {
         for (const wf of aspect.workflows) {
-            _.concat(handlerVotes, await wf(i, diffs, aspect));
+            handlerVotes.push(...(await wf(i, diffs, aspect) || []));
         }
     }
 
@@ -221,7 +221,7 @@ export function fingerprintRunner(
         };
 
         return targetDiffBallot(
-            i.context,
+            i,
             vts,
             coordinate,
             info.channel);
@@ -251,12 +251,11 @@ export function fingerprintRunner(
                 const byType = _.groupBy(allFps, fp => fp.type);
 
                 const allVotes: Vote[] = [];
-                Object.entries(byType).forEach(
-                    async ([type, fps]) => {
-                        const fpAspect = fingerprinters.find(aspects => aspects.name === type);
-                        _.concat(allVotes, await handleDiffs(fps, previous, info, handlers, fpAspect, i));
-                    },
-                );
+                for (const [type, fps] of Object.entries(byType)) {
+                    const fpAspect = fingerprinters.find(aspects => aspects.name === type);
+                    allVotes.push(...(await handleDiffs(fps, previous, info, handlers, fpAspect, i) || []));
+                }
+
                 logger.debug(`Votes:  ${renderData(allVotes)}`);
                 await tallyVotes(allVotes, handlers, i, info);
             }

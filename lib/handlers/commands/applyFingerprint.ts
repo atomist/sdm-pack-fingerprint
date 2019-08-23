@@ -20,17 +20,19 @@ import {
     QueryNoCacheOptions,
     RepoRef,
 } from "@atomist/automation-client";
+import { successfulEdit } from "@atomist/automation-client/lib/operations/edit/projectEditor";
+import { isProject } from "@atomist/automation-client/lib/project/Project";
 import {
     CodeTransform,
     CodeTransformRegistration,
     CommandHandlerRegistration,
+    confirmEditedness,
     createJob,
     PushAwareParametersInvocation,
     slackInfoMessage,
     slackSuccessMessage,
     SoftwareDeliveryMachine,
     TransformPresentation,
-    TransformResult,
     TransformReturnable,
 } from "@atomist/sdm";
 import {
@@ -78,19 +80,29 @@ async function pushFingerprint(
 
         let result: TransformReturnable;
         try {
-            result = (await aspect.apply(p, { ...papi, parameters: { fp } })) as TransformResult;
+            result = (await aspect.apply(p, { ...papi, parameters: { fp } }));
 
-            if (!!result && !result.success) {
+            // Figure out if the edit was successful or not
+            let editResult;
+            if (isProject(result) ) {
+                editResult = successfulEdit(result, true);
+            } else if (!result) {
+                editResult = successfulEdit(p, true);
+            } else {
+                editResult = await confirmEditedness(result);
+            }
 
-                const message = !!result.error && !!result.error.message
-                    ? result.error.message
+            if (!!editResult && !editResult.success) {
+
+                const message = !!editResult.error && !!editResult.error.message
+                    ? editResult.error.message
                     : `Policy application failed`;
 
                 const log: PolicyLog = {
                     type: fp.type,
                     name: fp.name,
                     apply: {
-                        _sha: p.id.sha,
+                        _sha: (await p.gitStatus()).sha,
                         branch: p.id.branch,
                         state: ApplyPolicyState.Failure,
                         targetSha: fp.sha,
@@ -106,7 +118,7 @@ async function pushFingerprint(
                 type: fp.type,
                 name: fp.name,
                 apply: {
-                    _sha: p.id.sha,
+                    _sha: (await p.gitStatus()).sha,
                     branch: p.id.branch,
                     state: ApplyPolicyState.Failure,
                     targetSha: fp.sha,
