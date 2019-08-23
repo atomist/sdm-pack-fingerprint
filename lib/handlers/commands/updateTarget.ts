@@ -303,7 +303,7 @@ export function deleteTargetFingerprint(sdm: SoftwareDeliveryMachine): CommandHa
                 manage: {
                     action: ManagePolicyAction.Unset,
                     author,
-                    reason: cli.parameters.reason || "Deleted policy via command",
+                    reason: cli.parameters.reason || "Disabled policy via command",
                 },
             };
             await sendPolicyLog(log, cli.context);
