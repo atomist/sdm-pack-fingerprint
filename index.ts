@@ -84,6 +84,8 @@ export { PublishFingerprints } from "./lib/adhoc/fingerprints";
 
 export * from "./lib/machine/AtomicAspect";
 
+export * from "./lib/adhoc/construct";
+
 export * from "./lib/machine/Ideal";
 
 export * from "./lib/fingerprints/virtual-project/VirtualProjectFinder";
