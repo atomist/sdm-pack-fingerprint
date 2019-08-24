@@ -67,8 +67,12 @@ export function queryFingerprintsByBranchRef(graphClient: GraphClient):
     };
 }
 
-export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, fps: FP[], previous: Record<string, FP>): Promise<boolean> {
+/**
+ * Do something with fingerprints. Normally, send them to Atomist
+ */
+export type PublishFingerprints = (i: PushImpactListenerInvocation, fps: FP[], previous: Record<string, FP>) => Promise<boolean>;
 
+export const sendFingerprintsToAtomist: PublishFingerprints = async (i, fps, previous) => {
     try {
         // TODO use i.push and new sdm core to skip over this query entirely
         const ids: RepoBranchIds.Query = await i.context.graphClient.query<RepoBranchIds.Query, RepoBranchIds.Variables>(
@@ -105,4 +109,4 @@ export async function sendFingerprintToAtomist(i: PushImpactListenerInvocation, 
     }
 
     return true;
-}
+};

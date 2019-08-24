@@ -33,6 +33,10 @@ import {
 } from "@atomist/sdm";
 import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
+import {
+    PublishFingerprints,
+    sendFingerprintsToAtomist,
+} from "../adhoc/fingerprints";
 import { checkFingerprintTarget } from "../checktarget/callbacks";
 import {
     ignoreCommand,
@@ -169,6 +173,12 @@ export interface FingerprintOptions {
      * If provided, all aspects will be automatically be wrapped to use the VirtualProjectFinder.
      */
     virtualProjectFinder?: VirtualProjectFinder;
+
+    /**
+     * By default, fingerprints will be sent to Atomist. Set this in local mode etc
+     * to route them differently.
+     */
+    publishFingerprints?: PublishFingerprints;
 }
 
 export const DefaultTransformPresentation: TransformPresentation<ApplyTargetParameters> = createPullRequestTransformPresentation();
@@ -280,6 +290,7 @@ export function fingerprintSupport(options: FingerprintOptions): FingerprintExte
                 configuredAspects,
                 handlers,
                 fingerprintComputer,
+                options.publishFingerprints || sendFingerprintsToAtomist,
                 {
                     messageMaker,
                     transformPresentation: DefaultTransformPresentation,

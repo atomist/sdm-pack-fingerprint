@@ -80,6 +80,8 @@ export {
 } from "./lib/handlers/commands/applyFingerprint";
 export * from "./lib/fingerprints/jsonFiles";
 
+export { PublishFingerprints } from "./lib/adhoc/fingerprints";
+
 export * from "./lib/machine/AtomicAspect";
 
 export * from "./lib/machine/Ideal";

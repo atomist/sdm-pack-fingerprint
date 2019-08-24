@@ -24,7 +24,7 @@ import { renderData } from "@atomist/clj-editors";
 import { PushImpactListenerInvocation } from "@atomist/sdm";
 import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
-import { sendFingerprintToAtomist } from "../adhoc/fingerprints";
+import { PublishFingerprints } from "../adhoc/fingerprints";
 import { getFPTargets } from "../adhoc/preferences";
 import { votes } from "../checktarget/callbacks";
 import { messageMaker } from "../checktarget/messageMaker";
@@ -204,6 +204,7 @@ export function fingerprintRunner(
     fingerprinters: Aspect[],
     handlers: FingerprintHandler[],
     computer: FingerprintComputer,
+    publishFingerprints: PublishFingerprints,
     options: FingerprintOptions & FingerprintImpactHandlerConfig = {
         aspects: [],
         transformPresentation: DefaultTransformPresentation,
@@ -243,7 +244,7 @@ export function fingerprintRunner(
 
         logger.debug(`Processing fingerprints: ${renderData(allFps)}`);
 
-        await sendFingerprintToAtomist(i, allFps, previous);
+        await publishFingerprints(i, allFps, previous);
 
         try {
             const info = await missingInfo(i);
