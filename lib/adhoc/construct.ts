@@ -15,7 +15,7 @@
  */
 
 import {sha256} from "@atomist/clj-editors";
-import {FP} from "../machine/Aspect";
+import { FP } from "../machine/Aspect";
 
 /**
  * Convenience function to create a new fingerprint, using default strategy of
