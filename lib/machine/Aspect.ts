@@ -21,7 +21,6 @@ import {
 import {
     CodeTransform,
     PushImpactListenerInvocation,
-    SdmContext,
 } from "@atomist/sdm";
 import * as _ from "lodash";
 import { GitCoordinate } from "../support/messages";
@@ -237,7 +236,7 @@ export interface DiffContext extends Diff {
     targets: GetFpTargets.Query;
 }
 
-export type FingerprintDiffHandler = (context: SdmContext, diff: DiffContext[], aspect: Aspect) => Promise<Vote[]>;
+export type FingerprintDiffHandler = (pli: PushImpactListenerInvocation, diff: DiffContext[], aspect: Aspect) => Promise<Vote[]>;
 
 /**
  * Handles differences between fingerprints across pushes and between targets.

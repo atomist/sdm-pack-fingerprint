@@ -41,7 +41,7 @@ describe("DefaultTargetDiffHandler", () => {
         }] as any;
         // tslint:disable-next-line:no-object-literal-type-assertion
         const aspect = {} as Aspect;
-        return DefaultTargetDiffHandler(ctx, diffs, aspect).then(votes =>
+        return DefaultTargetDiffHandler(ctx as any, diffs, aspect).then(votes =>
             votes.forEach(vote => assert.deepStrictEqual(vote, { abstain: true })));
     });
 });
