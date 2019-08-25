@@ -94,7 +94,7 @@ async function handleDiffs(
             },
         };
         return diff;
-    }).filter(diff => !diff.from || diff.to.sha !== diff.from.sha);
+    });
 
     const selectedHandlers = handlers.filter(h => h.selector(fps[0]));
 
