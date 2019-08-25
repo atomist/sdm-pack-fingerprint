@@ -23,7 +23,6 @@ import {
 import {
     ExtensionPack,
     Fingerprint,
-    formatDate,
     Goal,
     metadata,
     PushImpact,
@@ -223,13 +222,15 @@ class LazyPullRequest {
                 private readonly project: Project) {
 
         this.fingerprint = (this.parameters.fingerprint || this.parameters.targetfingerprint || this.parameters.type) as string;
-        if (!this.fingerprint) {
+        if (!!this.fingerprint) {
+            this.branchName = `${this.options.branchPrefix || "atomist"}/${this.fingerprint.split("::")[0]}/${this.project.id.branch}`;
+        } else {
             this.fingerprint = this.parameters.fingerprints as string;
             if (!!this.fingerprint) {
                 this.fingerprint = this.fingerprint.split(",").map(f => f.trim()).join(", ");
             }
+            this.branchName = `${this.options.branchPrefix || "atomist"}/apply-policies/${this.project.id.branch}`;
         }
-        this.branchName = `${this.options.branchPrefix || "apply-policy"}-${formatDate()}`;
     }
 
     get branch(): string {
