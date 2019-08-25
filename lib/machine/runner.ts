@@ -128,6 +128,9 @@ async function lastFingerprints(sha: string, graphClient: GraphClient): Promise<
             },
         },
     );
+    if (!results || !results.Commit) {
+        return {};
+    }
     return results.Commit[0].analysis.reduce<Record<string, FP>>(
         (record: Record<string, FP>, fp: GetAllFpsOnSha.Analysis) => {
             if (fp.name) {
