@@ -208,7 +208,9 @@ export const messageMaker: MessageMaker = async params => {
     const message: SlackMessage = {
         attachments: [
             {
-                text: `Differences from set policy detected on ${bold(`${params.coord.owner}/${params.coord.repo}/${params.coord.branch}`)}`,
+                text: `${params.voteResults.failedVotes.length === 1 ? "Difference" : "Differences"} from set ${
+                    params.voteResults.failedVotes.length === 1 ? "policy" : "policies"} detected on ${
+                    bold(`${params.coord.owner}/${params.coord.repo}/${params.coord.branch}`)}`,
                 fallback: "Policy differences",
             },
             ...params.voteResults.failedVotes.map(vote => oneFingerprint(params, vote)),

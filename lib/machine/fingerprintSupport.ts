@@ -229,7 +229,7 @@ class LazyPullRequest {
                 this.fingerprint = this.fingerprint.split(",").map(f => f.trim()).join(", ");
             }
         }
-        this.branchName = `${this.options.branchPrefix || "apply-target-fingerprint"}-${formatDate()}`;
+        this.branchName = `${this.options.branchPrefix || "apply-policy"}-${formatDate()}`;
     }
 
     get branch(): string {
@@ -237,7 +237,7 @@ class LazyPullRequest {
     }
 
     get title(): string {
-        return this.options.title || this.parameters.title || `Apply target fingerprint (${this.fingerprint})`;
+        return this.options.title || this.parameters.title || `Apply policy (${this.fingerprint})`;
     }
 
     get body(): string {
