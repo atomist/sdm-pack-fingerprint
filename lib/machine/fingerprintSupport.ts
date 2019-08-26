@@ -221,15 +221,18 @@ class LazyPullRequest {
                 private readonly parameters: ApplyTargetParameters,
                 private readonly project: Project) {
 
+        this.branchName = `${this.options.branchPrefix || "atomist"}/policy-application/${this.project.id.branch}`;
+
         this.fingerprint = (this.parameters.fingerprint || this.parameters.targetfingerprint || this.parameters.type) as string;
         if (!!this.fingerprint) {
             this.branchName = `${this.options.branchPrefix || "atomist"}/${this.fingerprint.split("::")[0]}/${this.project.id.branch}`;
         } else {
             this.fingerprint = this.parameters.fingerprints as string;
             if (!!this.fingerprint) {
+                this.branchName = `${this.options.branchPrefix || "atomist"}/${
+                    _.uniq(this.fingerprint.split(",").map(f => f.split("::")[0])).join(",")}/${this.project.id.branch}`;
                 this.fingerprint = this.fingerprint.split(",").map(f => f.trim()).join(", ");
             }
-            this.branchName = `${this.options.branchPrefix || "atomist"}/apply-policies/${this.project.id.branch}`;
         }
     }
 
