@@ -26,9 +26,9 @@ import {
 } from "@atomist/sdm";
 
 export interface RebaseOptions {
-    rebase: boolean,
-    rebaseStrategy: RebaseStrategy,
-    onRebaseFailure: RebaseFailure,
+    rebase: boolean;
+    rebaseStrategy: RebaseStrategy;
+    onRebaseFailure: RebaseFailure;
 }
 
 export enum RebaseStrategy {

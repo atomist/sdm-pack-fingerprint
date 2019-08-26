@@ -397,7 +397,7 @@ export function applyTargets(
     sdm: SoftwareDeliveryMachine,
     registrations: Aspect[],
     presentation: TransformPresentation<ApplyTargetParameters>,
-    rebase: RebaseOptions
+    rebase: RebaseOptions,
 ): CodeTransformRegistration<ApplyTargetFingerprintsParameters> {
     return {
         name: ApplyAllFingerprintsName,
