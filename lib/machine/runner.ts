@@ -60,7 +60,7 @@ interface MissingInfo {
  * Give each Aspect the opportunity to evaluate the current FP, the previous FP, and any target FP
  *
  * @param fps current fingerprints
- * @param previous Fingeprint from Push.before (could be nil)
+ * @param previous Fingerprint from Push.before (could be nil)
  * @param info missing info
  * @param handlers deprecated handlers
  * @param aspect parent Aspect for this Fingerprint
