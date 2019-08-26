@@ -80,6 +80,12 @@ export {
 } from "./lib/handlers/commands/applyFingerprint";
 export * from "./lib/fingerprints/jsonFiles";
 
+export {
+    RebaseFailure,
+    RebaseOptions,
+    RebaseStrategy,
+} from "./lib/handlers/commands/rebase";
+
 export { PublishFingerprints } from "./lib/adhoc/fingerprints";
 
 export * from "./lib/machine/AtomicAspect";

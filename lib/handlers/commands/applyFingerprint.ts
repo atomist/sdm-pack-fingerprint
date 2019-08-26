@@ -20,7 +20,6 @@ import {
     QueryNoCacheOptions,
     RepoRef,
 } from "@atomist/automation-client";
-import { isPullRequest } from "@atomist/automation-client/lib/operations/edit/editModes";
 import { successfulEdit } from "@atomist/automation-client/lib/operations/edit/projectEditor";
 import { isProject } from "@atomist/automation-client/lib/project/Project";
 import {
@@ -29,7 +28,6 @@ import {
     CommandHandlerRegistration,
     confirmEditedness,
     createJob,
-    execPromise,
     PushAwareParametersInvocation,
     slackInfoMessage,
     slackSuccessMessage,
@@ -69,68 +67,10 @@ import {
     FindOtherRepos,
     GetFpBySha,
 } from "../../typings/types";
-
-export function rebaseCodeTransform(transformPresentation: TransformPresentation<any>,
-                                    options: { rebaseStrategy: "ours" | "theirs" } = { rebaseStrategy: "ours" }): CodeTransform {
-    return async (p, papi) => {
-        const lp = p as GitProject;
-        const tp = transformPresentation(papi, p);
-        if (isPullRequest(tp)) {
-
-            try {
-                await execPromise(
-                    "git", ["fetch", "--unshallow"],
-                    {
-                        cwd: lp.baseDir,
-                    });
-            } catch (e) {
-            }
-            try {
-                await execPromise(
-                    "git", ["config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*"],
-                    {
-                        cwd: lp.baseDir,
-                    });
-            } catch (e) {
-            }
-            try {
-                await execPromise(
-                    "git", ["fetch", "origin"],
-                    {
-                        cwd: lp.baseDir,
-                    });
-            } catch (e) {
-            }
-
-            const commandResult = await execPromise(
-                "git", ["branch", "--list", "-r", `origin/${tp.branch}`],
-                {
-                    cwd: lp.baseDir,
-                });
-
-            if (commandResult.stdout.includes(`origin/${tp.branch}`)) {
-                await lp.checkout(tp.branch);
-                try {
-                    await execPromise(
-                        "git", ["rebase", "-X", options.rebaseStrategy, tp.targetBranch || "master"],
-                        {
-                            cwd: lp.baseDir,
-                        });
-                    await lp.push({ force: true });
-                } catch (e) {
-                    return {
-                        edited: false,
-                        success: false,
-                        target: p,
-                        error: e,
-                    };
-                }
-            }
-        }
-
-        return p;
-    };
-}
+import {
+    rebaseCodeTransform,
+    RebaseOptions,
+} from "./rebase";
 
 /**
  * Call relevant apply functions from Registrations for a Fingerprint
@@ -387,7 +327,8 @@ export const ApplyTargetFingerprintName = "ApplyTargetFingerprint";
 export function applyTarget(
     sdm: SoftwareDeliveryMachine,
     aspects: Aspect[],
-    presentation: TransformPresentation<ApplyTargetParameters>): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
+    presentation: TransformPresentation<ApplyTargetParameters>,
+    rebase: RebaseOptions): CodeTransformRegistration<ApplyTargetFingerprintParameters> {
 
     return {
         name: ApplyTargetFingerprintName,
@@ -404,7 +345,7 @@ export function applyTarget(
             branch: { required: false, displayable: false },
         },
         transformPresentation: presentation,
-        transform: [rebaseCodeTransform(presentation), runAllFingerprintAppliers(aspects)],
+        transform: [rebaseCodeTransform(presentation, rebase), runAllFingerprintAppliers(aspects)],
         autoSubmit: true,
     };
 }
@@ -418,7 +359,8 @@ export const ApplyTargetFingerprintByShaName = "ApplyTargetFingerprintBySha";
 export function applyTargetBySha(
     sdm: SoftwareDeliveryMachine,
     aspects: Aspect[],
-    presentation: TransformPresentation<ApplyTargetParameters>): CodeTransformRegistration<ApplyTargetFingerprintByShaParameters> {
+    presentation: TransformPresentation<ApplyTargetParameters>,
+    rebase: RebaseOptions): CodeTransformRegistration<ApplyTargetFingerprintByShaParameters> {
 
     return {
         name: ApplyTargetFingerprintByShaName,
@@ -435,7 +377,7 @@ export function applyTargetBySha(
             branch: { required: false, displayable: false },
         },
         transformPresentation: presentation,
-        transform: [rebaseCodeTransform(presentation), runFingerprintAppliersBySha(aspects)],
+        transform: [rebaseCodeTransform(presentation, rebase), runFingerprintAppliersBySha(aspects)],
         autoSubmit: true,
         concurrency: {
             maxConcurrent: 1,
@@ -455,11 +397,12 @@ export function applyTargets(
     sdm: SoftwareDeliveryMachine,
     registrations: Aspect[],
     presentation: TransformPresentation<ApplyTargetParameters>,
+    rebase: RebaseOptions
 ): CodeTransformRegistration<ApplyTargetFingerprintsParameters> {
     return {
         name: ApplyAllFingerprintsName,
         description: "apply a bunch of fingerprints",
-        transform: [rebaseCodeTransform(presentation), runEveryFingerprintApplication(registrations)],
+        transform: [rebaseCodeTransform(presentation, rebase), runEveryFingerprintApplication(registrations)],
         transformPresentation: presentation,
         parameters: {
             msgId: { required: false, displayable: false },

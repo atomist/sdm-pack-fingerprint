@@ -22,11 +22,9 @@ import {
 } from "@atomist/automation-client/lib/operations/edit/editModes";
 import {
     ExtensionPack,
-    Fingerprint,
     Goal,
     metadata,
     PushImpact,
-    PushImpactListenerInvocation,
     SoftwareDeliveryMachine,
     TransformPresentation,
 } from "@atomist/sdm";
@@ -57,6 +55,10 @@ import {
     listFingerprint,
     listFingerprints,
 } from "../handlers/commands/list";
+import {
+    DefaultRebaseOptions,
+    RebaseOptions,
+} from "../handlers/commands/rebase";
 import {
     listFingerprintTargets,
     listOneFingerprintTarget,
@@ -119,7 +121,7 @@ export const DefaultTargetDiffHandler: FingerprintDiffHandler =
         }
         return _.concat(
             checked,
-            abs.map(() => ({abstain: true})));
+            abs.map(() => ({ abstain: true })));
     };
 
 /**
@@ -132,7 +134,7 @@ export function diffOnlyHandler(handler: FingerprintDiffHandler): FingerprintDif
         const toDiff = diffs.filter(diff => diff.from && diff.to.sha !== diff.from.sha);
         return [
             ...await handler(context, toDiff, aspect),
-            ..._.difference(diffs, toDiff).map(() => ({abstain: true})),
+            ..._.difference(diffs, toDiff).map(() => ({ abstain: true })),
         ];
     };
 }
@@ -141,14 +143,6 @@ export function diffOnlyHandler(handler: FingerprintDiffHandler): FingerprintDif
  * Options to configure the Fingerprint support
  */
 export interface FingerprintOptions {
-
-    /**
-     * Optional Fingerprint goal that will get configured.
-     * If not provided fingerprints need to be registered manually with the goal.
-     * @deprecated use pushImpactGoal instead
-     */
-    // tslint:disable:deprecation
-    fingerprintGoal?: Fingerprint;
 
     /**
      * Optional PushImpact goal that will get configured
@@ -160,13 +154,15 @@ export interface FingerprintOptions {
      */
     aspects: Aspect | Aspect[];
 
-    /**
-     * Register FingerprintHandler factories to handle fingerprint impacts
-     * @deprecated embed handlers in Features
-     */
-    handlers?: RegisterFingerprintImpactHandler | RegisterFingerprintImpactHandler[];
-
     transformPresentation?: TransformPresentation<ApplyTargetParameters>;
+
+    /**
+     * Configure the rebasing strategy for raised PRs
+     * Rebasing support is disabled by default.
+     *
+     * This is only useful when transformPresentation is returning a PullRequest editMode.
+     */
+    rebase?: RebaseOptions;
 
     /**
      * If provided, all aspects will be automatically be wrapped to use the VirtualProjectFinder.
@@ -178,6 +174,7 @@ export interface FingerprintOptions {
      * to route them differently.
      */
     publishFingerprints?: PublishFingerprints;
+
 }
 
 export const DefaultTransformPresentation: TransformPresentation<ApplyTargetParameters> = createPullRequestTransformPresentation();
@@ -284,9 +281,6 @@ export function fingerprintSupport(options: FingerprintOptions): FingerprintExte
         ...metadata(),
         fingerprintComputer,
         configure: (sdm: SoftwareDeliveryMachine) => {
-            // const handlerRegistrations: RegisterFingerprintImpactHandler[]
-            //     = Array.isArray(options.handlers) ? options.handlers : [options.handlers];
-            // const handlers: FingerprintHandler[] = handlerRegistrations.map(h => h(sdm, fingerprints));
             const handlerRegistrations: RegisterFingerprintImpactHandler[] = [];
             const handlers: FingerprintHandler[] = [];
 
@@ -301,21 +295,15 @@ export function fingerprintSupport(options: FingerprintOptions): FingerprintExte
                     ...options,
                 });
 
-            // tslint:disable:deprecation
-            if (!!options.fingerprintGoal) {
-                options.fingerprintGoal.with({
-                    name: `${options.fingerprintGoal.uniqueName}-fingerprinter`,
-                    action: async (i: PushImpactListenerInvocation) => {
-                        await runner(i);
-                        return [];
-                    },
-                });
-            }
             if (!!options.pushImpactGoal) {
                 options.pushImpactGoal.withListener(runner);
             }
 
-            configure(sdm, handlerRegistrations, configuredAspects, options.transformPresentation || DefaultTransformPresentation);
+            configure(sdm,
+                handlerRegistrations,
+                configuredAspects,
+                options.transformPresentation || DefaultTransformPresentation,
+                options.rebase || DefaultRebaseOptions);
         },
     };
 }
@@ -323,7 +311,8 @@ export function fingerprintSupport(options: FingerprintOptions): FingerprintExte
 function configure(sdm: SoftwareDeliveryMachine,
                    handlers: RegisterFingerprintImpactHandler[],
                    aspects: Aspect[],
-                   editModeMaker: TransformPresentation<ApplyTargetParameters>): void {
+                   transformPresentation: TransformPresentation<ApplyTargetParameters>,
+                   rebase: RebaseOptions): void {
 
     sdm.addCommand(listFingerprints(sdm));
     sdm.addCommand(listFingerprint(sdm));
@@ -348,9 +337,9 @@ function configure(sdm: SoftwareDeliveryMachine,
 
     sdm.addCommand(FingerprintMenu);
 
-    sdm.addCodeTransformCommand(applyTarget(sdm, aspects, editModeMaker));
-    sdm.addCodeTransformCommand(applyTargets(sdm, aspects, editModeMaker));
-    sdm.addCodeTransformCommand(applyTargetBySha(sdm, aspects, editModeMaker));
+    sdm.addCodeTransformCommand(applyTarget(sdm, aspects, transformPresentation, rebase));
+    sdm.addCodeTransformCommand(applyTargets(sdm, aspects, transformPresentation, rebase));
+    sdm.addCodeTransformCommand(applyTargetBySha(sdm, aspects, transformPresentation, rebase));
 
     sdm.addCommand(broadcastFingerprintMandate(sdm, aspects));
 
