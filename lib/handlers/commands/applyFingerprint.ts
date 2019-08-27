@@ -347,6 +347,7 @@ export function applyTarget(
         transformPresentation: presentation,
         transform: [rebaseCodeTransform(presentation, rebase), runAllFingerprintAppliers(aspects)],
         autoSubmit: true,
+        chatty: false,
     };
 }
 
@@ -383,6 +384,7 @@ export function applyTargetBySha(
             maxConcurrent: 1,
             requiresJob: true,
         },
+        chatty: false,
     };
 }
 
@@ -412,6 +414,7 @@ export function applyTargets(
             branch: { required: false, displayable: false },
         },
         autoSubmit: true,
+        chatty: false,
     };
 }
 
