@@ -189,16 +189,24 @@ export function createFingerprintComputer(aspects: Aspect[], virtualProjectFinde
             await virtualProjectFinder.findVirtualProjectInfo(p);
         }
         for (const x of aspects) {
-            const fpOrFps = toArray(await x.extract(p, i ));
-            if (fpOrFps) {
-                extracted.push(...fpOrFps);
+            try {
+                const fpOrFps = toArray(await x.extract(p, i));
+                if (fpOrFps) {
+                    extracted.push(...fpOrFps);
+                }
+            } catch (e) {
+                logger.warn(`Aspect '${x.name}' extract failed: ${e.message}`);
             }
         }
 
         const consolidatedFingerprints = [];
         for (const cfp of aspects.filter(f => !!f.consolidate)) {
-            const consolidated: FP[] = toArray(await cfp.consolidate(extracted));
-            consolidatedFingerprints.push(...consolidated);
+            try {
+                const consolidated: FP[] = toArray(await cfp.consolidate(extracted));
+                consolidatedFingerprints.push(...consolidated);
+            } catch (e) {
+                logger.warn(`Aspect '${cfp.name}' consolidate failed: ${e.message}`);
+            }
         }
         return [...extracted, ...consolidatedFingerprints];
     };
@@ -245,12 +253,8 @@ export function fingerprintRunner(
                 i.push.before.sha,
                 i.context.graphClient);
         }
-        logger.info(`Found ${Object.keys(previous).length} fingerprints`);
 
         const allFps = await computer(p, i);
-
-        logger.debug(`Processing fingerprints: ${renderData(allFps)}`);
-
         await publishFingerprints(i, allFps, previous);
 
         try {
@@ -264,7 +268,6 @@ export function fingerprintRunner(
                     allVotes.push(...(await handleDiffs(fps, previous, info, handlers, fpAspect, i) || []));
                 }
 
-                logger.debug(`Votes:  ${renderData(allVotes)}`);
                 await tallyVotes(allVotes, handlers, i, info);
             }
         } catch (e) {
