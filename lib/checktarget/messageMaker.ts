@@ -220,6 +220,7 @@ export const messageMaker: MessageMaker = async params => {
     if (params.voteResults.failedVotes.length > 1) {
         // Remove the footer from previous attachments
         message.attachments.forEach(a => a.footer = undefined);
+        message.attachments.forEach(a => a.ts = undefined);
         message.attachments.push(applyAll(params));
     } else {
         const lastAttachment = message.attachments[message.attachments.length - 1];
