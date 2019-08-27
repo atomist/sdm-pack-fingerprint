@@ -17,11 +17,15 @@
 import {
     GraphClient,
     logger,
-    QueryNoCacheOptions, RepoRef,
+    QueryNoCacheOptions,
+    RepoRef,
 } from "@atomist/automation-client";
-import {partitionByFeature} from "@atomist/clj-editors";
-import {PushImpactListenerInvocation, SdmContext} from "@atomist/sdm";
-import {FP} from "../machine/Aspect";
+import { partitionByFeature } from "@atomist/clj-editors";
+import {
+    PushImpactListenerInvocation,
+    SdmContext,
+} from "@atomist/sdm";
+import { FP } from "../machine/Aspect";
 import {
     AddFingerprints,
     FindOtherRepos,
