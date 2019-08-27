@@ -204,7 +204,7 @@ describe("makeVirtualProjectAware", () => {
                 data,
                 sha: sha256(JSON.stringify(data)),
             };
-            const consolidated = await multified.consolidate([fp1]) as FP;
+            const consolidated = await multified.consolidate([fp1], undefined, undefined) as FP;
             assert(!!consolidated);
             assert.strictEqual(consolidated.name, "consolidated");
             assert.deepStrictEqual(consolidated.data, data);

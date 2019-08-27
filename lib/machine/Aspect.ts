@@ -78,7 +78,7 @@ export interface Diff<DATA = any> {
  * Extract fingerprint(s) from the given project.
  * Return undefined or the empty array if no fingerprints found.
  */
-export type ExtractFingerprint<DATA = any> = (p: Project, pli: PushImpactListenerInvocation) => Promise<FP<DATA> | Array<FP<DATA>>>;
+export type ExtractFingerprint<DATA = any> = (p: Project, pili: PushImpactListenerInvocation) => Promise<FP<DATA> | Array<FP<DATA>>>;
 
 export type FingerprintSelector = (fingerprint: FP) => boolean;
 
@@ -141,9 +141,10 @@ export interface Aspect<DATA = any> {
     /**
      * Function to create any new fingerprint based on fingerprints
      * found by extract method. Implementations must observe the path
-     * (if set) in the original fingerprints.
+     * (if set) in the original fingerprints, and also have access to the Project
+     * and PushImpactListenerInvocation arguments from the extract method.
      */
-    consolidate?: (fps: FP[]) => Promise<FP<DATA> | Array<FP<DATA>>>;
+    consolidate?: (fps: FP[], p: Project, pili: PushImpactListenerInvocation) => Promise<FP<DATA> | Array<FP<DATA>>>;
 
     /**
      * Function to apply the given fingerprint instance to a project

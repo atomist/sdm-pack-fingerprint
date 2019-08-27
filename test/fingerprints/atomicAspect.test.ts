@@ -44,7 +44,7 @@ describe("atomicAspect", () => {
             displayName: "composite",
             name: "composite",
         }, () => false, f1);
-        const fingerprinted = await aspect.consolidate([fp]);
+        const fingerprinted = await aspect.consolidate([fp], undefined, undefined);
         assert.strictEqual(fingerprinted, undefined);
     });
 
@@ -60,7 +60,7 @@ describe("atomicAspect", () => {
             displayName: "composite",
             name: "composite",
         }, () => true, f1);
-        const fingerprinted = toArray(await aspect.consolidate([fp]));
+        const fingerprinted = toArray(await aspect.consolidate([fp], undefined, undefined));
         assert(!!fingerprinted);
         assert.strictEqual(fingerprinted[0].name, "composite:" + constructNpmDepsFingerprintName("foo"));
     });
@@ -81,7 +81,7 @@ describe("atomicAspect", () => {
             displayName: "composite",
             name: "name",
         }, fp => fp.name.endsWith("foo") || fp.name.endsWith("bar"), f1);
-        const fingerprinted = toArray(await aspect.consolidate([fp1, fp2, fp3]));
+        const fingerprinted = toArray(await aspect.consolidate([fp1, fp2, fp3], undefined, undefined));
         assert(!!fingerprinted);
         assert.strictEqual(fingerprinted.length, 1);
         assert(fingerprinted[0].name.includes("foo"));
@@ -136,7 +136,7 @@ describe("atomicAspect", () => {
             f2);
 
         // create consolidated fingerprint for Atomist Aspect
-        const consolidated = await aspect.consolidate([fp1, fp2]) as FP;
+        const consolidated = await aspect.consolidate([fp1, fp2], undefined, undefined) as FP;
 
         // check consolidated fingerprint
         assert(!!consolidated);

@@ -201,7 +201,7 @@ export function createFingerprintComputer(aspects: Aspect[], virtualProjectFinde
         const consolidatedFingerprints = [];
         for (const cfp of aspects.filter(f => !!f.consolidate)) {
             try {
-                const consolidated: FP[] = toArray(await cfp.consolidate(extracted));
+                const consolidated: FP[] = toArray(await cfp.consolidate(extracted, p, i));
                 consolidatedFingerprints.push(...consolidated);
             } catch (e) {
                 logger.warn(`Aspect '${cfp.name}' consolidate failed: ${e.message}`);
