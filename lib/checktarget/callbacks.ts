@@ -126,7 +126,7 @@ async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, pa
 export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfig):
     (pli: PushImpactListenerInvocation, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any> {
 
-    return async (i: PushImpactListenerInvocation, vs: Vote[], coord, channel) => {
+    return async (pli: PushImpactListenerInvocation, vs: Vote[], coord, channel) => {
 
         const result = voteResults<Vote>(vs);
 
@@ -134,7 +134,7 @@ export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfi
         if (result.failed) {
 
             await config.messageMaker({
-                ctx: i.context,
+                pli,
                 msgId: updateableMessage(
                     [
                         ...result.failedVotes.map(vote => vote.fingerprint.sha),
@@ -142,7 +142,6 @@ export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfi
                     coord),
                 channel,
                 voteResults: result,
-                coord,
                 aspects: toArray(config.aspects || []),
             });
 
@@ -162,7 +161,7 @@ export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfi
         if (config.complianceGoal) {
 
             return editGoal(
-                i.context,
+                pli.context,
                 coord,
                 config.complianceGoal,
                 goalState,

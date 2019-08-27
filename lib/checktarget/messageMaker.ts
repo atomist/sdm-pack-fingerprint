@@ -18,7 +18,6 @@ import {
     addressSlackChannelsFromContext,
     addressWeb,
     buttonForCommand,
-    HandlerContext,
     HandlerResult,
     ParameterType,
 } from "@atomist/automation-client";
@@ -26,6 +25,7 @@ import {
     actionableButton,
     CommandHandlerRegistration,
     CommandListenerInvocation,
+    PushImpactListenerInvocation,
     slackFooter,
     slackInfoMessage,
     slackTs,
@@ -54,17 +54,15 @@ import {
 import { aspectOf } from "../machine/Aspects";
 import {
     applyFingerprintTitle,
-    GitCoordinate,
     prBody,
 } from "../support/messages";
 import { orDefault } from "../support/util";
 
 export interface MessageMakerParams {
-    ctx: HandlerContext;
+    pli: PushImpactListenerInvocation;
     voteResults: { failed: boolean, failedVotes: Vote[] };
     msgId: string;
     channel: string;
-    coord: GitCoordinate;
     aspects: Aspect[];
 }
 
@@ -165,7 +163,7 @@ function ignoreButton(params: MessageMakerParams): Action {
 /**
  */
 function applyAll(params: MessageMakerParams): Attachment {
-
+    const { pli: { push } } = params;
     const fingerprints = params.voteResults.failedVotes.map(vote => {
         const aspect = aspectOf({ type: vote.fpTarget.type }, params.aspects);
         if (!!aspect && !!aspect.toDisplayableFingerprintName) {
@@ -187,9 +185,9 @@ function applyAll(params: MessageMakerParams): Attachment {
                     title: `Apply all of ${fingerprints.join(", ")}`,
                     body: params.voteResults.failedVotes.map(v => prBody(v, params.aspects)).join("\n---\n"),
                     targets: {
-                        owner: params.coord.owner,
-                        repo: params.coord.repo,
-                        branch: params.coord.branch,
+                        owner: push.repo.owner,
+                        repo: push.repo.name,
+                        branch: push.branch,
                     },
                 } as any,
             ),
@@ -204,13 +202,14 @@ function applyAll(params: MessageMakerParams): Attachment {
  * @param params
  */
 export const messageMaker: MessageMaker = async params => {
-
+    const { pli: { push } } = params;
     const message: SlackMessage = {
         attachments: [
             {
                 text: `${params.voteResults.failedVotes.length === 1 ? "Difference" : "Differences"} from set ${
                     params.voteResults.failedVotes.length === 1 ? "policy" : "policies"} detected on ${
-                    bold(`${params.coord.owner}/${params.coord.repo}/${params.coord.branch}`)}`,
+                    codeLine(push.after.sha.slice(0, 7))} of ${
+                    bold(`${push.repo.owner}/${push.repo.name}/${push.branch}`)}`,
                 fallback: "Policy differences",
             },
             ...params.voteResults.failedVotes.map(vote => oneFingerprint(params, vote)),
@@ -238,14 +237,14 @@ export const messageMaker: MessageMaker = async params => {
         /* await params.ctx.messageClient.delete(
             await addressSlackChannelsFromContext(params.ctx, params.channel),
             { id: params.msgId }); */
-        return params.ctx.messageClient.send(
+        return params.pli.context.messageClient.send(
             message,
-            await addressSlackChannelsFromContext(params.ctx, params.channel),
+            await addressSlackChannelsFromContext(params.pli.context, params.channel),
             // {id: params.msgId} if you want to update messages if the target goal has not changed
             { id: params.msgId },
         );
     } else {
-        return params.ctx.messageClient.send(
+        return params.pli.context.messageClient.send(
             message,
             addressWeb(),
             // {id: params.msgId} if you want to update messages if the target goal has not changed
