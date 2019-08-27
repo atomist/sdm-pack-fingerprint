@@ -17,11 +17,11 @@
 import {
     GraphClient,
     logger,
-    QueryNoCacheOptions,
+    QueryNoCacheOptions, RepoRef,
 } from "@atomist/automation-client";
-import { partitionByFeature } from "@atomist/clj-editors";
-import { PushImpactListenerInvocation } from "@atomist/sdm";
-import { FP } from "../machine/Aspect";
+import {partitionByFeature} from "@atomist/clj-editors";
+import {PushImpactListenerInvocation, SdmContext} from "@atomist/sdm";
+import {FP} from "../machine/Aspect";
 import {
     AddFingerprints,
     FindOtherRepos,
@@ -73,31 +73,45 @@ export function queryFingerprintsByBranchRef(graphClient: GraphClient):
 export type PublishFingerprints = (i: PushImpactListenerInvocation, fps: FP[], previous: Record<string, FP>) => Promise<boolean>;
 
 export const sendFingerprintsToAtomist: PublishFingerprints = async (i, fps, previous) => {
+    return sendFingerprintsToAtomistFor(i, {
+        branch: i.push.branch,
+        owner: i.push.repo.owner,
+        repo: i.push.repo.name,
+        sha: i.push.after.sha,
+    }, fps, previous);
+};
+
+export type RepoIdentification = Required<Pick<RepoRef, "owner"| "repo" | "branch" | "sha">>;
+
+/**
+ * Do something for fingerprints for the latest commit to the given repo
+ */
+export type PublishFingerprintsFor = (ctx: SdmContext,
+                                      repoRef: RepoIdentification,
+                                      fps: FP[], previous: Record<string, FP>) => Promise<boolean>;
+
+export const sendFingerprintsToAtomistFor: PublishFingerprintsFor = async (ctx, repoIdentification, fps, previous) => {
     try {
-        const ids: RepoBranchIds.Query = await i.context.graphClient.query<RepoBranchIds.Query, RepoBranchIds.Variables>(
+        const ids: RepoBranchIds.Query = await ctx.context.graphClient.query<RepoBranchIds.Query, RepoBranchIds.Variables>(
             {
                 name: "RepoBranchIds",
-                variables: {
-                    branch: i.push.branch,
-                    owner: i.push.repo.owner,
-                    repo: i.push.repo.name,
-                },
+                variables: repoIdentification,
             },
         );
 
         await partitionByFeature(fps, async partitioned => {
-            for (const { type, additions } of partitioned) {
+            for (const {type, additions} of partitioned) {
                 logger.info(`Upload ${additions.length} fingerprints of type ${type}`);
-                await i.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
+                await ctx.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
                     {
                         name: "AddFingerprints",
                         variables: {
                             additions: additions.filter(a => !!a.name && !!a.sha),
-                            isDefaultBranch: (ids.Repo[0].defaultBranch === i.push.branch),
+                            isDefaultBranch: (ids.Repo[0].defaultBranch === repoIdentification.branch),
                             type,
                             branchId: ids.Repo[0].branches[0].id,
                             repoId: ids.Repo[0].id,
-                            sha: i.push.after.sha,
+                            sha: repoIdentification.sha,
                         },
                     },
                 );

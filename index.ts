@@ -86,7 +86,7 @@ export {
     RebaseStrategy,
 } from "./lib/handlers/commands/rebase";
 
-export { PublishFingerprints } from "./lib/adhoc/fingerprints";
+export { PublishFingerprints, PublishFingerprintsFor, RepoIdentification, sendFingerprintsToAtomistFor } from "./lib/adhoc/fingerprints";
 
 export * from "./lib/machine/AtomicAspect";
 
