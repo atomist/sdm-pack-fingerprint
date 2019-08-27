@@ -74,7 +74,6 @@ export type PublishFingerprints = (i: PushImpactListenerInvocation, fps: FP[], p
 
 export const sendFingerprintsToAtomist: PublishFingerprints = async (i, fps, previous) => {
     try {
-        // TODO use i.push and new sdm core to skip over this query entirely
         const ids: RepoBranchIds.Query = await i.context.graphClient.query<RepoBranchIds.Query, RepoBranchIds.Variables>(
             {
                 name: "RepoBranchIds",
@@ -93,7 +92,7 @@ export const sendFingerprintsToAtomist: PublishFingerprints = async (i, fps, pre
                     {
                         name: "AddFingerprints",
                         variables: {
-                            additions,
+                            additions: additions.filter(a => !!a.name && !!a.sha),
                             isDefaultBranch: (ids.Repo[0].defaultBranch === i.push.branch),
                             type,
                             branchId: ids.Repo[0].branches[0].id,
