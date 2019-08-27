@@ -35,7 +35,7 @@
     "@atomist/sdm-core": "^1.6.1"
   },
   "devDependencies": {
-    "@atomist/automation-client": "1.6.3-master.20190825234034",
+    "@atomist/automation-client": "1.6.3-master.20190827162443",
     "@atomist/sdm": "1.6.2-master.20190824124708",
     "@atomist/sdm-core": "1.6.2-master.20190822002319",
     "@types/lodash": "^4.14.136",
