@@ -110,7 +110,11 @@ async function handleDiffs(
 
     if (aspect.workflows) {
         for (const wf of aspect.workflows) {
-            handlerVotes.push(...(await wf(i, diffs, aspect) || []));
+            try {
+                handlerVotes.push(...(await wf(i, diffs, aspect) || []));
+            } catch (e) {
+                logger.warn(`Aspect workflow failed: ${e.message}`);
+            }
         }
     }
 
