@@ -242,7 +242,7 @@ class LazyPullRequest {
     }
 
     get body(): string {
-        return `${this.options.body || this.parameters.body || this.title}\n\n[atomist:generated]`;
+        return `${this.options.body || this.parameters.body || this.title}\n\n[atomist:generated] [branch:delete-on-close]`;
     }
 
     get message(): string {
