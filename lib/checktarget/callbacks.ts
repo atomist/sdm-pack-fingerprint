@@ -15,8 +15,8 @@
  */
 
 import {
+    addressSlackChannelsFromContext,
     FailurePromise,
-    GitHubRepoRef,
     HandlerContext,
     logger,
     SuccessPromise,
@@ -47,7 +47,6 @@ import {
 } from "../machine/fingerprintSupport";
 import {
     getDiffSummary,
-    GitCoordinate,
     updateableMessage,
 } from "../support/messages";
 import { GetFpTargets } from "../typings/types";
@@ -88,22 +87,13 @@ function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff): (fingerprin
     };
 }
 
-/**
- * just trying to capture how we update Goals
- *
- * @param ctx
- * @param diff
- * @param goal
- * @param params
- */
-async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, params: UpdateSdmGoalParams): Promise<any> {
-    logger.info(`edit goal ${goal.name} to be in state ${params.state} for ${diff.owner}, ${diff.repo}, ${diff.sha}, ${diff.providerId}`);
+async function editGoal(pli: PushImpactListenerInvocation, goal: Goal, params: UpdateSdmGoalParams): Promise<any> {
     try {
-        const id = new GitHubRepoRef(diff.owner, diff.repo, diff.sha);
-        const complianceGoal = await findSdmGoalOnCommit(ctx, id, diff.providerId, goal);
+        const { id, push: { repo: { org: { provider: { providerId } } } } } = pli;
+        const complianceGoal = await findSdmGoalOnCommit(pli.context, id, providerId, goal);
         logger.info(`found compliance goal in phase ${complianceGoal.phase}`);
         if (!(complianceGoal.phase === SdmGoalState.failure)) {
-            return updateGoal(ctx, complianceGoal, params);
+            return updateGoal(pli.context, complianceGoal, params);
         } else {
             return SuccessPromise;
         }
@@ -124,22 +114,25 @@ async function editGoal(ctx: HandlerContext, diff: GitCoordinate, goal: Goal, pa
  * @param config
  */
 export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfig):
-    (pli: PushImpactListenerInvocation, votes: Vote[], coord: GitCoordinate, channel: string) => Promise<any> {
+    (pli: PushImpactListenerInvocation, votes: Vote[], channel: string) => Promise<any> {
 
-    return async (pli: PushImpactListenerInvocation, vs: Vote[], coord, channel) => {
+    return async (pli: PushImpactListenerInvocation, vs: Vote[], channel) => {
 
         const result = voteResults<Vote>(vs);
 
         let goalState;
         if (result.failed) {
 
+            if (!!channel) {
+                // clean up old message
+                await pli.context.messageClient.delete(
+                    await addressSlackChannelsFromContext(pli.context, channel),
+                    { id: updateableMessage(pli.configuration.name, pli.push.repo.owner, pli.push.repo.name, pli.push.branch, pli.push.before.sha) });
+            }
+
             await config.messageMaker({
                 pli,
-                msgId: updateableMessage(
-                    [
-                        ...result.failedVotes.map(vote => vote.fingerprint.sha),
-                        ...result.failedVotes.map(vote => vote.fpTarget.sha)],
-                    coord),
+                msgId: updateableMessage(pli.configuration.name, pli.push.repo.owner, pli.push.repo.name, pli.push.branch, pli.push.after.sha),
                 channel,
                 voteResults: result,
                 aspects: toArray(config.aspects || []),
@@ -161,8 +154,7 @@ export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfi
         if (config.complianceGoal) {
 
             return editGoal(
-                pli.context,
-                coord,
+                pli,
                 config.complianceGoal,
                 goalState,
             );

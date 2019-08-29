@@ -28,7 +28,6 @@ import { getFPTargets } from "../adhoc/preferences";
 import { votes } from "../checktarget/callbacks";
 import { messageMaker } from "../checktarget/messageMaker";
 import { VirtualProjectFinder } from "../fingerprints/virtual-project/VirtualProjectFinder";
-import { GitCoordinate } from "../support/messages";
 import {
     GetAllFpsOnSha,
     GetFpTargets,
@@ -227,18 +226,9 @@ export function fingerprintRunner(
     const targetDiffBallot = votes(options);
 
     const tallyVotes = async (vts: Vote[], fingerprintHandlers: FingerprintHandler[], i: PushImpactListenerInvocation, info: MissingInfo) => {
-        const coordinate: GitCoordinate = {
-            owner: i.push.repo.owner,
-            repo: i.push.repo.name,
-            sha: i.push.after.sha,
-            providerId: info.providerId,
-            branch: i.push.branch,
-        };
-
         return targetDiffBallot(
             i,
             vts,
-            coordinate,
             info.channel);
     };
 
