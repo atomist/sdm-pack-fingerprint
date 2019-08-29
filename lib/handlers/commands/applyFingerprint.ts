@@ -125,7 +125,7 @@ async function pushFingerprint(
                     await papi.addressChannels(
                         slackErrorMessage(
                             "Apply Policy",
-                            `Policy application to ${codeLine(papi.push.push.after.sha.slice(0, 7))} of ${
+                            `Policy application to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
                                 bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} failed`,
                             papi.context),
                         { id: papi.parameters.msgId });
@@ -148,14 +148,14 @@ async function pushFingerprint(
                     await papi.addressChannels(
                         slackInfoMessage(
                             "Apply Policy",
-                            `Policy application to ${codeLine(papi.push.push.after.sha.slice(0, 7))} of ${
+                            `Policy application to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
                                 bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} made no changes`),
                         { id: papi.parameters.msgId });
                 } else {
                     await papi.addressChannels(
                         slackSuccessMessage(
                             "Apply Policy",
-                            `Successfully applied policy to ${codeLine(papi.push.push.after.sha.slice(0, 7))} of ${
+                            `Successfully applied policy to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
                                 bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)}`),
                         { id: papi.parameters.msgId });
                 }
@@ -178,7 +178,7 @@ async function pushFingerprint(
             await papi.addressChannels(
                 slackErrorMessage(
                     "Apply Policy",
-                    `Policy application to ${codeLine(papi.push.commit.sha.slice(0, 7))} of ${
+                    `Policy application to ${(await p.gitStatus()).sha.slice(0, 7)} of ${
                         bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} failed`,
                     papi.context),
                 { id: papi.parameters.msgId });
