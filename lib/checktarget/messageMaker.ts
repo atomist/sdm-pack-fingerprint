@@ -38,13 +38,9 @@ import {
     Attachment,
     bold,
     codeLine,
-    italic,
     SlackMessage,
 } from "@atomist/slack-messages";
-import {
-    fromName,
-    toName,
-} from "../adhoc/preferences";
+import { toName } from "../adhoc/preferences";
 import {
     ApplyAllFingerprintsName,
     ApplyTargetFingerprintName,
