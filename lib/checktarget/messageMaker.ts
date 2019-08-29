@@ -16,7 +16,6 @@
 
 import {
     addressSlackChannelsFromContext,
-    addressSlackUsersFromContext,
     addressWeb,
     buttonForCommand,
     HandlerResult,
@@ -125,7 +124,7 @@ export function ignoreCommand(aspects: Aspect[]): CommandHandlerRegistration<Ign
         listener: async (i: CommandListenerInvocation<IgnoreParameters>) => {
             // Clean up the message when we click Dismiss
             await i.context.messageClient.delete(
-                await addressSlackUsersFromContext(i.context, i.parameters.channel),
+                await addressSlackChannelsFromContext(i.context, i.parameters.channel),
                 { id: i.parameters.msgId });
         },
     };
