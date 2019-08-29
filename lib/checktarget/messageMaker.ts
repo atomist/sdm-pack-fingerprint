@@ -16,15 +16,18 @@
 
 import {
     addressSlackChannelsFromContext,
+    addressSlackUsersFromContext,
     addressWeb,
     buttonForCommand,
     HandlerResult,
+    MappedParameters,
     ParameterType,
 } from "@atomist/automation-client";
 import {
     actionableButton,
     CommandHandlerRegistration,
     CommandListenerInvocation,
+    DeclarationType,
     PushImpactListenerInvocation,
     slackFooter,
     slackInfoMessage,
@@ -111,7 +114,7 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
 
 interface IgnoreParameters extends ParameterType {
     msgId: string;
-    fingerprints: string;
+    channel: string;
 }
 
 export const IgnoreCommandName = "IgnoreFingerprintDiff";
@@ -119,31 +122,15 @@ export const IgnoreCommandName = "IgnoreFingerprintDiff";
 export function ignoreCommand(aspects: Aspect[]): CommandHandlerRegistration<IgnoreParameters> {
     return {
         name: IgnoreCommandName,
-        parameters: { msgId: { required: false }, fingerprints: { required: false } },
+        parameters: {
+            msgId: { required: false },
+            channel: { uri: MappedParameters.SlackChannelName, declarationType: DeclarationType.Mapped },
+        },
         listener: async (i: CommandListenerInvocation<IgnoreParameters>) => {
-
-            const fingerprints = i.parameters.fingerprints.split(",").map(f => {
-                const { type, name } = fromName(f);
-                const aspect = aspectOf({ type }, aspects);
-                if (!!aspect && !!aspect.toDisplayableFingerprintName) {
-                    return `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
-                } else {
-                    return codeLine(f);
-                }
-            });
-
-            const msg = slackInfoMessage(
-                "Policy Updates",
-                `Dismissed policy updates for:
-
-${fingerprints.join("\n")}`,
-            );
-
-            // collapse the message
-            await i.addressChannels(
-                msg,
-                { id: i.parameters.msgId },
-            );
+            // Clean up the message when we click Dismiss
+            await i.context.messageClient.delete(
+                await addressSlackUsersFromContext(i.context, i.parameters.channel),
+                { id: i.parameters.msgId });
         },
     };
 }
@@ -154,8 +141,6 @@ function ignoreButton(params: MessageMakerParams): Action {
         IgnoreCommandName,
         {
             msgId: params.msgId,
-            fingerprints: params.voteResults.failedVotes
-                .map(vote => `${vote.fpTarget.type}::${vote.fpTarget.name}`).join(","),
         },
     );
 }
