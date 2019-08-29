@@ -29,6 +29,7 @@ import {
     confirmEditedness,
     createJob,
     PushAwareParametersInvocation,
+    slackErrorMessage,
     slackInfoMessage,
     slackSuccessMessage,
     SoftwareDeliveryMachine,
@@ -91,7 +92,7 @@ async function pushFingerprint(
 
             // Figure out if the edit was successful or not
             let editResult;
-            if (isProject(result) ) {
+            if (isProject(result)) {
                 editResult = successfulEdit(result, !(await p.gitStatus()).isClean);
             } else if (!result) {
                 editResult = successfulEdit(p, !(await p.gitStatus()).isClean);
@@ -120,6 +121,15 @@ async function pushFingerprint(
                         },
                     };
                     await sendPolicyLog(log, papi.context);
+
+                    await papi.addressChannels(
+                        slackErrorMessage(
+                            "Apply Policy",
+                            `Policy application to ${codeLine(papi.push.commit.sha.slice(0, 7))} of ${
+                                bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} failed`,
+                            papi.context),
+                        { id: papi.parameters.msgId });
+
                 } else if (!editResult.edited) {
                     const message = `Application of policy ${value} to ${p.id.owner}/${p.id.repo} made no changes`;
                     const log: PolicyLog = {
@@ -134,6 +144,20 @@ async function pushFingerprint(
                         },
                     };
                     await sendPolicyLog(log, papi.context);
+
+                    await papi.addressChannels(
+                        slackInfoMessage(
+                            "Apply Policy",
+                            `Policy application to ${codeLine(papi.push.commit.sha.slice(0, 7))} of ${
+                                bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} made no changes`),
+                        { id: papi.parameters.msgId });
+                } else {
+                    await papi.addressChannels(
+                        slackSuccessMessage(
+                            "Apply Policy",
+                            `Successfully applied policy to ${codeLine(papi.push.commit.sha.slice(0, 7))} of ${
+                                bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)}`),
+                        { id: papi.parameters.msgId });
                 }
             }
         } catch (e) {
@@ -150,6 +174,14 @@ async function pushFingerprint(
                 },
             };
             await sendPolicyLog(log, papi.context);
+
+            await papi.addressChannels(
+                slackErrorMessage(
+                    "Apply Policy",
+                    `Policy application to ${codeLine(papi.push.commit.sha.slice(0, 7))} of ${
+                        bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} failed`,
+                    papi.context),
+                { id: papi.parameters.msgId });
 
             throw e;
         }
