@@ -24,6 +24,7 @@ import {
     ExtensionPack,
     Goal,
     metadata,
+    PushAwareParametersInvocation,
     PushImpact,
     SoftwareDeliveryMachine,
     TransformPresentation,
@@ -198,7 +199,7 @@ export interface PullRequestTransformPresentationOptions {
  */
 export function createPullRequestTransformPresentation(options: PullRequestTransformPresentationOptions = {})
     : TransformPresentation<ApplyTargetParameters> {
-    return (ci, p) => new LazyPullRequest(options, ci.parameters, p);
+    return (ci, p) => new LazyPullRequest(options, ci, p);
 }
 
 /**
@@ -211,22 +212,22 @@ export function createPullRequestTransformPresentation(options: PullRequestTrans
 class LazyPullRequest {
 
     private readonly fingerprint: string;
-
+    private readonly parameters: ApplyTargetParameters;
     private readonly branchName: string;
 
     constructor(private readonly options: PullRequestTransformPresentationOptions,
-                private readonly parameters: ApplyTargetParameters,
+                private readonly ci: PushAwareParametersInvocation<ApplyTargetParameters>,
                 private readonly project: Project) {
-
-        this.branchName = `${this.options.branchPrefix || "atomist"}/policy-application/${this.project.id.branch}`;
+        this.parameters = this.ci.parameters;
+        this.branchName = `${this.options.branchPrefix || "atomist"}/${this.ci.context.workspaceId}/policy-application/${this.project.id.branch}`;
 
         this.fingerprint = (this.parameters.fingerprint || this.parameters.targetfingerprint || this.parameters.type) as string;
         if (!!this.fingerprint) {
-            this.branchName = `${this.options.branchPrefix || "atomist"}/${this.fingerprint.split("::")[0]}/${this.project.id.branch}`;
+            this.branchName = `${this.options.branchPrefix || "atomist"}/${this.ci.context.workspaceId}/${this.fingerprint.split("::")[0]}/${this.project.id.branch}`;
         } else {
             this.fingerprint = this.parameters.fingerprints as string;
             if (!!this.fingerprint) {
-                this.branchName = `${this.options.branchPrefix || "atomist"}/${
+                this.branchName = `${this.options.branchPrefix || "atomist"}/${this.ci.context.workspaceId}/${
                     _.uniq(this.fingerprint.split(",").map(f => f.split("::")[0])).join(",")}/${this.project.id.branch}`;
                 this.fingerprint = this.fingerprint.split(",").map(f => f.trim()).join(", ");
             }
@@ -234,7 +235,7 @@ class LazyPullRequest {
     }
 
     get branch(): string {
-        return this.branchName;
+        return this.branchName.toLowerCase();
     }
 
     get title(): string {
