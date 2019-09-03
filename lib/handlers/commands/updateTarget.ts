@@ -210,7 +210,7 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
                 manage: {
                     action: ManagePolicyAction.Set,
                     author,
-                    reason: cli.parameters.reason || `Set policy to ${value}`,
+                    reason: cli.parameters.reason || `Set target to ${value}`,
                     targetSha: fp.sha,
                     targetValue: value,
                 },
@@ -221,8 +221,8 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
                 return askAboutBroadcast(cli, aspects, fingerprint, cli.parameters.msgId);
             } else {
                 await cli.addressChannels(slackSuccessMessage(
-                    "New Fingerprint Target",
-                    `Successfully set new target for fingerprint ${codeLine(toName(fp.type, fp.name))}`));
+                    "Policy Target",
+                    `Successfully set new target for policy ${codeLine(toName(fp.type, fp.name))}`));
             }
         },
     };
@@ -289,8 +289,8 @@ export function deleteTargetFingerprint(sdm: SoftwareDeliveryMachine): CommandHa
             await deleteFPTarget(cli.context.graphClient)(cli.parameters.type, cli.parameters.name);
             await cli.addressChannels(
                 slackSuccessMessage(
-                    "Remove Policy",
-                    `Successfully set new target for fingerprint ${codeLine(toName(cli.parameters.type, cli.parameters.name))}`,
+                    "Remove Target",
+                    `Successfully disabled target for policy ${codeLine(toName(cli.parameters.type, cli.parameters.name))}`,
                 ),
             );
 
@@ -303,7 +303,7 @@ export function deleteTargetFingerprint(sdm: SoftwareDeliveryMachine): CommandHa
                 manage: {
                     action: ManagePolicyAction.Unset,
                     author,
-                    reason: cli.parameters.reason || "Disabled policy",
+                    reason: cli.parameters.reason || "Disabled target",
                 },
             };
             await sendPolicyLog(log, cli.context);

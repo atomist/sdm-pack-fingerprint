@@ -75,7 +75,7 @@ export type MessageMaker = (params: MessageMakerParams) => Promise<HandlerResult
  */
 function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
     return slackInfoMessage(
-        orDefault(() => vote.summary.title, "Policy Update"),
+        orDefault(() => vote.summary.title, "Target Update"),
         orDefault(() => vote.summary.description, vote.text), {
             actions: [
                 buttonForCommand(
@@ -94,7 +94,7 @@ function oneFingerprint(params: MessageMakerParams, vote: Vote): Attachment {
                         },
                     }),
                 buttonForCommand(
-                    { text: "Set Policy" },
+                    { text: "Set Target" },
                     UpdateTargetFingerprintName,
                     {
                         msgId: params.msgId,
@@ -187,10 +187,10 @@ export const messageMaker: MessageMaker = async params => {
         attachments: [
             {
                 text: `${params.voteResults.failedVotes.length === 1 ? "Difference" : "Differences"} from set ${
-                    params.voteResults.failedVotes.length === 1 ? "policy" : "policies"} detected on ${
+                    params.voteResults.failedVotes.length === 1 ? "target" : "targets"} detected on ${
                     codeLine(push.after.sha.slice(0, 7))} of ${
                     bold(`${push.repo.owner}/${push.repo.name}/${push.branch}`)}`,
-                fallback: "Policy differences",
+                fallback: "Target differences",
             },
             ...params.voteResults.failedVotes.map(vote => oneFingerprint(params, vote)),
         ],

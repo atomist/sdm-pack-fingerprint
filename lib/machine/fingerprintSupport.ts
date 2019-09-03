@@ -227,7 +227,7 @@ class LazyPullRequest {
                 private readonly ci: PushAwareParametersInvocation<ApplyTargetParameters>,
                 private readonly project: Project) {
         this.parameters = this.ci.parameters;
-        this.branchName = `${this.options.branchPrefix || "atomist"}/${this.ci.context.workspaceId}/policy-application/${this.project.id.branch}`;
+        this.branchName = `${this.options.branchPrefix || "atomist"}/${this.ci.context.workspaceId}/policy/${this.project.id.branch}`;
 
         this.fingerprint = (this.parameters.fingerprint || this.parameters.targetfingerprint || this.parameters.type) as string;
         if (!!this.fingerprint) {
@@ -247,7 +247,7 @@ class LazyPullRequest {
     }
 
     get title(): string {
-        return this.options.title || this.parameters.title || `Apply policy (${this.fingerprint})`;
+        return this.options.title || this.parameters.title || `Apply target (${this.fingerprint})`;
     }
 
     get body(): string {

@@ -82,16 +82,16 @@ export function getDiffSummary(diff: Diff, target: FP, aspect: Aspect): undefine
 export function applyFingerprintTitle(fp: FP, aspects: Aspect[]): string {
     const aspect = aspectOf(fp, aspects);
     if (!!aspect) {
-        return `Apply policy for ${displayName(aspect, fp)}`;
+        return `Apply target for ${displayName(aspect, fp)}`;
     } else {
-        return `Apply policy for ${fp.name}`;
+        return `Apply target for ${fp.name}`;
     }
 }
 
 export function prBodyFromFingerprint(fp: FP, aspects: Aspect[]): string {
     const aspect = aspectOf(fp, aspects);
     const fingerprint = toName(fp.type, fp.name);
-    const intro = `Apply policy ${codeLine(fingerprint)}:`;
+    const intro = `Apply target ${codeLine(fingerprint)}:`;
     const description = `${displayName(aspect, fp)} (${displayValue(aspect, fp)})`;
     return `${intro}
 
@@ -109,7 +109,7 @@ export function prBody(vote: Vote, aspects: Aspect[]): string {
             () => vote.summary.description,
             `no summary`);
     const fingerprint = toName(vote.fpTarget.type, vote.fpTarget.name);
-    const intro = `Apply policy ${codeLine(fingerprint)}:`;
+    const intro = `Apply target ${codeLine(fingerprint)}:`;
     const aspect = aspectOf(vote.fpTarget, aspects);
     const description = `${displayName(aspect, vote.fpTarget)} (${displayValue(aspect, vote.fpTarget)})`;
     return `${intro}

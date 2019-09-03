@@ -107,7 +107,7 @@ async function pushFingerprint(
                     const error = !!editResult.error && !!editResult.error.message
                         ? `:\n\n${editResult.error.message}`
                         : "";
-                    const message = `Application of policy ${value} to ${p.id.owner}/${p.id.repo} failed${error}`;
+                    const message = `Application of target ${value} to ${p.id.owner}/${p.id.repo} failed${error}`;
 
                     const log: PolicyLog = {
                         type: fp.type,
@@ -124,14 +124,14 @@ async function pushFingerprint(
 
                     await papi.addressChannels(
                         slackErrorMessage(
-                            "Apply Policy",
-                            `Policy application to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
+                            "Apply Target",
+                            `Target application to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
                                 bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} failed`,
                             papi.context),
                         { id: papi.parameters.msgId });
 
                 } else if (!editResult.edited) {
-                    const message = `Application of policy ${value} to ${p.id.owner}/${p.id.repo} made no changes`;
+                    const message = `Application of target ${value} to ${p.id.owner}/${p.id.repo} made no changes`;
                     const log: PolicyLog = {
                         type: fp.type,
                         name: fp.name,
@@ -147,15 +147,15 @@ async function pushFingerprint(
 
                     await papi.addressChannels(
                         slackInfoMessage(
-                            "Apply Policy",
-                            `Policy application to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
+                            "Apply Target",
+                            `Target application to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
                                 bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} made no changes`),
                         { id: papi.parameters.msgId });
                 } else {
                     await papi.addressChannels(
                         slackSuccessMessage(
-                            "Apply Policy",
-                            `Successfully applied policy to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
+                            "Apply Target",
+                            `Successfully applied target to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
                                 bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)}`),
                         { id: papi.parameters.msgId });
                 }
@@ -177,8 +177,8 @@ async function pushFingerprint(
 
             await papi.addressChannels(
                 slackErrorMessage(
-                    "Apply Policy",
-                    `Policy application to ${(await p.gitStatus()).sha.slice(0, 7)} of ${
+                    "Apply Target",
+                    `Target application to ${(await p.gitStatus()).sha.slice(0, 7)} of ${
                         bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} failed`,
                     papi.context),
                 { id: papi.parameters.msgId });
@@ -207,8 +207,8 @@ export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<Appl
         }
 
         const message = slackInfoMessage(
-            "Apply Policy",
-            `Applying policy to ${bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}:`)}
+            "Apply Target",
+            `Applying target to ${bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}:`)}
 
 ${details}`);
 
@@ -253,8 +253,8 @@ export function runFingerprintAppliersBySha(aspects: Aspect[]): CodeTransform<Ap
         }
 
         const message = slackInfoMessage(
-            "Apply Policy",
-            `Applying policy to ${bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}:`)}
+            "Apply Target",
+            `Applying target to ${bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}:`)}
 
 ${details}`);
 
@@ -503,7 +503,7 @@ export function broadcastFingerprintMandate(
 
             await createJob<ApplyTargetFingerprintParameters>({
                 command: ApplyTargetFingerprintName,
-                description: `Applying policy ${value} to ${refs.length} affected ${refs.length === 1 ? "repository" : "repositories"}`,
+                description: `Applying target ${value} to ${refs.length} affected ${refs.length === 1 ? "repository" : "repositories"}`,
                 name: `ApplyPolicy/${i.parameters.fingerprint}`,
                 parameters: refs.map(r => ({
                     title: i.parameters.title,
@@ -520,7 +520,7 @@ export function broadcastFingerprintMandate(
             }, i.context);
 
             const message = slackSuccessMessage(
-                "Boardcast Policy Update",
+                "Broadcast Target Update",
                 `Successfully scheduled job to apply target for fingerprint ${codeLine(i.parameters.fingerprint)} to $
                     refs.length} ${refs.length > 1 ? "repositories" : "repository"}`);
 

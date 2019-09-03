@@ -79,8 +79,8 @@ ${codeBlock(`${aspect.toDisplayableFingerprintName(fp.name)} (${displayValue(asp
 
     const id = msgId || guid();
     const message = slackQuestionMessage(
-        "Broadcast Policy",
-        `Shall we send every affected repository a nudge or pull request for the new policy?
+        "Broadcast Target",
+        `Shall we send every affected repository a nudge or pull request for the new target?
 
 ${details}`,
         {
@@ -143,7 +143,7 @@ function targetUpdateMessage(cli: CommandListenerInvocation<BroadcastFingerprint
         details = codeLine(toName(type, name));
     }
 
-    return `${user(cli.parameters.author)} has updated the policy of ${details}.
+    return `${user(cli.parameters.author)} has updated the target of ${details}.
 
 The reason provided is:
 
@@ -198,7 +198,7 @@ function broadcastNudge(aspects: Aspect[]): CommandListener<BroadcastFingerprint
             },
             (owner: string, repo: string, channel: string) => {
                 const { type, name } = fromName(cli.parameters.fingerprint);
-                const message = slackWarningMessage("Policy Update", targetUpdateMessage(cli, aspects, type, name), cli.context);
+                const message = slackWarningMessage("Target Update", targetUpdateMessage(cli, aspects, type, name), cli.context);
 
                 const aspect = aspectOf({ type }, aspects);
                 let details;
@@ -209,8 +209,8 @@ function broadcastNudge(aspects: Aspect[]): CommandListener<BroadcastFingerprint
                 }
 
                 message.attachments.push({
-                    text: `Shall we update repository ${bold(`${owner}/${repo}`)} to the new policy for ${details}?`,
-                    fallback: `Policy Update`,
+                    text: `Shall we update repository ${bold(`${owner}/${repo}`)} to the new target for ${details}?`,
+                    fallback: `Target Update`,
                     actions: [
                         buttonForCommand(
                             {
