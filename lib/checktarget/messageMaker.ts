@@ -213,10 +213,6 @@ export const messageMaker: MessageMaker = async params => {
     message.attachments[message.attachments.length - 1].ts = slackTs();
 
     if (!!params.channel) {
-        // Clean up old messages and make sure we write it again
-        /* await params.ctx.messageClient.delete(
-            await addressSlackChannelsFromContext(params.ctx, params.channel),
-            { id: params.msgId }); */
         return params.pli.context.messageClient.send(
             message,
             await addressSlackChannelsFromContext(params.pli.context, params.channel),
