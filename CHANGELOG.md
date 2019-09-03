@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased](https://github.com/atomist/sdm-pack-fingerprints/compare/4.0.4...HEAD)
 
+### Added
+
+-   Add support for dynamic aspect discovery. [#137](https://github.com/atomist/sdm-pack-fingerprint/issues/137)
+
 ### Changed
 
 -   Update Aspect/Fingerprint signatures. [#118](https://github.com/atomist/sdm-pack-fingerprints/issues/118)
