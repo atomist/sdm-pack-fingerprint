@@ -26,6 +26,7 @@ import {
     metadata,
     PushAwareParametersInvocation,
     PushImpact,
+    PushListenerInvocation,
     SoftwareDeliveryMachine,
     TransformPresentation,
 } from "@atomist/sdm";
@@ -140,6 +141,8 @@ export function diffOnlyHandler(handler: FingerprintDiffHandler): FingerprintDif
     };
 }
 
+export type AspectsFactory = (p: Project, pli: PushListenerInvocation, aspects: Aspect[]) => Promise<Aspect[]>;
+
 /**
  * Options to configure the Fingerprint support
  */
@@ -154,6 +157,11 @@ export interface FingerprintOptions {
      * Aspects we are managing
      */
     aspects: Aspect | Aspect[];
+
+    /**
+     * Optionally add aspects based on current push
+     */
+    aspectsFactory?: AspectsFactory;
 
     transformPresentation?: TransformPresentation<ApplyTargetParameters>;
 
@@ -277,7 +285,10 @@ export interface FingerprintExtensionPack extends ExtensionPack {
 export function fingerprintSupport(options: FingerprintOptions): FingerprintExtensionPack {
     const configuredAspects: Aspect[] = toArray(options.aspects)
         .map(a => makeVirtualProjectAware(a, options.virtualProjectFinder));
-    const fingerprintComputer = createFingerprintComputer(configuredAspects, options.virtualProjectFinder);
+    const fingerprintComputer = createFingerprintComputer(
+        configuredAspects,
+        options.virtualProjectFinder,
+        options.aspectsFactory);
     return {
         ...metadata(),
         fingerprintComputer,

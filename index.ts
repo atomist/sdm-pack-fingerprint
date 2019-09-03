@@ -19,6 +19,7 @@ export {
     fingerprintSupport,
     forFingerprints,
     diffOnlyHandler,
+    AspectsFactory,
     DefaultTargetDiffHandler,
     DefaultTransformPresentation,
     PullRequestTransformPresentationOptions,
