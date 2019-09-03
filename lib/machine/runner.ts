@@ -108,7 +108,7 @@ async function handleDiffs(
         }
     }
 
-    if (aspect.workflows) {
+    if (aspect && aspect.workflows) {
         for (const wf of aspect.workflows) {
             try {
                 handlerVotes.push(...(await wf(i, diffs, aspect) || []));
@@ -183,7 +183,7 @@ export type FingerprintComputer = (p: Project, i: PushImpactListenerInvocation) 
 
 export function createFingerprintComputer(aspects: Aspect[],
                                           virtualProjectFinder?: VirtualProjectFinder,
-                                          aspectFactory?: AspectsFactory): FingerprintComputer {
+                                          aspectsFactory?: AspectsFactory): FingerprintComputer {
     return async (p, i) => {
         const extracted: FP[] = [];
         const allAspects = [...aspects];
@@ -192,8 +192,8 @@ export function createFingerprintComputer(aspects: Aspect[],
             await virtualProjectFinder.findVirtualProjectInfo(p);
         }
 
-        if (aspectFactory) {
-            const dynamicAspects = await aspectFactory(p, i, aspects) || [];
+        if (aspectsFactory) {
+            const dynamicAspects = await aspectsFactory(p, i, aspects) || [];
             if (virtualProjectFinder) {
                 dynamicAspects.forEach(da => makeVirtualProjectAware(da, virtualProjectFinder));
             }
@@ -261,13 +261,20 @@ export function fingerprintRunner(
         await publishFingerprints(i, allFps, previous);
 
         try {
+
+            const allAspects = [...aspects];
+            if (!!options && options.aspectsFactory) {
+                const dynamicAspects = await options.aspectsFactory(p, i, aspects) || [];
+                allAspects.push(...dynamicAspects);
+            }
+
             const info = await missingInfo(i);
             if (!!info) {
                 const byType = _.groupBy(allFps, fp => fp.type);
 
                 const allVotes: Vote[] = [];
                 for (const [type, fps] of Object.entries(byType)) {
-                    const fpAspect = aspects.find(a => a.name === type);
+                    const fpAspect = allAspects.find(a => a.name === type);
                     allVotes.push(...(await handleDiffs(fps, previous, info, handlers, fpAspect, i) || []));
                 }
 
