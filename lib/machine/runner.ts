@@ -24,7 +24,10 @@ import { PushImpactListenerInvocation } from "@atomist/sdm";
 import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
 import { PublishFingerprints } from "../adhoc/fingerprints";
-import { getFPTargets } from "../adhoc/preferences";
+import {
+    getFPTargets,
+    toName,
+} from "../adhoc/preferences";
 import { votes } from "../checktarget/callbacks";
 import { messageMaker } from "../checktarget/messageMaker";
 import { makeVirtualProjectAware } from "../fingerprints/virtual-project/makeVirtualProjectAware";
@@ -202,9 +205,19 @@ export function createFingerprintComputer(aspects: Aspect[],
 
         for (const x of allAspects) {
             try {
-                const fpOrFps = toArray(await x.extract(p, i));
-                if (fpOrFps) {
-                    extracted.push(...fpOrFps);
+                const fps = toArray(await x.extract(p, i));
+                if (fps) {
+                    fps.forEach(fp => {
+                        if (typeof fp.data !== "string") {
+                            if (x.toDisplayableFingerprint) {
+                                fp.data.displayValue = x.toDisplayableFingerprint(fp);
+                            }
+                            if (x.toDisplayableFingerprintName) {
+                                fp.data.displayName = x.toDisplayableFingerprintName(toName(fp.type, fp.name));
+                            }
+                        }
+                    });
+                    extracted.push(...fps);
                 }
             } catch (e) {
                 logger.warn(`Aspect '${x.name}' extract failed: ${e.message}`);
