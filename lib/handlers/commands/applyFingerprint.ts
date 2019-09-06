@@ -57,6 +57,7 @@ import {
 } from "../../machine/Aspect";
 import {
     aspectOf,
+    displayName,
     displayValue,
 } from "../../machine/Aspects";
 import {
@@ -499,11 +500,12 @@ export function broadcastFingerprintMandate(
             }
 
             const aspect = aspectOf({ type }, aspects);
-            const value = displayValue(aspect, fp);
+            const dValue = displayValue(aspect, fp);
+            const dName = displayName(aspect, fp);
 
             await createJob<ApplyTargetFingerprintParameters>({
                 command: ApplyTargetFingerprintName,
-                description: `Applying target ${value} to ${refs.length} affected ${refs.length === 1 ? "repository" : "repositories"}`,
+                description: `Applying target ${codeLine(dValue)} of ${bold(dName)} to ${refs.length} affected ${refs.length === 1 ? "repository" : "repositories"}`,
                 name: `ApplyPolicy/${i.parameters.fingerprint}`,
                 parameters: refs.map(r => ({
                     title: i.parameters.title,
@@ -521,7 +523,7 @@ export function broadcastFingerprintMandate(
 
             const message = slackSuccessMessage(
                 "Broadcast Target Update",
-                `Successfully scheduled job to apply target for fingerprint ${codeLine(i.parameters.fingerprint)} to $
+                `Successfully scheduled job to apply target for policy ${bold(name)} to ${
                     refs.length} ${refs.length > 1 ? "repositories" : "repository"}`);
 
             // replace the previous message where we chose this action
