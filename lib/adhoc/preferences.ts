@@ -82,7 +82,7 @@ export function setFPTarget(graphClient: GraphClient): (type: string, name: stri
     };
 }
 
-export function deleteFPTarget(graphClient: GraphClient): (type: string, name: string) => Promise<SetFpTarget.Mutation> {
+export function deleteFPTarget(graphClient: GraphClient): (type: string, name: string) => Promise<DeleteFpTarget.Mutation> {
     return (type, name) => {
         return graphClient.mutate<DeleteFpTarget.Mutation, DeleteFpTarget.Variables>(
             {
