@@ -54,7 +54,6 @@ export {
     messageMaker,
 } from "./lib/checktarget/messageMaker";
 export {
-    sha256,
     consistentHash,
     commaSeparatedList,
 } from "@atomist/clj-editors";
@@ -80,6 +79,9 @@ export {
     ApplyTargetParameters,
 } from "./lib/handlers/commands/applyFingerprint";
 export * from "./lib/fingerprints/jsonFiles";
+export {
+    sha256
+} from "./lib/support/hash";
 
 export {
     RebaseFailure,
