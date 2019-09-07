@@ -80,7 +80,7 @@ export {
 } from "./lib/handlers/commands/applyFingerprint";
 export * from "./lib/fingerprints/jsonFiles";
 export {
-    sha256
+    sha256,
 } from "./lib/support/hash";
 
 export {
