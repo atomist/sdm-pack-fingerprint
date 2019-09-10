@@ -29,14 +29,14 @@
     "lodash": "^4.17.15"
   },
   "peerDependencies": {
-    "@atomist/automation-client": "^1.6.3",
-    "@atomist/sdm": "^1.6.2",
-    "@atomist/sdm-core": "^1.6.2"
+    "@atomist/automation-client": "^1.7.0",
+    "@atomist/sdm": "^1.7.0",
+    "@atomist/sdm-core": "^1.7.0"
   },
   "devDependencies": {
-    "@atomist/automation-client": "1.6.3-master.20190905172037",
-    "@atomist/sdm": "1.6.2-master.20190905161334",
-    "@atomist/sdm-core": "1.6.2-master.20190905165129",
+    "@atomist/automation-client": "^1.7.0",
+    "@atomist/sdm": "^1.7.0",
+    "@atomist/sdm-core": "^1.7.0",
     "@types/lodash": "^4.14.138",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.4",
