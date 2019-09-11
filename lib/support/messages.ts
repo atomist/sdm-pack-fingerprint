@@ -92,7 +92,7 @@ export function prBodyFromFingerprint(fp: FP, aspects: Aspect[]): string {
     const aspect = aspectOf(fp, aspects);
     const fingerprint = toName(fp.type, fp.name);
     const intro = `Apply target ${codeLine(fingerprint)}:`;
-    const description = `${displayName(aspect, fp)} (${displayValue(aspect, fp)})`;
+    const description = `${displayName(aspect, fp)} > ${displayValue(aspect, fp)}`;
     return `${intro}
 
 ${italic(aspect.displayName)}
@@ -111,7 +111,7 @@ export function prBody(vote: Vote, aspects: Aspect[]): string {
     const fingerprint = toName(vote.fpTarget.type, vote.fpTarget.name);
     const intro = `Apply target ${codeLine(fingerprint)}:`;
     const aspect = aspectOf(vote.fpTarget, aspects);
-    const description = `${displayName(aspect, vote.fpTarget)} (${displayValue(aspect, vote.fpTarget)})`;
+    const description = `${displayName(aspect, vote.fpTarget)} > ${displayValue(aspect, vote.fpTarget)}`;
     return `${intro}
 
 **${title}**
