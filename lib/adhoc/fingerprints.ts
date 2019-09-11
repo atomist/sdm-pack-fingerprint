@@ -20,11 +20,11 @@ import {
     QueryNoCacheOptions,
     RepoRef,
 } from "@atomist/automation-client";
-import { partitionByFeature } from "@atomist/clj-editors";
 import {
     PushImpactListenerInvocation,
     SdmContext,
 } from "@atomist/sdm";
+import * as _ from "lodash";
 import {
     Aspect,
     FP,
@@ -144,24 +144,34 @@ export const sendFingerprintsToAtomistFor: PublishFingerprintsFor = async (ctx, 
             },
         );
 
-        await partitionByFeature(fps.map(addDisplayValue(aspects)).map(addDisplayName(aspects)), async partitioned => {
-            for (const { type, additions } of partitioned) {
-                logger.info(`Upload ${additions.length} fingerprints of type ${type}`);
-                await ctx.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
-                    {
-                        name: "AddFingerprints",
-                        variables: {
-                            additions: additions.filter(a => !!a.name && !!a.sha),
-                            isDefaultBranch: (ids.Repo[0].defaultBranch === repoIdentification.branch),
-                            type,
-                            branchId: ids.Repo[0].branches[0].id,
-                            repoId: ids.Repo[0].id,
-                            sha: repoIdentification.sha,
-                        },
+        const partitioned = _.groupBy(fps, "type");
+        for (const type in partitioned) {
+            const fp = partitioned[type].filter(a => !!a.name && !!a.sha)
+                .map(addDisplayValue(aspects))
+                .map(addDisplayName(aspects));
+
+            await ctx.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
+                {
+                    name: "AddFingerprints",
+                    variables: {
+                        // Explicit mapping here to avoid more than needed
+                        additions: fp.map(f => ({
+                            type: f.type,
+                            name: f.name,
+                            data: f.data,
+                            sha: f.sha,
+                            displayName: f.displayName,
+                            displayValue: f.displayValue,
+                        })),
+                        isDefaultBranch: (ids.Repo[0].defaultBranch === repoIdentification.branch),
+                        type,
+                        branchId: ids.Repo[0].branches[0].id,
+                        repoId: ids.Repo[0].id,
+                        sha: repoIdentification.sha,
                     },
-                );
-            }
-        });
+                },
+            );
+        }
     } catch (ex) {
         logger.error(`Error sending fingerprints: ${ex.message}`);
     }
