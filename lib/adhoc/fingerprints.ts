@@ -25,8 +25,15 @@ import {
     PushImpactListenerInvocation,
     SdmContext,
 } from "@atomist/sdm";
-import { Aspect, FP } from "../machine/Aspect";
-import { aspectOf, displayName, displayValue } from "../machine/Aspects";
+import {
+    Aspect,
+    FP,
+} from "../machine/Aspect";
+import {
+    aspectOf,
+    displayName,
+    displayValue,
+} from "../machine/Aspects";
 import {
     AddFingerprints,
     FindOtherRepos,
