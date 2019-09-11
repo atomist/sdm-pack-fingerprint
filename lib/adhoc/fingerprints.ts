@@ -112,12 +112,12 @@ export type PublishFingerprintsFor = (
 function addDisplayValue(aspects: Aspect[]): (fp: FP) => FP {
     return fp => {
         if (!!fp.displayValue) {
+            return fp;
+        } else {
             return {
                 ...fp,
                 displayValue: displayValue(aspectOf(fp, aspects), fp),
             };
-        } else {
-            return fp;
         }
     };
 }
@@ -125,12 +125,12 @@ function addDisplayValue(aspects: Aspect[]): (fp: FP) => FP {
 function addDisplayName(aspects: Aspect[]): (fp: FP) => FP {
     return fp => {
         if (!!fp.displayName) {
+            return fp;
+        } else {
             return {
                 ...fp,
                 displayName: displayName(aspectOf(fp, aspects), fp),
             };
-        } else {
-            return fp;
         }
     };
 }
