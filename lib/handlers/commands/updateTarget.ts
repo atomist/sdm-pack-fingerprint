@@ -32,7 +32,10 @@ import {
     slackSuccessMessage,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
-import { codeLine } from "@atomist/slack-messages";
+import {
+    codeLine,
+    italic,
+} from "@atomist/slack-messages";
 import * as _ from "lodash";
 import { Aspect } from "../../..";
 import { queryFingerprintsByBranchRef } from "../../adhoc/fingerprints";
@@ -203,6 +206,8 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
 
             const author = _.get(cli.context.source, "slack.user.id") || _.get(cli.context.source, "web.identity.sub");
             const value = displayValue(aspectOf(fingerprint, aspects), fingerprint);
+            const dName = displayName(aspectOf(fingerprint, aspects), fingerprint);
+
             const log: PolicyLog = {
                 type,
                 name,
@@ -221,8 +226,8 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
                 return askAboutBroadcast(cli, aspects, fingerprint, cli.parameters.msgId);
             } else {
                 await cli.addressChannels(slackSuccessMessage(
-                    "Policy Target",
-                    `Successfully set new target for policy ${codeLine(toName(fp.type, fp.name))}`));
+                    "Set Target",
+                    `Successfully set new target ${italic(dName)} ${codeLine(value)}`));
             }
         },
     };
@@ -249,7 +254,6 @@ export function setTargetFingerprint(aspects: Aspect[]): CommandHandlerRegistrat
         description: "set a target fingerprint",
         paramsMaker: SetTargetFingerprintParameters,
         listener: async cli => {
-            logger.info(`set target fingerprint for ${cli.parameters.fp}`);
             const fp = {
                 user: { id: cli.context.source.slack.user.id },
                 ...JSON.parse(cli.parameters.fp),
