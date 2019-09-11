@@ -184,9 +184,10 @@ export type FingerprintRunner = (i: PushImpactListenerInvocation) => Promise<FP[
 
 export type FingerprintComputer = (p: Project, i: PushImpactListenerInvocation) => Promise<FP[]>;
 
-export function createFingerprintComputer(aspects: Aspect[],
-                                          virtualProjectFinder?: VirtualProjectFinder,
-                                          aspectsFactory?: AspectsFactory): FingerprintComputer {
+export function createFingerprintComputer(
+    aspects: Aspect[],
+    virtualProjectFinder?: VirtualProjectFinder,
+    aspectsFactory?: AspectsFactory): FingerprintComputer {
     return async (p, i) => {
         const extracted: FP[] = [];
         const allAspects = [...aspects];
@@ -271,7 +272,7 @@ export function fingerprintRunner(
         }
 
         const allFps = await computer(p, i);
-        await publishFingerprints(i, allFps, previous);
+        await publishFingerprints(i, aspects, allFps, previous);
 
         try {
 

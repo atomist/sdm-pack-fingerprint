@@ -223,15 +223,19 @@ class LazyPullRequest {
     private readonly parameters: ApplyTargetParameters;
     private readonly branchName: string;
 
-    constructor(private readonly options: PullRequestTransformPresentationOptions,
-                private readonly ci: PushAwareParametersInvocation<ApplyTargetParameters>,
-                private readonly project: Project) {
+    constructor(
+        private readonly options: PullRequestTransformPresentationOptions,
+        private readonly ci: PushAwareParametersInvocation<ApplyTargetParameters>,
+        private readonly project: Project) {
         this.parameters = this.ci.parameters;
         this.branchName = `${this.options.branchPrefix || "atomist"}/${this.ci.context.workspaceId}/policy/${this.project.id.branch}`;
 
         this.fingerprint = (this.parameters.fingerprint || this.parameters.targetfingerprint || this.parameters.type) as string;
         if (!!this.fingerprint) {
-            this.branchName = `${this.options.branchPrefix || "atomist"}/${this.ci.context.workspaceId}/${this.fingerprint.split("::")[0]}/${this.project.id.branch}`;
+            this.branchName =
+                `${this.options.branchPrefix || "atomist"}` +
+                "/" +
+                `${this.ci.context.workspaceId}/${this.fingerprint.split("::")[0]}/${this.project.id.branch}`;
         } else {
             this.fingerprint = this.parameters.fingerprints as string;
             if (!!this.fingerprint) {
@@ -320,11 +324,12 @@ export function fingerprintSupport(options: FingerprintOptions): FingerprintExte
     };
 }
 
-function configure(sdm: SoftwareDeliveryMachine,
-                   handlers: RegisterFingerprintImpactHandler[],
-                   aspects: Aspect[],
-                   transformPresentation: TransformPresentation<ApplyTargetParameters>,
-                   rebase: RebaseOptions): void {
+function configure(
+    sdm: SoftwareDeliveryMachine,
+    handlers: RegisterFingerprintImpactHandler[],
+    aspects: Aspect[],
+    transformPresentation: TransformPresentation<ApplyTargetParameters>,
+    rebase: RebaseOptions): void {
 
     sdm.addCommand(listFingerprints(sdm));
     sdm.addCommand(listFingerprint(sdm));

@@ -25,12 +25,14 @@ import {
     PushImpactListenerInvocation,
     SdmContext,
 } from "@atomist/sdm";
-import { FP } from "../machine/Aspect";
+import { Aspect, FP } from "../machine/Aspect";
+import { aspectOf, displayValue, displayName } from "../machine/Aspects";
 import {
     AddFingerprints,
     FindOtherRepos,
     GetFpByBranch,
     RepoBranchIds,
+    FingerprintInput,
 } from "../typings/types";
 
 // TODO this is not actually using the new query yet (filtering is happening in memory)
@@ -74,27 +76,60 @@ export function queryFingerprintsByBranchRef(graphClient: GraphClient):
 /**
  * Do something with fingerprints. Normally, send them to Atomist
  */
-export type PublishFingerprints = (i: PushImpactListenerInvocation, fps: FP[], previous: Record<string, FP>) => Promise<boolean>;
+export type PublishFingerprints = (i: PushImpactListenerInvocation, aspects: Aspect[], fps: FP[], previous: Record<string, FP>) => Promise<boolean>;
 
-export const sendFingerprintsToAtomist: PublishFingerprints = async (i, fps, previous) => {
-    return sendFingerprintsToAtomistFor(i, {
-        branch: i.push.branch,
-        owner: i.push.repo.owner,
-        repo: i.push.repo.name,
-        sha: i.push.after.sha,
-    }, fps, previous);
+export const sendFingerprintsToAtomist: PublishFingerprints = async (i, aspects, fps, previous) => {
+    return sendFingerprintsToAtomistFor(
+        i,
+        aspects,
+        {
+            branch: i.push.branch,
+            owner: i.push.repo.owner,
+            repo: i.push.repo.name,
+            sha: i.push.after.sha,
+        },
+        fps,
+        previous);
 };
 
-export type RepoIdentification = Required<Pick<RepoRef, "owner"| "repo" | "branch" | "sha">>;
+export type RepoIdentification = Required<Pick<RepoRef, "owner" | "repo" | "branch" | "sha">>;
 
 /**
  * Do something for fingerprints for the latest commit to the given repo
  */
-export type PublishFingerprintsFor = (ctx: SdmContext,
-                                      repoRef: RepoIdentification,
-                                      fps: FP[], previous: Record<string, FP>) => Promise<boolean>;
+export type PublishFingerprintsFor = (
+    ctx: SdmContext,
+    aspects: Aspect[],
+    repoRef: RepoIdentification,
+    fps: FP[], previous: Record<string, FP>) => Promise<boolean>;
 
-export const sendFingerprintsToAtomistFor: PublishFingerprintsFor = async (ctx, repoIdentification, fps, previous) => {
+function addDisplayValue(aspects: Aspect[]): (fp: FP) => FP {
+    return fp => {
+        if (!!fp.displayValue) {
+            return {
+                ...fp,
+                displayValue: displayValue(aspectOf(fp, aspects), fp),
+            };
+        } else {
+            return fp;
+        }
+    };
+}
+
+function addDisplayName(aspects: Aspect[]): (fp: FP) => FP {
+    return fp => {
+        if (!!fp.displayName) {
+            return {
+                ...fp,
+                displayName: displayName(aspectOf(fp, aspects), fp),
+            };
+        } else {
+            return fp;
+        }
+    };
+}
+
+export const sendFingerprintsToAtomistFor: PublishFingerprintsFor = async (ctx, aspects, repoIdentification, fps, previous) => {
     try {
         const ids: RepoBranchIds.Query = await ctx.context.graphClient.query<RepoBranchIds.Query, RepoBranchIds.Variables>(
             {
@@ -103,8 +138,8 @@ export const sendFingerprintsToAtomistFor: PublishFingerprintsFor = async (ctx, 
             },
         );
 
-        await partitionByFeature(fps, async partitioned => {
-            for (const {type, additions} of partitioned) {
+        await partitionByFeature(fps.map(addDisplayValue(aspects)).map(addDisplayName(aspects)), async partitioned => {
+            for (const { type, additions } of partitioned) {
                 logger.info(`Upload ${additions.length} fingerprints of type ${type}`);
                 await ctx.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
                     {
