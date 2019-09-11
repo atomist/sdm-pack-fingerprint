@@ -87,6 +87,9 @@ async function pushFingerprint(
     const aspect = aspectOf(fp, aspects);
     if (!!aspect && !!aspect.apply) {
 
+        const value = displayValue(aspectOf(fp, aspects), fp);
+        const dName = displayName(aspectOf(fp, aspects), fp);
+
         let result: TransformReturnable;
         try {
             result = (await aspect.apply(p, { ...papi, parameters: { fp } }));
@@ -100,8 +103,6 @@ async function pushFingerprint(
             } else {
                 editResult = await confirmEditedness(result);
             }
-
-            const value = displayValue(aspectOf(fp, aspects), fp);
 
             if (!!editResult) {
                 if (!editResult.success) {
@@ -126,7 +127,7 @@ async function pushFingerprint(
                     await papi.addressChannels(
                         slackErrorMessage(
                             "Apply Target",
-                            `Target application to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
+                            `Application of target ${italic(dName)} ${codeLine(value)} to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
                                 bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} failed`,
                             papi.context),
                         { id: papi.parameters.msgId });
@@ -149,14 +150,14 @@ async function pushFingerprint(
                     await papi.addressChannels(
                         slackInfoMessage(
                             "Apply Target",
-                            `Target application to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
+                            `Application of target ${italic(dName)} ${codeLine(value)} to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
                                 bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} made no changes`),
                         { id: papi.parameters.msgId });
                 } else {
                     await papi.addressChannels(
                         slackSuccessMessage(
                             "Apply Target",
-                            `Successfully applied target to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
+                            `Successfully applied target ${italic(dName)} ${codeLine(value)} to ${codeLine((await p.gitStatus()).sha.slice(0, 7))} of ${
                                 bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)}`),
                         { id: papi.parameters.msgId });
                 }
@@ -179,7 +180,7 @@ async function pushFingerprint(
             await papi.addressChannels(
                 slackErrorMessage(
                     "Apply Target",
-                    `Target application to ${(await p.gitStatus()).sha.slice(0, 7)} of ${
+                    `Application of target ${italic(dName)} ${codeLine(value)} to ${(await p.gitStatus()).sha.slice(0, 7)} of ${
                         bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}`)} failed`,
                     papi.context),
                 { id: papi.parameters.msgId });
@@ -199,10 +200,16 @@ export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<Appl
     return async (p, cli) => {
 
         const { type, name } = fromName(cli.parameters.targetfingerprint);
+
+        const fingerprint = await queryPreferences(
+            cli.context.graphClient,
+            type,
+            name);
+
         const aspect = aspectOf({ type }, aspects);
         let details;
         if (!!aspect && !!aspect.toDisplayableFingerprintName) {
-            details = `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
+            details = `${italic(aspect.displayName)}\n${italic(displayName(aspect, fingerprint))} > ${codeLine(displayValue(aspect, fingerprint))}`;
         } else {
             details = codeLine(cli.parameters.targetfingerprint);
         }
@@ -212,13 +219,7 @@ export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<Appl
             `Applying target to ${bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}:`)}
 
 ${details}`);
-
         await cli.addressChannels(message, { id: cli.parameters.msgId });
-
-        const fingerprint = await queryPreferences(
-            cli.context.graphClient,
-            type,
-            name);
 
         if (!cli.parameters.title) {
             cli.parameters.title = applyFingerprintTitle(fingerprint, aspects);
@@ -245,21 +246,6 @@ export function runFingerprintAppliersBySha(aspects: Aspect[]): CodeTransform<Ap
     return async (p, cli) => {
 
         const { type, name } = fromName(cli.parameters.targetfingerprint);
-        const aspect = aspectOf({ type }, aspects);
-        let details;
-        if (!!aspect && !!aspect.toDisplayableFingerprintName) {
-            details = `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
-        } else {
-            details = codeLine(cli.parameters.targetfingerprint);
-        }
-
-        const message = slackInfoMessage(
-            "Apply Target",
-            `Applying target to ${bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}:`)}
-
-${details}`);
-
-        await cli.addressChannels(message, { id: cli.parameters.msgId });
 
         const fp = await cli.context.graphClient.query<GetFpBySha.Query, GetFpBySha.Variables>({
             name: "GetFpBySha",
@@ -277,6 +263,22 @@ ${details}`);
             data: JSON.parse(fp.SourceFingerprint.data),
             sha: fp.SourceFingerprint.sha,
         };
+
+        const aspect = aspectOf({ type }, aspects);
+        let details;
+        if (!!aspect) {
+            details = `${italic(aspect.displayName)}\n${italic(displayName(aspect, fingerprint))} > ${codeLine(displayValue(aspect, fingerprint))}`;
+        } else {
+            details = codeLine(cli.parameters.targetfingerprint);
+        }
+
+        const message = slackInfoMessage(
+            "Apply Target",
+            `Applying target to ${bold(`${p.id.owner}/${p.id.repo}/${p.id.branch}:`)}
+
+${details}`);
+
+        await cli.addressChannels(message, { id: cli.parameters.msgId });
 
         if (!cli.parameters.title) {
             cli.parameters.title = applyFingerprintTitle(fingerprint, aspects);
@@ -310,8 +312,8 @@ function runEveryFingerprintApplication(aspects: Aspect[]): CodeTransform<ApplyT
             const { type, name } = fromName(f);
             const aspect = aspectOf({ type }, aspects);
             let detail;
-            if (!!aspect && !!aspect.toDisplayableFingerprintName) {
-                detail = `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
+            if (!!aspect) {
+                detail = `${italic(aspect.displayName)}\n${italic(displayName(aspect, { name } as any))}`;
             } else {
                 detail = codeLine(f);
             }
