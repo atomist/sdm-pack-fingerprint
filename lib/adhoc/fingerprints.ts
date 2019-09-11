@@ -26,13 +26,13 @@ import {
     SdmContext,
 } from "@atomist/sdm";
 import { Aspect, FP } from "../machine/Aspect";
-import { aspectOf, displayValue, displayName } from "../machine/Aspects";
+import { aspectOf, displayName, displayValue } from "../machine/Aspects";
 import {
     AddFingerprints,
     FindOtherRepos,
+    FingerprintInput,
     GetFpByBranch,
     RepoBranchIds,
-    FingerprintInput,
 } from "../typings/types";
 
 // TODO this is not actually using the new query yet (filtering is happening in memory)
