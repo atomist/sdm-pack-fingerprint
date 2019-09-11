@@ -37,7 +37,6 @@ import {
 import {
     AddFingerprints,
     FindOtherRepos,
-    FingerprintInput,
     GetFpByBranch,
     RepoBranchIds,
 } from "../typings/types";
