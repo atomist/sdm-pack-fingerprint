@@ -158,7 +158,7 @@ export const sendFingerprintsToAtomistFor: PublishFingerprintsFor = async (ctx, 
                         additions: fp.map(f => ({
                             type: f.type,
                             name: f.name,
-                            data: typeof f.data !== "string" ? JSON.stringify(f.data) : f.data,
+                            data: JSON.stringify(f.data),
                             sha: f.sha,
                             displayName: f.displayName,
                             displayValue: f.displayValue,
