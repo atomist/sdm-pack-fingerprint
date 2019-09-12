@@ -15,7 +15,6 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import { consistentHash } from "@atomist/clj-editors";
 import {
     codeBlock,
     codeLine,
@@ -34,6 +33,7 @@ import {
     displayName,
     displayValue,
 } from "../machine/Aspects";
+import { sha256 } from "./hash";
 import { orDefault } from "./util";
 
 export interface GitCoordinate {
@@ -47,7 +47,7 @@ export interface GitCoordinate {
 type MessageIdMaker = (...parts: string[]) => string;
 
 export const updateableMessage: MessageIdMaker = (...parts: string[]) => {
-    return consistentHash(parts);
+    return sha256(JSON.stringify(parts));
 };
 
 function displayFingerprint(aspect: Aspect, fp: FP): string {

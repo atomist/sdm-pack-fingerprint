@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {sha256} from "@atomist/clj-editors";
 import { FP } from "../machine/Aspect";
+import { sha256 } from "../support/hash";
 
 /**
  * Convenience function to create a new fingerprint, using default strategy of

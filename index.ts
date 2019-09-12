@@ -47,16 +47,9 @@ export {
     FingerprintRunner,
 } from "./lib/machine/runner";
 export {
-    renderDiffSnippet,
-} from "./lib/support/util";
-export {
     MessageMaker,
     messageMaker,
 } from "./lib/checktarget/messageMaker";
-export {
-    consistentHash,
-    commaSeparatedList,
-} from "@atomist/clj-editors";
 export {
     constructNpmDepsFingerprintName,
     deconstructNpmDepsFingerprintName,
@@ -72,10 +65,6 @@ export {
     Backpack,
 } from "./lib/fingerprints/backpack";
 export {
-    MavenDeps,
-    MavenCoordinates,
-} from "./lib/fingerprints/maven";
-export {
     ApplyTargetParameters,
 } from "./lib/handlers/commands/applyFingerprint";
 export * from "./lib/fingerprints/jsonFiles";
@@ -89,7 +78,12 @@ export {
     RebaseStrategy,
 } from "./lib/handlers/commands/rebase";
 
-export { PublishFingerprints, PublishFingerprintsFor, RepoIdentification, sendFingerprintsToAtomistFor } from "./lib/adhoc/fingerprints";
+export {
+    PublishFingerprints,
+    PublishFingerprintsFor,
+    RepoIdentification,
+    sendFingerprintsToAtomistFor,
+} from "./lib/adhoc/fingerprints";
 
 export * from "./lib/machine/AtomicAspect";
 

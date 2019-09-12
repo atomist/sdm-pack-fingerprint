@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { sha256 } from "@atomist/clj-editors";
 import * as _ from "lodash";
 import {
     ApplyFingerprint,
     ExtractFingerprint,
+    sha256,
 } from "../..";
 import {
     Aspect,

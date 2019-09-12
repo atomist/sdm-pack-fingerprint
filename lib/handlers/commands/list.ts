@@ -23,7 +23,6 @@ import {
     Parameters,
     SlackFileMessage,
 } from "@atomist/automation-client";
-import { renderData } from "@atomist/clj-editors";
 import {
     CommandHandlerRegistration,
     slackQuestionMessage,
@@ -93,7 +92,7 @@ export function listFingerprint(sdm: SoftwareDeliveryMachine): CommandHandlerReg
 
             const message: SlackFileMessage = {
                 title: `fingerprint ${cli.parameters.fingerprint} currently on ${cli.parameters.owner}/${cli.parameters.repo}`,
-                content: renderData(fingerprint),
+                content: JSON.stringify(fingerprint, undefined, 2),
                 fileType: "text",
             };
 

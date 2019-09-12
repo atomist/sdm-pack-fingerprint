@@ -15,7 +15,6 @@
  */
 
 import { InMemoryProject } from "@atomist/automation-client";
-import { sha256 } from "@atomist/clj-editors";
 import * as assert from "assert";
 import { makeVirtualProjectAware } from "../../lib/fingerprints/virtual-project/makeVirtualProjectAware";
 import {
@@ -24,6 +23,7 @@ import {
 } from "../../lib/fingerprints/virtual-project/VirtualProjectFinder";
 import { Aspect } from "../../lib/machine/Aspect";
 import { createFingerprintComputer } from "../../lib/machine/runner";
+import { sha256 } from "../../lib/support/hash";
 
 function alwaysFindAspect(name: string): Aspect {
     return {

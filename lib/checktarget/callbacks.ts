@@ -23,7 +23,6 @@ import {
 } from "@atomist/automation-client";
 import {
     checkFingerprintTargets,
-    commaSeparatedList,
     voteResults,
 } from "@atomist/clj-editors";
 import {
@@ -140,7 +139,7 @@ export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfi
 
             goalState = {
                 state: SdmGoalState.failure,
-                description: `compliance check for ${commaSeparatedList(result.failedVotes.map(vote => vote.fingerprint.name))} has failed`,
+                description: `compliance check for ${result.failedVotes.map(vote => vote.fingerprint.name).join(", ")} has failed`,
             };
 
         } else {

@@ -14,15 +14,6 @@
  * limitations under the License.
  */
 
-import {
-    HandlerContext,
-    SlackFileMessage,
-} from "@atomist/automation-client";
-import {
-    DiffData,
-    renderDiff,
-} from "@atomist/clj-editors";
-import { SlackMessage } from "@atomist/slack-messages";
 import * as _ from "lodash";
 
 export function comparator(path: string): (a: any, b: any) => number {
@@ -31,15 +22,6 @@ export function comparator(path: string): (a: any, b: any) => number {
         const y = _.get(b, path);
         return x < y ? -1 : x > y ? 1 : 0;
     };
-}
-
-export async function renderDiffSnippet(ctx: HandlerContext, diff: DiffData): Promise<void> {
-    const message: SlackFileMessage = {
-        content: renderDiff(diff),
-        fileType: "text",
-        title: `${diff.owner}/${diff.repo}`,
-    };
-    return ctx.messageClient.addressChannels(message as SlackMessage, diff.channel);
 }
 
 export function orDefault<T>(cb: () => T, x: T): T {

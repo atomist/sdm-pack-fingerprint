@@ -15,14 +15,11 @@
  */
 
 import {
-    logger,
     menuForCommand,
     Parameter,
     Parameters,
     SlackFileMessage,
 } from "@atomist/automation-client";
-
-import { renderData } from "@atomist/clj-editors";
 import {
     CommandHandlerRegistration,
     slackQuestionMessage,
@@ -54,11 +51,10 @@ export function listOneFingerprintTarget(sdm: SoftwareDeliveryMachine): CommandH
 
             const { type, name } = fromName(cli.parameters.fingerprint);
             const fp: FP = await queryPreferences(cli.context.graphClient, type, name);
-            logger.info(`fps ${renderData(fp)}`);
 
             const message: SlackFileMessage = {
                 title: `current target for ${cli.parameters.fingerprint}`,
-                content: renderData(fp),
+                content: JSON.stringify(fp, undefined, 2),
                 fileType: "text",
             };
 

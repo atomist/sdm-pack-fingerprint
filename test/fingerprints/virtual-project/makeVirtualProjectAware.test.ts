@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import { sha256 } from "@atomist/clj-editors";
-
 import * as assert from "assert";
 import { cachingVirtualProjectFinder } from "../../../lib/fingerprints/virtual-project/cachingVirtualProjectFinder";
 import { fileNamesVirtualProjectFinder } from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
@@ -30,6 +28,7 @@ import {
     ExtractFingerprint,
     FP,
 } from "../../../lib/machine/Aspect";
+import { sha256 } from "../../../lib/support/hash";
 import { tempProject } from "./tempProject";
 
 const extractThing: ExtractFingerprint = async p => {
