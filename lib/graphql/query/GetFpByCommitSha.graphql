@@ -5,6 +5,8 @@ query GetFPByCommitSha($sha: String!, $name: String!) {
       name
       sha
       data
+      displayName
+      displayValue
     }
   }
 }

@@ -7,6 +7,8 @@ query GetFpByBranch($owner: String!, $repo: String!, $branch: String!){
           name
           sha
           data
+          displayName
+          displayValue
         }
       }
     }

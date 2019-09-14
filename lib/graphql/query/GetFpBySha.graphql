@@ -4,5 +4,7 @@ query GetFpBySha($type: String!, $name: String!, $sha: String!) {
     sha
     data
     name
+    displayName
+    displayValue
   }
 }

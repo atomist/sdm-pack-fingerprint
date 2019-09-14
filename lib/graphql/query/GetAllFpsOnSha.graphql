@@ -5,6 +5,8 @@ query GetAllFpsOnSha($sha: String!){
       name
       sha
       data
+      displayName
+      displayValue
     }
   }
 }
