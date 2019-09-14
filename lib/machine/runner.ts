@@ -207,17 +207,7 @@ export function createFingerprintComputer(
         for (const x of allAspects) {
             try {
                 const fps = toArray(await x.extract(p, i));
-                if (fps) {
-                    fps.forEach(fp => {
-                        if (typeof fp.data !== "string") {
-                            if (x.toDisplayableFingerprint) {
-                                fp.data.displayValue = x.toDisplayableFingerprint(fp);
-                            }
-                            if (x.toDisplayableFingerprintName) {
-                                fp.data.displayName = x.toDisplayableFingerprintName(toName(fp.type, fp.name));
-                            }
-                        }
-                    });
+                if (!!fps) {
                     extracted.push(...fps);
                 }
             } catch (e) {
