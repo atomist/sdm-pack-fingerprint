@@ -55,7 +55,6 @@ import {
     Vote,
 } from "../../machine/Aspect";
 import {
-    aspectOf,
     displayName,
     displayValue,
 } from "../../machine/Aspects";
@@ -195,18 +194,19 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
             );
             const fp: GetFpBySha.SourceFingerprint = query.SourceFingerprint;
             fp.data = JSON.parse(fp.data);
+
             const fingerprint: FP = {
                 name: fp.name,
                 type: fp.type,
                 data: fp.data,
                 sha: fp.sha,
+                displayName: fp.displayName,
+                displayValue: fp.displayValue,
             };
 
             await (setFPTarget(cli.context.graphClient))(type, name, fingerprint);
 
             const author = _.get(cli.context.source, "slack.user.id") || _.get(cli.context.source, "web.identity.sub");
-            const value = displayValue(aspectOf(fingerprint, aspects), fingerprint);
-            const dName = displayName(aspectOf(fingerprint, aspects), fingerprint);
 
             const log: PolicyLog = {
                 type,
@@ -215,9 +215,9 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
                 manage: {
                     action: ManagePolicyAction.Set,
                     author,
-                    reason: cli.parameters.reason || `Set target to ${value}`,
+                    reason: cli.parameters.reason || `Set target to ${fp.displayValue}`,
                     targetSha: fp.sha,
-                    targetValue: value,
+                    targetValue: fp.displayValue,
                 },
             };
             await sendPolicyLog(log, cli.context);
@@ -227,7 +227,7 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
             } else {
                 await cli.addressChannels(slackSuccessMessage(
                     "Set Target",
-                    `Successfully set new target ${italic(dName)} ${codeLine(value)}`));
+                    `Successfully set new target ${italic(fp.displayName)} ${codeLine(fp.displayValue)}`));
             }
         },
     };
