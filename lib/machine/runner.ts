@@ -26,7 +26,6 @@ import * as _ from "lodash";
 import { PublishFingerprints } from "../adhoc/fingerprints";
 import {
     getFPTargets,
-    toName,
 } from "../adhoc/preferences";
 import { votes } from "../checktarget/callbacks";
 import { messageMaker } from "../checktarget/messageMaker";
