@@ -159,15 +159,13 @@ export interface Aspect<DATA = any> {
      * Convert a fingerprint value to a human readable string
      * fpi.data is a reasonable default
      */
-    toDisplayableFingerprint?(fp: FP<DATA>): string;
+    toDisplayableFingerprint(fp: FP<DATA>): string;
 
     /**
      * Convert a fingerprint name such as "npm-project-dep::atomist::automation-client"
      * to a human readable form such as "npm package @atomist/automation-client"
-     * @param {string} fingerprintName
-     * @return {string}
      */
-    toDisplayableFingerprintName?(fingerprintName: string): string;
+    toDisplayableFingerprintName(fingerprintName: string): string;
 
     /**
      * Based on the given fingerprint type and name, suggest ideals
