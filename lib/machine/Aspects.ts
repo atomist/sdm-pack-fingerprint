@@ -24,6 +24,8 @@ export function displayName(aspect: Aspect, fp: FP): string {
         return aspect.toDisplayableFingerprintName(fp.name);
     } else if (!!fp.data && !!fp.data.displayName) {
         return fp.data.displayName;
+    } else if (!!fp.displayName) {
+        return fp.displayName;
     } else {
         return fp.name;
     }
@@ -34,6 +36,8 @@ export function displayValue(aspect: Aspect, fp: FP): string {
         return aspect.toDisplayableFingerprint(fp);
     } else if (!!fp.data && !!fp.data.displayValue) {
         return fp.data.displayValue;
+    } else if (!!fp.displayValue) {
+        return fp.displayValue;
     } else {
         return JSON.stringify(fp.data, undefined, 2);
     }
