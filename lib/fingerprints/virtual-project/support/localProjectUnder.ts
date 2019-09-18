@@ -15,10 +15,13 @@
  */
 
 import {
+    InMemoryProject,
     isLocalProject,
     NodeFsLocalProject,
     Project,
+    projectUtils,
     RemoteRepoRef,
+    RepoRef,
 } from "@atomist/automation-client";
 import * as path from "path";
 
@@ -47,4 +50,14 @@ export async function localProjectUnder(rootProject: Project, pathUnder: string)
         async () => {
         },
     );
+}
+
+export async function subprojectFromFiles(rootProject: Project, globPatterns: string[], specifiedRepoRef: Partial<RepoRef>): Promise<Project> {
+    const files = await projectUtils.toPromise(rootProject.streamFiles(...globPatterns));
+    const subproject = InMemoryProject.of(...files);
+    subproject.id = {
+        ...rootProject.id,
+        ...specifiedRepoRef,
+    };
+    return subproject;
 }

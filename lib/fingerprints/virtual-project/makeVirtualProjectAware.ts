@@ -27,7 +27,7 @@ import {
     ExtractFingerprint,
     FP,
 } from "../../machine/Aspect";
-import { localProjectUnder } from "./support/localProjectUnder";
+import { localProjectUnder, subprojectFromFiles } from "./support/localProjectUnder";
 import {
     VirtualProjectFinder,
     VirtualProjectStatus,
@@ -43,14 +43,14 @@ import {
  */
 export function makeVirtualProjectAware<A extends Aspect>(aspect: A, virtualProjectFinder: VirtualProjectFinder): A {
     return !!virtualProjectFinder && !aspect.baseOnly ? {
-            ...aspect,
-            // Wrap extract. AtomistAspects don't need wrapping as the aspects they build on
-            // should have been wrapped
-            extract: makeExtractorVirtualProjectAware(aspect.extract, virtualProjectFinder),
-            // This won't change
-            consolidate: aspect.consolidate,
-            apply: aspect.apply ? makeApplyVirtualProjectAware(aspect.apply, virtualProjectFinder) : undefined,
-        } :
+        ...aspect,
+        // Wrap extract. AtomistAspects don't need wrapping as the aspects they build on
+        // should have been wrapped
+        extract: makeExtractorVirtualProjectAware(aspect.extract, virtualProjectFinder),
+        // This won't change
+        consolidate: aspect.consolidate,
+        apply: aspect.apply ? makeApplyVirtualProjectAware(aspect.apply, virtualProjectFinder) : undefined,
+    } :
         aspect;
 }
 
@@ -61,7 +61,7 @@ export function makeVirtualProjectAware<A extends Aspect>(aspect: A, virtualProj
  * @return {ExtractFingerprint}
  */
 export function makeExtractorVirtualProjectAware(ef: ExtractFingerprint,
-                                                 virtualProjectFinder: VirtualProjectFinder):
+    virtualProjectFinder: VirtualProjectFinder):
     (p: Project, i: PushImpactListenerInvocation) => Promise<FP[]> {
     return async (p, i) => {
         const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
@@ -88,6 +88,9 @@ async function virtualProjectsIn(p: Project, virtualProjectFinder: VirtualProjec
     if (virtualProjectInfo.status === VirtualProjectStatus.IdentifiedPaths) {
         return Promise.all(virtualProjectInfo.virtualProjects.map(sp => localProjectUnder(p, sp.path)));
     }
+    if (virtualProjectInfo.status === VirtualProjectStatus.IncludedFiles) {
+        return Promise.all(virtualProjectInfo.virtualProjects.map(sp => subprojectFromFiles(p, sp.globPatterns, sp.repoRef)));
+    }
     return [p];
 }
 
@@ -99,7 +102,7 @@ async function extractFrom(ef: ExtractFingerprint, p: Project, pli: PushImpactLi
 }
 
 export function makeApplyVirtualProjectAware(af: ApplyFingerprint,
-                                             virtualProjectFinder: VirtualProjectFinder): ApplyFingerprint {
+    virtualProjectFinder: VirtualProjectFinder): ApplyFingerprint {
     return async (p, papi) => {
         const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
         return chainTransforms(...virtualProjects.map(v => (async (vp: any, vpapi: any) => af(v, vpapi))))(p, papi, papi.parameters);

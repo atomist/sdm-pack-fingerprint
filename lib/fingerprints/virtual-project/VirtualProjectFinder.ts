@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Project } from "@atomist/automation-client";
+import { Project, RepoRef } from "@atomist/automation-client";
 
 /**
  * Virtual project status of a repository
@@ -30,6 +30,11 @@ export enum VirtualProjectStatus {
      * This is definitely a project with virtual subprojects whose path we've identified
      */
     IdentifiedPaths = "IdentifiedPaths",
+
+    /**
+     * This is definitely a project with virtual subprojects that consist of files we've identified
+     */
+    IncludedFiles = "IncludedFiles",
 
     /**
      * The virtual project status of this repo cannot be determined
@@ -53,9 +58,36 @@ export interface VirtualProject {
     reason: string;
 }
 
+/**
+ * Virtual project we've found in a project
+ */
+export interface VirtualProjectFromIncludedFiles {
+
+    /**
+     * Paths from root to include
+     */
+    globPatterns: string[];
+
+    /**
+     * Specify as much of the RepoRef as you like.
+     * You definitely want to include the repo name.
+     */
+    repoRef: Partial<RepoRef> & { repo: string };
+
+    /**
+     * Reason for determining that this is a subproject
+     */
+    reason: string;
+}
+
 export interface VirtualProjectsInfo {
     readonly status: VirtualProjectStatus.IdentifiedPaths;
     readonly virtualProjects: VirtualProject[];
+}
+
+export interface IncludedFilesProjectsInfo {
+    readonly status: VirtualProjectStatus.IncludedFiles;
+    readonly virtualProjects: VirtualProjectFromIncludedFiles[];
 }
 
 export interface NoVirtualProjectsInfo {
@@ -71,7 +103,7 @@ export const RootIsOnlyProject: NoVirtualProjectsInfo = {
     status: VirtualProjectStatus.RootOnly,
 };
 
-export type VirtualProjectInfo = VirtualProjectsInfo | NoVirtualProjectsInfo;
+export type VirtualProjectInfo = VirtualProjectsInfo | NoVirtualProjectsInfo | IncludedFilesProjectsInfo;
 
 /**
  * Did we find multiple virtual projects?
