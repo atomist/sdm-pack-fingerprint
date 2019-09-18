@@ -27,7 +27,10 @@ import {
     ExtractFingerprint,
     FP,
 } from "../../machine/Aspect";
-import { localProjectUnder, subprojectFromFiles } from "./support/localProjectUnder";
+import {
+    localProjectUnder,
+    subprojectFromFiles,
+} from "./support/localProjectUnder";
 import {
     VirtualProjectFinder,
     VirtualProjectStatus,

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { Project, RepoRef } from "@atomist/automation-client";
+import {
+    Project,
+    RepoRef,
+} from "@atomist/automation-client";
 
 /**
  * Virtual project status of a repository
