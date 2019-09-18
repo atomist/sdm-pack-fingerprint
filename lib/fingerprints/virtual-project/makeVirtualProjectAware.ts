@@ -61,7 +61,7 @@ export function makeVirtualProjectAware<A extends Aspect>(aspect: A, virtualProj
  * @return {ExtractFingerprint}
  */
 export function makeExtractorVirtualProjectAware(ef: ExtractFingerprint,
-    virtualProjectFinder: VirtualProjectFinder):
+                                                 virtualProjectFinder: VirtualProjectFinder):
     (p: Project, i: PushImpactListenerInvocation) => Promise<FP[]> {
     return async (p, i) => {
         const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
@@ -102,7 +102,7 @@ async function extractFrom(ef: ExtractFingerprint, p: Project, pli: PushImpactLi
 }
 
 export function makeApplyVirtualProjectAware(af: ApplyFingerprint,
-    virtualProjectFinder: VirtualProjectFinder): ApplyFingerprint {
+                                             virtualProjectFinder: VirtualProjectFinder): ApplyFingerprint {
     return async (p, papi) => {
         const virtualProjects = await virtualProjectsIn(p, virtualProjectFinder);
         return chainTransforms(...virtualProjects.map(v => (async (vp: any, vpapi: any) => af(v, vpapi))))(p, papi, papi.parameters);
