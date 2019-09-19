@@ -214,16 +214,15 @@ export function createFingerprintComputer(
             }
         }
 
-        const consolidatedFingerprints = [];
         for (const cfp of allAspects.filter(f => !!f.consolidate)) {
             try {
                 const consolidated: FP[] = toArray(await cfp.consolidate(extracted, p, i));
-                consolidatedFingerprints.push(...consolidated);
+                extracted.push(...consolidated);
             } catch (e) {
                 logger.warn(`Aspect '${cfp.name}' consolidate failed: ${e.message}`);
             }
         }
-        return [...extracted, ...consolidatedFingerprints];
+        return extracted;
     };
 }
 
