@@ -31,6 +31,7 @@ import {
     UpdateSdmGoalParams,
 } from "@atomist/sdm";
 import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
+import * as _ from "lodash";
 import * as minimatch from "minimatch";
 import {
     Aspect,
@@ -199,7 +200,7 @@ export async function checkFingerprintTarget(ctx: HandlerContext,
         }
     }
 
-    if (targetsInScope.length > 1) {
+    if (_.uniqBy(targetsInScope, "sha").length > 1) {
         // TODO Raise policy log
         return fingerprintInSyncCallback(diff.to);
     } else {
