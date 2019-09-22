@@ -7,6 +7,7 @@
         "jsx": "React",
         "declaration": true,
         "sourceMap": true,
+        "declarationMap": true,
         "rootDir": ".",
         "lib": [
             "DOM",

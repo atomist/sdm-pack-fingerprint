@@ -16,15 +16,13 @@
 /Dockerfile
 *.log
 *.txt
-*.ts
-!*.d.ts
 
 /backpack-demo.md
 /dev.cljs.edn
 /project.clj
 /repl.sh
 
-/src/
+/src/test/
 /test-resources/
 /dev/
 /out/

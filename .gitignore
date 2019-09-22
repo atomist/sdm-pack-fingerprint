@@ -8,6 +8,7 @@ npm-debug.log
 lib/**/*.d.ts
 test/**/*.d.ts
 *.js.map
+*.d.ts.map
 index.d.ts
 index.js
 unit-tests.js

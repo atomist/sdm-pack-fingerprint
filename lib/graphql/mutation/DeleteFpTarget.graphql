@@ -1,5 +1,0 @@
-mutation DeleteFpTarget($name: String!) {
-  deleteTeamConfiguration(namespace: "fptarget", name: $name) {
-    name
-  }
-}

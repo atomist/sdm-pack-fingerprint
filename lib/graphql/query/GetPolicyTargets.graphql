@@ -1,0 +1,11 @@
+query PolicyTargets($type: [String], $name: [String]) {
+    PolicyTarget(type: $type, name: $name) {
+        type
+        name
+        sha
+        data
+        displayName
+        displayValue
+        scope
+    }
+}

@@ -21,10 +21,7 @@ import {
     logger,
     SuccessPromise,
 } from "@atomist/automation-client";
-import {
-    checkFingerprintTargets,
-    voteResults,
-} from "@atomist/clj-editors";
+import { voteResults } from "@atomist/clj-editors";
 import {
     findSdmGoalOnCommit,
     Goal,
@@ -34,6 +31,7 @@ import {
     UpdateSdmGoalParams,
 } from "@atomist/sdm";
 import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
+import * as minimatch from "minimatch";
 import {
     Aspect,
     Diff,
@@ -48,41 +46,36 @@ import {
     getDiffSummary,
     updateableMessage,
 } from "../support/messages";
-import { GetFpTargets } from "../typings/types";
+import {
+    PolicyTargetRepoScope,
+    PolicyTargets,
+    PolicyTargetScopes,
+} from "../typings/types";
 
 /**
  * create callback to be used when fingerprint and target are out of sync
  */
-function fingerprintOutOfSyncCallback(
-    ctx: HandlerContext,
-    diff: Diff,
-    aspect: Aspect,
-): (s: string, fpTarget: FP, fingerprint: FP) => Promise<Vote> {
-
-    return async (text, fpTarget, fingerprint) => {
-        return {
-            name: fingerprint.name,
-            decision: "Against",
-            abstain: false,
-            diff,
-            fingerprint,
-            fpTarget,
-            text,
-            summary: getDiffSummary(diff, fpTarget, aspect),
-        };
+function fingerprintOutOfSyncCallback(diff: Diff, aspect: Aspect, fpTarget: FP, fingerprint: FP): Vote {
+    return {
+        name: fingerprint.name,
+        decision: "Against",
+        abstain: false,
+        diff,
+        fingerprint,
+        fpTarget,
+        text: "",
+        summary: getDiffSummary(diff, fpTarget, aspect),
     };
 }
 
 /**
  * Create callback to be used when fingerprint and target is in sync
  */
-function fingerprintInSyncCallback(ctx: HandlerContext, diff: Diff): (fingerprint: FP) => Promise<Vote> {
-    return async fingerprint => {
-        return {
-            abstain: false,
-            name: fingerprint.name,
-            decision: "For",
-        };
+function fingerprintInSyncCallback(fingerprint: FP): Vote {
+    return {
+        abstain: false,
+        name: fingerprint.name,
+        decision: "For",
     };
 }
 
@@ -166,16 +159,59 @@ export function votes(config: FingerprintOptions & FingerprintImpactHandlerConfi
 /**
  * check whether the fingerprint in this diff is the same as the target value
  */
-export async function checkFingerprintTarget(
-    ctx: HandlerContext,
-    diff: Diff,
-    aspect: Aspect,
-    targetsQuery: () => Promise<GetFpTargets.Query>): Promise<any> {
+export async function checkFingerprintTarget(ctx: HandlerContext,
+                                             diff: Diff,
+                                             aspect: Aspect,
+                                             allTargets: PolicyTargets.PolicyTarget[],
+                                             scopes: PolicyTargetScopes.PolicyTargetScope[],
+                                             previous: Array<FP<any>>): Promise<Vote> {
 
-    return checkFingerprintTargets(
-        targetsQuery,
-        fingerprintOutOfSyncCallback(ctx, diff, aspect),
-        fingerprintInSyncCallback(ctx, diff),
-        diff,
-    );
+    const targets = (allTargets || [])
+        .filter(t => t.type === diff.to.type && t.name === diff.to.name)
+        .filter(t => t.sha !== diff.to.sha);
+
+    if (!targets || targets.length === 0) {
+        return fingerprintInSyncCallback(diff.to);
+    }
+
+    const slug = `${diff.owner}/${diff.repo}/${diff.branch}`;
+    const targetsInScope: Array<FP<any>> = [];
+    for (const target of targets) {
+        if (!target.scope) {
+            targetsInScope.push(target as any);
+        } else {
+            const scope = scopes.find(s => s.name === target.scope);
+            if (!!scope.repos) {
+                const include = (scope.repos.includes || []).some(i => matches(slug, i));
+                const exclude = (scope.repos.excludes || []).some(i => matches(slug, i));
+                const fingerprints = (scope.fingerprints || []).filter(f =>
+                    (previous || []).some(p => p.type === f.type && p.name === f.name),
+                ).length === (scope.fingerprints || []).length;
+
+                if (fingerprints) {
+                    if (include) {
+                        targetsInScope.push(target as any);
+                    } else if (!exclude) {
+                        targetsInScope.push(target as any);
+                    }
+                }
+            }
+        }
+    }
+
+    if (targetsInScope.length > 1) {
+        // TODO Raise policy log
+        return fingerprintInSyncCallback(diff.to);
+    } else {
+        return fingerprintOutOfSyncCallback(diff, aspect, targetsInScope[0], diff.to);
+    }
+}
+
+function scopeToPattern(scope: PolicyTargetRepoScope): string {
+    return `${!!scope.owner ? scope.owner : "**"}/${!!scope.name ? scope.name : "**"}/${!!scope.branch ? scope.branch : "*"}`;
+}
+
+function matches(slug: string, scope: PolicyTargetRepoScope): boolean {
+    const pattern = scopeToPattern(scope);
+    return minimatch(slug, pattern);
 }

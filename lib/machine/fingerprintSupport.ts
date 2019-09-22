@@ -54,22 +54,13 @@ import {
 import { broadcastFingerprintNudge } from "../handlers/commands/broadcast";
 import { FingerprintMenu } from "../handlers/commands/fingerprints";
 import {
-    listFingerprint,
-    listFingerprints,
-} from "../handlers/commands/list";
-import {
     DefaultRebaseOptions,
     RebaseOptions,
 } from "../handlers/commands/rebase";
-import {
-    listFingerprintTargets,
-    listOneFingerprintTarget,
-} from "../handlers/commands/showTargets";
+import { updateScopeCommand } from "../handlers/commands/updateScope";
 import {
     deleteTargetFingerprint,
-    selectTargetFingerprintFromCurrentProject,
     setTargetFingerprint,
-    setTargetFingerprintFromLatestMaster,
     updateTargetFingerprint,
 } from "../handlers/commands/updateTarget";
 import {
@@ -119,7 +110,10 @@ export const DefaultTargetDiffHandler: FingerprintDiffHandler =
                 ctx.context,
                 diff,
                 aspect,
-                async () => diff.targets));
+                diff.targets,
+                diff.scopes,
+                diff.previous,
+            ));
         }
         return _.concat(
             checked,
@@ -331,26 +325,16 @@ function configure(
     transformPresentation: TransformPresentation<ApplyTargetParameters>,
     rebase: RebaseOptions): void {
 
-    sdm.addCommand(listFingerprints(sdm));
-    sdm.addCommand(listFingerprint(sdm));
-
     // set a target given using the entire JSON fingerprint payload in a parameter
     sdm.addCommand(setTargetFingerprint(aspects));
     // set a different target after noticing that a fingerprint is different from current target
     sdm.addCommand(updateTargetFingerprint(sdm, aspects));
-    // Bootstrap a fingerprint target by selecting one from current project
-    sdm.addCommand(selectTargetFingerprintFromCurrentProject(sdm));
-    // Bootstrap a fingerprint target from project by name
-    sdm.addCommand(setTargetFingerprintFromLatestMaster(sdm, aspects));
     sdm.addCommand(deleteTargetFingerprint(sdm));
 
     // standard actionable message embedding ApplyTargetFingerprint
     sdm.addCommand(broadcastFingerprintNudge(aspects));
 
     sdm.addCommand(ignoreCommand(aspects));
-
-    sdm.addCommand(listFingerprintTargets(sdm));
-    sdm.addCommand(listOneFingerprintTarget(sdm));
 
     sdm.addCommand(FingerprintMenu);
 
@@ -359,5 +343,7 @@ function configure(
     sdm.addCodeTransformCommand(applyTargetBySha(sdm, aspects, transformPresentation, rebase));
 
     sdm.addCommand(broadcastFingerprintMandate(sdm, aspects));
+
+    sdm.addCommand(updateScopeCommand(sdm));
 
 }

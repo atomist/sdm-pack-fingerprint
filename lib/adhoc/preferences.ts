@@ -15,14 +15,15 @@
  */
 
 import {
+    addressEvent,
     GraphClient,
+    HandlerContext,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
 import { FP } from "../machine/Aspect";
 import {
-    DeleteFpTarget,
-    GetFpTargets,
-    SetFpTarget,
+    PolicyTargets,
+    PolicyTargetScopes,
 } from "../typings/types";
 
 export function toName(type: string, name: string): string {
@@ -42,55 +43,42 @@ export function fromName(targetName: string): { type: string, name: string } {
     }
 }
 
-/**
- * create a function that can query for a fingerprint target by name (team specific)
- *
- * @param graphClient
- */
-export async function getFPTargets(graphClient: GraphClient): Promise<GetFpTargets.Query> {
-    return graphClient.query<GetFpTargets.Query, GetFpTargets.Variables>(
-        {
-            name: "GetFpTargets",
-            options: QueryNoCacheOptions,
+export async function getFPTargets(ctx: HandlerContext, type?: string, name?: string): Promise<PolicyTargets.PolicyTarget[]> {
+    const result = await ctx.graphClient.query<PolicyTargets.Query, PolicyTargets.Variables>({
+        name: "PolicyTargets",
+        variables: {
+            type: !!type ? [type] : undefined,
+            name: !!name ? [name] : undefined,
         },
-    );
+        options: QueryNoCacheOptions,
+    });
+
+    return result.PolicyTarget;
 }
 
-/**
- * the target fingerprint is stored as a json encoded string in the value of the TeamConfiguration
- *
- * @param graphClient
- * @param name
- */
-export async function queryPreferences(graphClient: GraphClient, type: string, name: string): Promise<FP> {
-    const query: GetFpTargets.Query = await getFPTargets(graphClient);
-    const config: GetFpTargets.TeamConfiguration = query.TeamConfiguration.find(x => x.name === toName(type, name));
-    return JSON.parse(config.value) as FP;
+export async function getFPScopes(ctx: HandlerContext, name?: string): Promise<PolicyTargetScopes.PolicyTargetScope[]> {
+    const result = await ctx.graphClient.query<PolicyTargetScopes.Query, PolicyTargetScopes.Variables>({
+        name: "PolicyTargetScopes",
+        variables: {
+            name: !!name ? [name] : undefined,
+        },
+        options: QueryNoCacheOptions,
+    });
+
+    return result.PolicyTargetScope;
 }
 
-export function setFPTarget(graphClient: GraphClient): (type: string, name: string, value: any) => Promise<SetFpTarget.Mutation> {
-    return (type, name, value) => {
-        return graphClient.mutate<SetFpTarget.Mutation, SetFpTarget.Variables>(
-            {
-                name: "SetFpTarget",
-                variables: {
-                    name: toName(type, name),
-                    value: JSON.stringify(value),
-                },
-            },
-        );
+export async function setFPTarget(ctx: HandlerContext, fp: FP<any>, scope?: string): Promise<void> {
+    const target: PolicyTargets.PolicyTarget = {
+        ...fp,
+        scope,
     };
+    await ctx.messageClient.send(target, addressEvent("PolicyTarget"));
 }
 
-export function deleteFPTarget(graphClient: GraphClient): (type: string, name: string) => Promise<DeleteFpTarget.Mutation> {
+export function deleteFPTarget(graphClient: GraphClient): (type: string, name: string) => Promise<void> {
     return (type, name) => {
-        return graphClient.mutate<DeleteFpTarget.Mutation, DeleteFpTarget.Variables>(
-            {
-                name: "DeleteFpTarget",
-                variables: {
-                    name: toName(type, name),
-                },
-            },
-        );
+        // TODO delete target
+        return {} as any;
     };
 }

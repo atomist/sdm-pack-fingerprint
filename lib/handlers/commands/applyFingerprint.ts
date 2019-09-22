@@ -44,7 +44,7 @@ import {
 import { findTaggedRepos } from "../../adhoc/fingerprints";
 import {
     fromName,
-    queryPreferences,
+    getFPTargets,
 } from "../../adhoc/preferences";
 import {
     ApplyPolicyState,
@@ -201,10 +201,19 @@ export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<Appl
 
         const { type, name } = fromName(cli.parameters.targetfingerprint);
 
-        const fingerprint = await queryPreferences(
-            cli.context.graphClient,
+        const target = (await getFPTargets(
+            cli.context,
             type,
-            name);
+            name))[0];
+
+        const fingerprint: FP<any> = {
+            type: target.type,
+            name: target.name,
+            sha: target.sha,
+            data: target.data,
+            displayName: target.displayName,
+            displayValue: target.displayValue,
+        };
 
         const aspect = aspectOf({ type }, aspects);
         let details;
@@ -330,14 +339,26 @@ ${details.join("\n")}`);
 
         for (const fpName of fingerprints) {
             const { type, name } = fromName(fpName.trim());
+
+            const target = (await getFPTargets(
+                cli.context,
+                type,
+                name))[0];
+
+            const fingerprint: FP<any> = {
+                type: target.type,
+                name: target.name,
+                sha: target.sha,
+                data: target.data,
+                displayName: target.displayName,
+                displayValue: target.displayValue,
+            };
+
             const result = await pushFingerprint(
                 (p as GitProject),
                 cli,
                 aspects,
-                await queryPreferences(
-                    cli.context.graphClient,
-                    type,
-                    name));
+                fingerprint);
             if (!result) {
                 return { edited: false, success: true, target: p };
             }
@@ -475,7 +496,19 @@ export function broadcastFingerprintMandate(
             const refs: RepoRef[] = [];
 
             const { type, name } = fromName(i.parameters.fingerprint);
-            const fp = await queryPreferences(i.context.graphClient, type, name);
+            const target = (await getFPTargets(
+                i.context,
+                type,
+                name))[0];
+
+            const fp: FP<any> = {
+                type: target.type,
+                name: target.name,
+                sha: target.sha,
+                data: target.data,
+                displayName: target.displayName,
+                displayValue: target.displayValue,
+            };
 
             const data: FindOtherRepos.Query = await (findTaggedRepos(i.context.graphClient))(fp.type, fp.name);
 

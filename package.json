@@ -26,7 +26,8 @@
     "@atomist/clj-editors": "0.8.2",
     "@atomist/slack-messages": "^1.1.1",
     "@cljs-oss/module-deps": "^1.1.1",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.15",
+    "minimatch": "^3.0.4"
   },
   "peerDependencies": {
     "@atomist/automation-client": "^1.7.0",

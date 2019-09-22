@@ -25,6 +25,7 @@ import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
 import { PublishFingerprints } from "../adhoc/fingerprints";
 import {
+    getFPScopes,
     getFPTargets,
 } from "../adhoc/preferences";
 import { votes } from "../checktarget/callbacks";
@@ -33,7 +34,8 @@ import { makeVirtualProjectAware } from "../fingerprints/virtual-project/makeVir
 import { VirtualProjectFinder } from "../fingerprints/virtual-project/VirtualProjectFinder";
 import {
     GetAllFpsOnSha,
-    GetFpTargets,
+    PolicyTargets,
+    PolicyTargetScopes,
 } from "../typings/types";
 import {
     Aspect,
@@ -55,7 +57,8 @@ import {
 interface MissingInfo {
     providerId: string;
     channel: string;
-    targets: GetFpTargets.Query;
+    targets: PolicyTargets.PolicyTarget[];
+    scopes: PolicyTargetScopes.PolicyTargetScope[];
 }
 
 /**
@@ -84,6 +87,7 @@ async function handleDiffs(
         const from = previous[`${fp.type}::${fp.name}`];
         const diff: DiffContext = {
             ...info,
+            previous: _.map(previous, v => v),
             from,
             to: fp,
             branch: i.push.branch,
@@ -163,16 +167,18 @@ async function missingInfo(i: PushImpactListenerInvocation): Promise<MissingInfo
 
     if (!!info.providerId && !!i.push.id) {
         try {
-            const targets = await getFPTargets(i.context.graphClient);
-
+            const targets = (await getFPTargets(i.context)) || [];
+            const scopes = (await getFPScopes(i.context)) || [];
             return {
                 ...info,
                 targets,
+                scopes,
             };
         } catch (e) {
             return {
                 ...info,
-                targets: { TeamConfiguration: [] },
+                targets: [],
+                scopes: [],
             };
         }
     }
