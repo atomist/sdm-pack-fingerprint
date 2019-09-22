@@ -23,7 +23,7 @@ import {
 export function updateScopeCommand(sdm: SoftwareDeliveryMachine): CommandHandlerRegistration<{scope: string }> {
     return {
         name: "UpdateScope",
-        intent: `update scope ${sdm.name.replace("@", "")}`,
+        intent: `update scope ${sdm.configuration.name.replace("@", "")}`,
         parameters: {
             scope: {},
         },
