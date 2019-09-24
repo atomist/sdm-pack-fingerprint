@@ -24,10 +24,7 @@ import {
 } from "@atomist/sdm";
 import * as _ from "lodash";
 import { GitCoordinate } from "../support/messages";
-import {
-    PolicyTargets,
-    PolicyTargetScopes,
-} from "../typings/types";
+import { PolicyTargets } from "../typings/types";
 import { Ideal } from "./Ideal";
 
 /**
@@ -238,8 +235,7 @@ export function supportsEntropy(ba: Aspect): boolean {
 
 export interface DiffContext extends Diff {
     targets: PolicyTargets.PolicyTarget[];
-    scopes: PolicyTargetScopes.PolicyTargetScope[];
-    previous: Array<FP<any>>;
+    stream: string;
 }
 
 export type FingerprintDiffHandler = (pli: PushImpactListenerInvocation, diff: DiffContext[], aspect: Aspect) => Promise<Vote[]>;

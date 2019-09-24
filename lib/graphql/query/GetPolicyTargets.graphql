@@ -6,6 +6,6 @@ query PolicyTargets($type: [String], $name: [String]) {
         data
         displayName
         displayValue
-        scope
+        stream
     }
 }

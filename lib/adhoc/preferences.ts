@@ -20,11 +20,12 @@ import {
     HandlerContext,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
-import { FP } from "../machine/Aspect";
 import {
-    PolicyTargets,
-    PolicyTargetScopes,
-} from "../typings/types";
+    PreferenceScope,
+    PushImpactListenerInvocation,
+} from "@atomist/sdm";
+import { FP } from "../machine/Aspect";
+import { PolicyTargets } from "../typings/types";
 
 export function toName(type: string, name: string): string {
     return `${type}::${name}`;
@@ -56,22 +57,34 @@ export async function getFPTargets(ctx: HandlerContext, type?: string, name?: st
     return result.PolicyTarget;
 }
 
-export async function getFPScopes(ctx: HandlerContext, name?: string): Promise<PolicyTargetScopes.PolicyTargetScope[]> {
-    const result = await ctx.graphClient.query<PolicyTargetScopes.Query, PolicyTargetScopes.Variables>({
-        name: "PolicyTargetScopes",
-        variables: {
-            name: !!name ? [name] : undefined,
-        },
-        options: QueryNoCacheOptions,
-    });
+export async function getRepoStream(pli: PushImpactListenerInvocation): Promise<string | undefined> {
+    const { owner, name } = pli.push.repo;
+    const branchStream = await pli.preferences.get<{ name: string }>(
+        `atomist.com/aspect/stream/${owner}/${name}/${pli.push.branch}`,
+        { scope: PreferenceScope.Workspace });
+    if (!!branchStream && !!branchStream.name) {
+        return branchStream.name;
+    }
+    const repoStream = await pli.preferences.get<{ name: string }>(
+        `atomist.com/aspect/stream/${owner}/${name}`,
+        { scope: PreferenceScope.Workspace });
+    if (!!repoStream && !!repoStream.name) {
+        return repoStream.name;
+    }
+    const orgStream = await pli.preferences.get<{ name: string }>(
+        `atomist.com/aspect/stream/${owner}`,
+        { scope: PreferenceScope.Workspace });
+    if (!!orgStream && !!orgStream.name) {
+        return orgStream.name;
+    }
 
-    return result.PolicyTargetScope;
+    return undefined;
 }
 
-export async function setFPTarget(ctx: HandlerContext, fp: FP<any>, scope?: string): Promise<void> {
+export async function setFPTarget(ctx: HandlerContext, fp: FP<any>, stream?: string): Promise<void> {
     const target: PolicyTargets.PolicyTarget = {
         ...fp,
-        scope,
+        stream,
     };
     await ctx.messageClient.send(target, addressEvent("PolicyTarget"));
 }

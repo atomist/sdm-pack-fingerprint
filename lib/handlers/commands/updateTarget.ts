@@ -96,7 +96,7 @@ export class UpdateTargetFingerprintParameters {
     public sha: string;
 
     @Parameter({ required: false })
-    public scope: string;
+    public stream: string;
 
     @Parameter({ required: true })
     public targetfingerprint: string;
@@ -150,7 +150,7 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
                 displayValue: fp.displayValue,
             };
 
-            await setFPTarget(cli.context, fingerprint, cli.parameters.scope);
+            await setFPTarget(cli.context, fingerprint, cli.parameters.stream);
 
             const author = _.get(cli.context.source, "slack.user.id") || _.get(cli.context.source, "web.identity.sub");
 

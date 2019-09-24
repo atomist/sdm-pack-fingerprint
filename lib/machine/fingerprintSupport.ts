@@ -106,13 +106,12 @@ export const DefaultTargetDiffHandler: FingerprintDiffHandler =
         const abs = diffs.filter(diff => !diff.from);
         const checked: Vote[] = [];
         for (const diff of _.difference(diffs, abs)) {
-            checked.push(await checkFingerprintTarget(
+            checked.push(...checkFingerprintTarget(
                 ctx.context,
                 diff,
                 aspect,
                 diff.targets,
-                diff.scopes,
-                diff.previous,
+                diff.stream,
             ));
         }
         return _.concat(
