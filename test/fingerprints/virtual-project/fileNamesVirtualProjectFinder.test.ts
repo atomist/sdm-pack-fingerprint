@@ -14,15 +14,28 @@
  * limitations under the License.
  */
 
-import { InMemoryProject } from "@atomist/automation-client";
+import {InMemoryProject} from "@atomist/automation-client";
 import * as assert from "assert";
-import { cachingVirtualProjectFinder } from "../../../lib/fingerprints/virtual-project/cachingVirtualProjectFinder";
-import { fileNamesVirtualProjectFinder } from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
-import { VirtualProjectStatus } from "../../../lib/fingerprints/virtual-project/VirtualProjectFinder";
+import {cachingVirtualProjectFinder} from "../../../lib/fingerprints/virtual-project/cachingVirtualProjectFinder";
+import {fileNamesVirtualProjectFinder} from "../../../lib/fingerprints/virtual-project/fileNamesVirtualProjectFinder";
+import {VirtualProjectStatus} from "../../../lib/fingerprints/virtual-project/VirtualProjectFinder";
 
-const GradleAndNodeSubprojectFinder = cachingVirtualProjectFinder(fileNamesVirtualProjectFinder(
-    "build.gradle",
-    "package.json"));
+const GradleAndNodeSubprojectFinder = cachingVirtualProjectFinder(
+    fileNamesVirtualProjectFinder(
+        "build.gradle",
+        "package.json"));
+
+const MavenSubprojectFinder = cachingVirtualProjectFinder(
+    fileNamesVirtualProjectFinder(
+        {
+            glob: "pom.xml",
+            status: async f => {
+                return {
+                    include: true,
+                    keepLooking: (await f.getContent()).includes("<modules>"),
+                };
+            },
+        }));
 
 describe("fileNamesVirtualProjectFinder", () => {
 
@@ -114,6 +127,37 @@ describe("fileNamesVirtualProjectFinder", () => {
         const result = await GradleAndNodeSubprojectFinder.findVirtualProjectInfo(project);
         assert.deepStrictEqual(result, {
             status: VirtualProjectStatus.RootOnly,
+        });
+    });
+
+    it("finds deeper poms if one exists at root but doesn't have modules", async () => {
+        const project = InMemoryProject.of(
+            {path: "pom.xml", content: "whatever"},
+            {path: "thing/pom.xml", content: "stuff"},
+        );
+        const result = await MavenSubprojectFinder.findVirtualProjectInfo(project);
+        assert.deepStrictEqual(result, {
+            status: VirtualProjectStatus.RootOnly,
+        });
+    });
+
+    it("finds deeper poms if one exists at root but has modules", async () => {
+        const project = InMemoryProject.of(
+            {path: "pom.xml", content: "<modules>"},
+            {path: "thing/pom.xml", content: "stuff"},
+        );
+        const result = await MavenSubprojectFinder.findVirtualProjectInfo(project);
+        assert.deepStrictEqual(result, {
+            status: VirtualProjectStatus.IdentifiedPaths,
+            virtualProjects: [
+                {
+                    path: ".",
+                    reason: "has file: pom.xml",
+                },
+                {
+                    path: "thing",
+                    reason: "has file: pom.xml",
+                }],
         });
     });
 });
