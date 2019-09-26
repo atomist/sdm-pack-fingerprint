@@ -15,7 +15,9 @@
  */
 
 import {
-    logger, Project, ProjectFile,
+    logger,
+    Project,
+    ProjectFile,
     projectUtils,
 } from "@atomist/automation-client";
 
