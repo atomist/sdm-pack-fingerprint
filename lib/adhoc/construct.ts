@@ -27,10 +27,12 @@ import { sha256 } from "../support/hash";
 export function fingerprintOf<DATA = any>(opts: {
     type: string,
     name?: string,
+    path?: string,
     data: DATA}): FP<DATA> {
     return {
         type: opts.type,
         name: opts.name || opts.type,
+        path: opts.path,
         data: opts.data,
         sha: sha256(JSON.stringify(opts.data)),
     };
