@@ -29,10 +29,11 @@ export function fingerprintOf<DATA = any>(opts: {
     name?: string,
     path?: string,
     data: DATA}): FP<DATA> {
+    const path = ["", ".", undefined].includes(opts.path) ? undefined : opts.path;
     return {
         type: opts.type,
         name: opts.name || opts.type,
-        path: opts.path,
+        path,
         data: opts.data,
         sha: sha256(JSON.stringify(opts.data)),
     };
