@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {fingerprintOf} from "../../lib/adhoc/construct";
+import { fingerprintOf } from "../../lib/adhoc/construct";
 
 import * as assert from "assert";
 
