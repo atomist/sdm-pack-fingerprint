@@ -16,7 +16,6 @@
 
 import { logger } from "@atomist/automation-client";
 import {
-    bold,
     codeBlock,
     codeLine,
     italic,
@@ -96,7 +95,7 @@ export function prBodyFromFingerprint(fp: FP, aspects: Aspect[]): string {
     const description = `${italic(fp.displayName)} > ${codeBlock(fp.displayValue)}`;
     return `${intro}
 
-${bold(aspect.displayName)}
+**${aspect.displayName}**
 ${description}\n\n${fingerprintTag(fingerprint, fp.sha)}`;
 }
 
@@ -107,7 +106,7 @@ export function prBody(vote: Vote, aspects: Aspect[]): string {
     const description = `${italic(vote.fpTarget.displayName)} > ${codeBlock(vote.fpTarget.displayValue)}`;
     return `${intro}
 
-${bold(aspect.displayName)}
+**${aspect.displayName}**
 ${description}\n\n${fingerprintTag(fingerprint, vote.fpTarget.sha)}`;
 }
 
