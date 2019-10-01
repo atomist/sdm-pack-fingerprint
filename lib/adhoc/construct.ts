@@ -16,6 +16,7 @@
 
 import { FP } from "../machine/Aspect";
 import { sha256 } from "../support/hash";
+import {Omit} from "../support/omit";
 
 /**
  * Convenience function to create a new fingerprint, using default strategy of
@@ -24,17 +25,12 @@ import { sha256 } from "../support/hash";
  * to type.
  * @return {FP}
  */
-export function fingerprintOf<DATA = any>(opts: {
-    type: string,
-    name?: string,
-    path?: string,
-    data: DATA}): FP<DATA> {
+export function fingerprintOf<DATA = any>(opts: Omit<FP, "sha" | "name"> & Partial<Pick<FP, "name">>): FP<DATA> {
     const path = ["", ".", undefined].includes(opts.path) ? undefined : opts.path;
     return {
-        type: opts.type,
+        ...opts,
         name: opts.name || opts.type,
         path,
-        data: opts.data,
         sha: sha256(JSON.stringify(opts.data)),
     };
 }

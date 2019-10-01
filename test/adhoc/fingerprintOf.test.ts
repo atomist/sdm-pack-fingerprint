@@ -40,4 +40,24 @@ describe("fingerprintOf", () => {
         assert.strictEqual(fp.path, "thing2");
     });
 
+    it("should get data", async () => {
+        const fp = fingerprintOf({ type: "thing", data: { count: 0}, path: "thing2"});
+        assert.deepStrictEqual(fp.data, {count: 0});
+    });
+
+    it("should get displayValue", async () => {
+        const fp = fingerprintOf({ displayValue: "x", type: "thing", data: { count: 0}, path: "thing2"});
+        assert.strictEqual(fp.displayValue, "x");
+    });
+
+    it("should default name to type", async () => {
+        const fp = fingerprintOf({ displayValue: "x", type: "thing", data: { count: 0}, path: "thing2"});
+        assert.strictEqual(fp.name, "thing");
+    });
+
+    it("should take custom name", async () => {
+        const fp = fingerprintOf({ displayValue: "x", name: "y", type: "thing", data: { count: 0}, path: "thing2"});
+        assert.strictEqual(fp.name, "y");
+    });
+
 });
