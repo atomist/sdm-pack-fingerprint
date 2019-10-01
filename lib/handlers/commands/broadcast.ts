@@ -70,7 +70,7 @@ export function askAboutBroadcast(
     let details;
     if (!!aspect) {
         details = `${bold(aspect.displayName)}
-${italic(`${fp.displayName} ${codeLine(fp.displayValue)}`)}`;
+${italic(fp.displayName)} ${codeLine(fp.displayValue)}`;
     } else {
         details = `${italic(`${fp.displayName} ${codeLine(fp.displayValue)}`)}`;
     }
