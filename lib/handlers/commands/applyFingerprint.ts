@@ -208,8 +208,8 @@ export function runAllFingerprintAppliers(aspects: Aspect[]): CodeTransform<Appl
 
         const aspect = aspectOf({ type }, aspects);
         let details;
-        if (!!aspect && !!aspect.toDisplayableFingerprintName) {
-            details = `${italic(aspect.displayName)}\n${italic(displayName(aspect, fingerprint))} > ${codeLine(displayValue(aspect, fingerprint))}`;
+        if (!!aspect) {
+            details = `${bold(aspect.displayName)}\n${italic(displayName(aspect, fingerprint))} > ${codeLine(displayValue(aspect, fingerprint))}`;
         } else {
             details = codeLine(cli.parameters.targetfingerprint);
         }
@@ -262,14 +262,16 @@ export function runFingerprintAppliersBySha(aspects: Aspect[]): CodeTransform<Ap
             name,
             data: JSON.parse(fp.SourceFingerprint.data),
             sha: fp.SourceFingerprint.sha,
+            displayName: fp.SourceFingerprint.displayName,
+            displayValue: fp.SourceFingerprint.displayValue,
         };
 
         const aspect = aspectOf({ type }, aspects);
         let details;
         if (!!aspect) {
-            details = `${italic(aspect.displayName)}\n${italic(displayName(aspect, fingerprint))} > ${codeLine(displayValue(aspect, fingerprint))}`;
+            details = `${bold(aspect.displayName)}\n${italic(displayName(aspect, fingerprint))} > ${codeLine(displayValue(aspect, fingerprint))}`;
         } else {
-            details = codeLine(cli.parameters.targetfingerprint);
+            details = `${italic(fingerprint.displayName)} > ${codeLine(fingerprint.displayValue)}`;
         }
 
         const message = slackInfoMessage(
@@ -313,7 +315,7 @@ function runEveryFingerprintApplication(aspects: Aspect[]): CodeTransform<ApplyT
             const aspect = aspectOf({ type }, aspects);
             let detail;
             if (!!aspect) {
-                detail = `${italic(aspect.displayName)}\n${italic(displayName(aspect, { name } as any))}`;
+                detail = `${bold(aspect.displayName)}\n${italic(displayName(aspect, { name } as any))}`;
             } else {
                 detail = codeLine(f);
             }

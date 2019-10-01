@@ -16,11 +16,14 @@
 
 import { logger } from "@atomist/automation-client";
 import {
+    bold,
     codeBlock,
     codeLine,
     italic,
 } from "@atomist/slack-messages";
-import { toName } from "../adhoc/preferences";
+import {
+    toName,
+} from "../adhoc/preferences";
 import {
     Aspect,
     Diff,
@@ -31,10 +34,8 @@ import {
 import {
     aspectOf,
     displayName,
-    displayValue,
 } from "../machine/Aspects";
 import { sha256 } from "./hash";
-import { orDefault } from "./util";
 
 export interface GitCoordinate {
     owner: string;
@@ -92,33 +93,22 @@ export function prBodyFromFingerprint(fp: FP, aspects: Aspect[]): string {
     const aspect = aspectOf(fp, aspects);
     const fingerprint = toName(fp.type, fp.name);
     const intro = `Apply target ${codeLine(fingerprint)}:`;
-    const description = `${displayName(aspect, fp)} > ${displayValue(aspect, fp)}`;
+    const description = `${italic(fp.displayName)} > ${codeBlock(fp.displayValue)}`;
     return `${intro}
 
-${italic(aspect.displayName)}
-${codeBlock(description)}\n\n${fingerprintTag(fingerprint, fp.sha)}`;
+${bold(aspect.displayName)}
+${description}\n\n${fingerprintTag(fingerprint, fp.sha)}`;
 }
 
 export function prBody(vote: Vote, aspects: Aspect[]): string {
-    const title: string =
-        orDefault(
-            () => vote.summary.title,
-            applyFingerprintTitle(vote.fpTarget, aspects));
-    const summary: string =
-        orDefault(
-            () => vote.summary.description,
-            `no summary`);
     const fingerprint = toName(vote.fpTarget.type, vote.fpTarget.name);
     const intro = `Apply target ${codeLine(fingerprint)}:`;
     const aspect = aspectOf(vote.fpTarget, aspects);
-    const description = `${displayName(aspect, vote.fpTarget)} > ${displayValue(aspect, vote.fpTarget)}`;
+    const description = `${italic(vote.fpTarget.displayName)} > ${codeBlock(vote.fpTarget.displayValue)}`;
     return `${intro}
 
-**${title}**
-${summary}
-
-${italic(aspect.displayName)}
-${codeBlock(description)}\n\n${fingerprintTag(fingerprint, vote.fpTarget.sha)}`;
+${bold(aspect.displayName)}
+${description}\n\n${fingerprintTag(fingerprint, vote.fpTarget.sha)}`;
 }
 
 export function fingerprintTag(fingerprint: string, sha: string): string {

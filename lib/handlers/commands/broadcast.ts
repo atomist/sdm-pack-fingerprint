@@ -31,7 +31,6 @@ import {
 } from "@atomist/sdm";
 import {
     bold,
-    codeBlock,
     codeLine,
     italic,
     user,
@@ -48,7 +47,6 @@ import {
 } from "../../machine/Aspect";
 import {
     aspectOf,
-    displayValue,
 } from "../../machine/Aspects";
 import {
     applyFingerprintTitle,
@@ -70,16 +68,16 @@ export function askAboutBroadcast(
 
     const aspect = aspectOf(fp, aspects);
     let details;
-    if (!!aspect && !!aspect.toDisplayableFingerprintName) {
-        details = `${italic(aspect.displayName)}
-${codeBlock(`${aspect.toDisplayableFingerprintName(fp.name)} (${displayValue(aspect, fp)})`)}`;
+    if (!!aspect) {
+        details = `${bold(aspect.displayName)}
+${italic(`${fp.displayName} ${codeLine(fp.displayValue)}`)}`;
     } else {
-        details = codeLine(fp.name);
+        details = `${italic(`${fp.displayName} ${codeLine(fp.displayValue)}`)}`;
     }
 
     const id = msgId || guid();
     const message = slackQuestionMessage(
-        "Broadcast Target",
+        "Broadcast new Target",
         `Shall we send every affected repository a nudge or pull request for the new target?
 
 ${details}`,
@@ -137,7 +135,7 @@ function targetUpdateMessage(cli: CommandListenerInvocation<BroadcastFingerprint
 
     const aspect = aspectOf({ type }, aspects);
     let details;
-    if (!!aspect && !!aspect.toDisplayableFingerprintName) {
+    if (!!aspect) {
         details = `${italic(aspect.displayName)} ${codeLine(aspect.toDisplayableFingerprintName(name))}`;
     } else {
         details = codeLine(toName(type, name));
@@ -241,7 +239,7 @@ const BroadcastFingerprintNudgeName = "BroadcastFingerprintNudge";
 export function broadcastFingerprintNudge(aspects: Aspect[]): CommandHandlerRegistration<BroadcastFingerprintNudgeParameters> {
     return {
         name: BroadcastFingerprintNudgeName,
-        description: "message all Channels linked to Repos that contain a particular fingerprint",
+        description: "message all channels linked to Repos that contain a particular fingerprint",
         parameters: {
             fingerprint: { required: true },
             sha: {
