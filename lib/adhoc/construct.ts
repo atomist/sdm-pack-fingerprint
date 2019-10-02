@@ -16,7 +16,7 @@
 
 import { FP } from "../machine/Aspect";
 import { sha256 } from "../support/hash";
-import {Omit} from "../support/omit";
+import { Omit } from "../support/omit";
 
 /**
  * Convenience function to create a new fingerprint, using default strategy of
