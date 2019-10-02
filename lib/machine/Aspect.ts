@@ -41,6 +41,7 @@ export interface FP<DATA = any> {
     abbreviation?: string;
     displayValue?: string;
     displayName?: string;
+    displayType?: string;
     /**
      * Path within the repository. Undefined means root.
      */

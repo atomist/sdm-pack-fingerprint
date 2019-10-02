@@ -32,6 +32,7 @@ import {
 import {
     aspectOf,
     displayName,
+    displayType,
     displayValue,
 } from "../machine/Aspects";
 import {
@@ -135,6 +136,19 @@ function addDisplayName(aspects: Aspect[]): (fp: FP) => FP {
     };
 }
 
+function addDisplayType(aspects: Aspect[]): (fp: FP) => FP {
+    return fp => {
+        if (!!fp.displayType) {
+            return fp;
+        } else {
+            return {
+                ...fp,
+                displayType: displayType(aspectOf(fp, aspects), fp),
+            };
+        }
+    };
+}
+
 export const sendFingerprintsToAtomistFor: PublishFingerprintsFor = async (ctx, aspects, repoIdentification, fps, previous) => {
     try {
         const ids: RepoBranchIds.Query = await ctx.context.graphClient.query<RepoBranchIds.Query, RepoBranchIds.Variables>(
@@ -148,7 +162,8 @@ export const sendFingerprintsToAtomistFor: PublishFingerprintsFor = async (ctx, 
         for (const type in partitioned) {
             const fp = partitioned[type].filter(a => !!a.name && !!a.sha)
                 .map(addDisplayValue(aspects))
-                .map(addDisplayName(aspects));
+                .map(addDisplayName(aspects))
+                .map(addDisplayType(aspects));
 
             await ctx.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
                 {
