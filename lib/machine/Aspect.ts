@@ -23,9 +23,9 @@ import {
     PushImpactListenerInvocation,
 } from "@atomist/sdm";
 import * as _ from "lodash";
-import { GitCoordinate } from "../support/messages";
-import { GetFpTargets } from "../typings/types";
-import { Ideal } from "./Ideal";
+import {GitCoordinate} from "../support/messages";
+import {GetFpTargets} from "../typings/types";
+import {Ideal} from "./Ideal";
 
 /**
  * Fingerprint interface. An Aspect can emit zero or more fingerprints,
@@ -191,6 +191,37 @@ export interface Aspect<DATA = any> {
      * Does this aspect apply only to the root of a repository, rather than multiple subprojects?
      */
     readonly baseOnly?: boolean;
+
+    /**
+     * If specified, this method vetoes further analysis of a repository if the fingerprint(s) it
+     * has emitted meet a certain criteria. Such aspects will be run first.
+     */
+    vetoWhen?: (fingerprints: Array<FP<DATA>>) => FurtherAnalysisVeto | false;
+}
+
+/**
+ * Type created when an aspect wishes to veto further analysis--for example,
+ * because it would be prohibitively expensive, or because we don't like the repository.
+ */
+export interface FurtherAnalysisVeto {
+
+    /**
+     * Reason that further analysis should not take place
+     */
+    readonly reason: string;
+}
+
+/**
+ * Fingerprint type emitted when further analysis has been vetoed.
+ */
+export interface FurtherAnalysisVetoFingerprint extends FP<FurtherAnalysisVeto & {
+    readonly vetoingAspectName: string;
+}> {
+    type: "veto";
+}
+
+export function isFurtherAnalysisVetoFingerprint(fp: FP): fp is FurtherAnalysisVetoFingerprint {
+    return fp.type === "veto" && !!fp.data.vetoingAspectName;
 }
 
 /**

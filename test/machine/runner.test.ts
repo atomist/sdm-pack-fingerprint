@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-import { InMemoryProject } from "@atomist/automation-client";
+import {InMemoryProject} from "@atomist/automation-client";
 import * as assert from "assert";
-import { makeVirtualProjectAware } from "../../lib/fingerprints/virtual-project/makeVirtualProjectAware";
+import {makeVirtualProjectAware} from "../../lib/fingerprints/virtual-project/makeVirtualProjectAware";
 import {
     RootIsOnlyProject,
     VirtualProjectFinder,
 } from "../../lib/fingerprints/virtual-project/VirtualProjectFinder";
-import { Aspect } from "../../lib/machine/Aspect";
-import { createFingerprintComputer } from "../../lib/machine/runner";
-import { sha256 } from "../../lib/support/hash";
+import {Aspect, isFurtherAnalysisVetoFingerprint} from "../../lib/machine/Aspect";
+import {createFingerprintComputer} from "../../lib/machine/runner";
+import {sha256} from "../../lib/support/hash";
+import {fingerprintOf} from "../../lib/adhoc/construct";
 
 function alwaysFindAspect(name: string): Aspect {
     return {
@@ -31,7 +32,7 @@ function alwaysFindAspect(name: string): Aspect {
         displayName: "thing",
         extract:
             async p => {
-                const data = { thing: "thing" };
+                const data = {thing: "thing"};
                 return {
                     name,
                     type: "thing",
@@ -60,6 +61,36 @@ describe("computer", () => {
             alwaysFindAspect("foo"), alwaysFindAspect("bar")])(
             InMemoryProject.of(), {} as any);
         assert.strictEqual(fps.length, 2);
+        assert(!fps.some(isFurtherAnalysisVetoFingerprint));
+    });
+
+    it("should not veto", async () => {
+        const neverVetoVetoAspect: Aspect = {
+            name: "x", displayName: "x",
+            extract: async () => fingerprintOf({type: "x", data: {who: "cares"}}),
+            vetoWhen: () => false,
+        };
+        const fps = await createFingerprintComputer([
+            neverVetoVetoAspect,
+            alwaysFindAspect("foo"), alwaysFindAspect("bar")])(
+            InMemoryProject.of(), {} as any);
+        assert.strictEqual(fps.length, 3);
+        assert(!fps.some(isFurtherAnalysisVetoFingerprint));
+    });
+
+    it("should not compute two because first vetoed", async () => {
+        const vetoAspect: Aspect = {
+            name: "x", displayName: "x",
+            extract: async () => fingerprintOf({type: "x", data: {who: "cares"}}),
+            vetoWhen: fingerprints => fingerprints.some(fp => fp.type === "x") ? {reason: "i hate y'all"} : false,
+        };
+        const fps = await createFingerprintComputer([
+            vetoAspect,
+            alwaysFindAspect("bar")])(
+            InMemoryProject.of(), {} as any);
+        assert.strictEqual(fps.length, 2);
+        assert.strictEqual(fps[0].type, "x", "Should get original fingerprint");
+        assert(isFurtherAnalysisVetoFingerprint(fps[1]));
     });
 
     it("should consolidate", async () => {
