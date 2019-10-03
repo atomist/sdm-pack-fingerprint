@@ -24,9 +24,9 @@ import {
 } from "@atomist/sdm";
 import * as _ from "lodash";
 import {sha256} from "../support/hash";
-import {GitCoordinate} from "../support/messages";
-import {GetFpTargets} from "../typings/types";
-import {Ideal} from "./Ideal";
+import { GitCoordinate } from "../support/messages";
+import { GetFpTargets } from "../typings/types";
+import { Ideal } from "./Ideal";
 
 /**
  * Fingerprint interface. An Aspect can emit zero or more fingerprints,

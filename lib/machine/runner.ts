@@ -20,23 +20,24 @@ import {
     Project,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
-import {PushImpactListenerInvocation} from "@atomist/sdm";
-import {toArray} from "@atomist/sdm-core/lib/util/misc/array";
+import { PushImpactListenerInvocation } from "@atomist/sdm";
+import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
-import {PublishFingerprints} from "../adhoc/fingerprints";
+import { PublishFingerprints } from "../adhoc/fingerprints";
 import {
     getFPTargets,
 } from "../adhoc/preferences";
-import {votes} from "../checktarget/callbacks";
-import {messageMaker} from "../checktarget/messageMaker";
-import {makeVirtualProjectAware} from "../fingerprints/virtual-project/makeVirtualProjectAware";
-import {VirtualProjectFinder} from "../fingerprints/virtual-project/VirtualProjectFinder";
+import { votes } from "../checktarget/callbacks";
+import { messageMaker } from "../checktarget/messageMaker";
+import { makeVirtualProjectAware } from "../fingerprints/virtual-project/makeVirtualProjectAware";
+import { VirtualProjectFinder } from "../fingerprints/virtual-project/VirtualProjectFinder";
 import {
     GetAllFpsOnSha,
     GetFpTargets,
 } from "../typings/types";
 import {
-    Aspect, constructFurtherAnalysisVetoFingerprint,
+    Aspect,
+    constructFurtherAnalysisVetoFingerprint,
     DiffContext,
     FingerprintHandler,
     FP,
