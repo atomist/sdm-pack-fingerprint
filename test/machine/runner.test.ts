@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-import {InMemoryProject} from "@atomist/automation-client";
+import { InMemoryProject } from "@atomist/automation-client";
 import * as assert from "assert";
-import {fingerprintOf} from "../../lib/adhoc/construct";
-import {makeVirtualProjectAware} from "../../lib/fingerprints/virtual-project/makeVirtualProjectAware";
+import { fingerprintOf } from "../../lib/adhoc/construct";
+import { makeVirtualProjectAware } from "../../lib/fingerprints/virtual-project/makeVirtualProjectAware";
 import {
     RootIsOnlyProject,
     VirtualProjectFinder,
 } from "../../lib/fingerprints/virtual-project/VirtualProjectFinder";
-import {Aspect, isFurtherAnalysisVetoFingerprint} from "../../lib/machine/Aspect";
-import {createFingerprintComputer} from "../../lib/machine/runner";
+import {
+    Aspect,
+    isFurtherAnalysisVetoFingerprint,
+} from "../../lib/machine/Aspect";
+import { createFingerprintComputer } from "../../lib/machine/runner";
 import {sha256} from "../../lib/support/hash";
 
 function alwaysFindAspect(name: string): Aspect {
