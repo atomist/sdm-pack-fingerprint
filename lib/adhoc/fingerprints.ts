@@ -41,6 +41,7 @@ import {
     GetFpByBranch,
     RepoBranchIds,
 } from "../typings/types";
+import { toName } from "./preferences";
 
 // TODO this is not actually using the new query yet (filtering is happening in memory)
 export function findTaggedRepos(graphClient: GraphClient): (type: string, name: string) => Promise<FindOtherRepos.Query> {
@@ -160,17 +161,20 @@ export const sendFingerprintsToAtomistFor: PublishFingerprintsFor = async (ctx, 
 
         const partitioned = _.groupBy(fps, "type");
         for (const type in partitioned) {
-            const fp = partitioned[type].filter(a => !!a.name && !!a.sha)
+            const fps = partitioned[type].filter(a => !!a.name && !!a.sha)
                 .map(addDisplayValue(aspects))
                 .map(addDisplayName(aspects))
                 .map(addDisplayType(aspects));
+
+            // Make fps unique by type::name
+            const ufps = _.uniqBy(fps, fp => toName(fp.type, fp.name));
 
             await ctx.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
                 {
                     name: "AddFingerprints",
                     variables: {
                         // Explicit mapping here to avoid more than needed
-                        additions: fp.map(f => ({
+                        additions: ufps.map(f => ({
                             type: f.type,
                             name: f.name,
                             data: JSON.stringify(f.data),

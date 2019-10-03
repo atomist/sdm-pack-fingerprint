@@ -44,7 +44,7 @@ export function displayValue(aspect: Aspect, fp: FP): string {
 }
 
 export function displayType(aspect: Aspect, fp: FP): string {
-    if (!!aspect) {
+    if (!!aspect && !!aspect.displayName) {
         return aspect.displayName;
     } else {
         return fp.type;
