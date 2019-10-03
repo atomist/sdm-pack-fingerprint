@@ -16,6 +16,7 @@
 
 import {InMemoryProject} from "@atomist/automation-client";
 import * as assert from "assert";
+import {fingerprintOf} from "../../lib/adhoc/construct";
 import {makeVirtualProjectAware} from "../../lib/fingerprints/virtual-project/makeVirtualProjectAware";
 import {
     RootIsOnlyProject,
@@ -24,7 +25,6 @@ import {
 import {Aspect, isFurtherAnalysisVetoFingerprint} from "../../lib/machine/Aspect";
 import {createFingerprintComputer} from "../../lib/machine/runner";
 import {sha256} from "../../lib/support/hash";
-import {fingerprintOf} from "../../lib/adhoc/construct";
 
 function alwaysFindAspect(name: string): Aspect {
     return {

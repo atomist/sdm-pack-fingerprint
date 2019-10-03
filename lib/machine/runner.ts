@@ -23,6 +23,7 @@ import {
 import {PushImpactListenerInvocation} from "@atomist/sdm";
 import {toArray} from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
+import {fingerprintOf} from "../adhoc/construct";
 import {PublishFingerprints} from "../adhoc/fingerprints";
 import {
     getFPTargets,
@@ -48,7 +49,6 @@ import {
     FingerprintImpactHandlerConfig,
     FingerprintOptions,
 } from "./fingerprintSupport";
-import {fingerprintOf} from "../adhoc/construct";
 
 /**
  * PushListenerImpactInvocations don't have this info and must be faulted in currently.  This is probably not ideal.
