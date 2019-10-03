@@ -20,24 +20,23 @@ import {
     Project,
     QueryNoCacheOptions,
 } from "@atomist/automation-client";
-import { PushImpactListenerInvocation } from "@atomist/sdm";
-import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
+import {PushImpactListenerInvocation} from "@atomist/sdm";
+import {toArray} from "@atomist/sdm-core/lib/util/misc/array";
 import * as _ from "lodash";
-import { fingerprintOf } from "../adhoc/construct";
-import { PublishFingerprints } from "../adhoc/fingerprints";
+import {PublishFingerprints} from "../adhoc/fingerprints";
 import {
     getFPTargets,
 } from "../adhoc/preferences";
-import { votes } from "../checktarget/callbacks";
-import { messageMaker } from "../checktarget/messageMaker";
-import { makeVirtualProjectAware } from "../fingerprints/virtual-project/makeVirtualProjectAware";
-import { VirtualProjectFinder } from "../fingerprints/virtual-project/VirtualProjectFinder";
+import {votes} from "../checktarget/callbacks";
+import {messageMaker} from "../checktarget/messageMaker";
+import {makeVirtualProjectAware} from "../fingerprints/virtual-project/makeVirtualProjectAware";
+import {VirtualProjectFinder} from "../fingerprints/virtual-project/VirtualProjectFinder";
 import {
     GetAllFpsOnSha,
     GetFpTargets,
 } from "../typings/types";
 import {
-    Aspect,
+    Aspect, constructFurtherAnalysisVetoFingerprint,
     DiffContext,
     FingerprintHandler,
     FP,
@@ -208,19 +207,20 @@ export function createFingerprintComputer(
         const otherAspects = allAspects.filter(a => !a.vetoWhen);
 
         for (const vetoAspect of vetoAspects) {
-            const fps = toArray(await vetoAspect.extract(p, i));
-            if (!!fps) {
-                extracted.push(...fps);
-            }
-            const vetoResult = vetoAspect.vetoWhen(fps);
-            if (vetoResult) {
-                logger.info("Fingerprinting was vetoed: %j", vetoResult);
-                extracted.push(fingerprintOf({
-                    type: "veto", data: {
-                        ...vetoResult,
-                        vetoingAspectName: vetoAspect.name,
-                    },
-                }));
+            try {
+                const fps = toArray(await vetoAspect.extract(p, i));
+                if (!!fps) {
+                    extracted.push(...fps);
+                }
+                const vetoResult = vetoAspect.vetoWhen(fps);
+                if (vetoResult) {
+                    logger.info("Fingerprinting was vetoed: %j", vetoResult);
+                    extracted.push(constructFurtherAnalysisVetoFingerprint(vetoAspect, vetoResult));
+                    return extracted;
+                }
+            } catch (e) {
+                logger.warn(`Veto aspect '${vetoAspect.name}' extract failed: ${e.message}: Vetoing anyway`);
+                extracted.push(constructFurtherAnalysisVetoFingerprint(vetoAspect, {reason: `Error: ${e.message}`}));
                 return extracted;
             }
         }

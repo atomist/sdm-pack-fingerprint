@@ -96,6 +96,21 @@ describe("computer", () => {
         assert(isFurtherAnalysisVetoFingerprint(fps[1]));
     });
 
+    it("should veto if veto aspect blows up", async () => {
+        const vetoAspect: Aspect = {
+            name: "x", displayName: "x",
+            extract: async () => fingerprintOf({type: "x", data: {who: "cares"}}),
+            vetoWhen: () => { throw new Error("the world is a frightening place and this repo is dark and horrific"); },
+        };
+        const fps = await createFingerprintComputer([
+            vetoAspect,
+            alwaysFindAspect("bar")])(
+            InMemoryProject.of(), {} as any);
+        assert.strictEqual(fps.length, 2);
+        assert.strictEqual(fps[0].type, "x", "Should get original fingerprint");
+        assert(isFurtherAnalysisVetoFingerprint(fps[1]));
+    });
+
     it("should consolidate", async () => {
         const consolidater: Aspect = {
             displayName: "consolidated",

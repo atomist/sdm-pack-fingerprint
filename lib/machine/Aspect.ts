@@ -23,9 +23,10 @@ import {
     PushImpactListenerInvocation,
 } from "@atomist/sdm";
 import * as _ from "lodash";
-import { GitCoordinate } from "../support/messages";
-import { GetFpTargets } from "../typings/types";
-import { Ideal } from "./Ideal";
+import {GitCoordinate} from "../support/messages";
+import {GetFpTargets} from "../typings/types";
+import {Ideal} from "./Ideal";
+import {sha256} from "../support/hash";
 
 /**
  * Fingerprint interface. An Aspect can emit zero or more fingerprints,
@@ -211,13 +212,28 @@ export interface FurtherAnalysisVeto {
     readonly reason: string;
 }
 
+export interface FutherAnalysisVetoData extends FurtherAnalysisVeto {
+    readonly vetoingAspectName: string;
+}
+
 /**
  * Fingerprint type emitted when further analysis has been vetoed.
  */
-export interface FurtherAnalysisVetoFingerprint extends FP<FurtherAnalysisVeto & {
-    readonly vetoingAspectName: string;
-}> {
+export interface FurtherAnalysisVetoFingerprint extends FP<FutherAnalysisVetoData> {
     type: "veto";
+}
+
+export function constructFurtherAnalysisVetoFingerprint(va: Aspect, vr: FurtherAnalysisVeto): FurtherAnalysisVetoFingerprint {
+    const data: FutherAnalysisVetoData = {
+        vetoingAspectName: va.name,
+        reason: vr.reason,
+};
+    return {
+        type: "veto",
+        name: "veto",
+        data,
+        sha: sha256(JSON.stringify(data)),
+    };
 }
 
 export function isFurtherAnalysisVetoFingerprint(fp: FP): fp is FurtherAnalysisVetoFingerprint {
