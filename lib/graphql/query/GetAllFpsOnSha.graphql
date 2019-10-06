@@ -1,12 +1,13 @@
 query GetAllFpsOnSha($sha: String!){
-	Commit(sha: $sha) {
-    analysis {
-      type
-      name
-      sha
-      data
-      displayName
-      displayValue
+    Commit(sha: $sha) {
+        analysis {
+            type
+            name
+            sha
+            data
+            displayName
+            displayValue
+            displayType
+        }
     }
-  }
 }

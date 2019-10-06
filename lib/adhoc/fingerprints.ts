@@ -161,36 +161,40 @@ export const sendFingerprintsToAtomistFor: PublishFingerprintsFor = async (ctx, 
 
         const partitioned = _.groupBy(fps, "type");
         for (const type in partitioned) {
-            const fps = partitioned[type].filter(a => !!a.name && !!a.sha)
-                .map(addDisplayValue(aspects))
-                .map(addDisplayName(aspects))
-                .map(addDisplayType(aspects));
+            if (partitioned.hasOwnProperty(type)) {
+                const pfps = partitioned[type].filter(a => !!a.name && !!a.sha)
+                    .map(addDisplayValue(aspects))
+                    .map(addDisplayName(aspects))
+                    .map(addDisplayType(aspects));
 
-            // Make fps unique by type::name
-            const ufps = _.uniqBy(fps, fp => toName(fp.type, fp.name));
+                // Make fps unique by type::name
+                const ufps = _.uniqBy(pfps, fp => toName(fp.type, fp.name));
 
-            await ctx.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
-                {
-                    name: "AddFingerprints",
-                    variables: {
-                        // Explicit mapping here to avoid more than needed
-                        additions: ufps.map(f => ({
-                            type: f.type,
-                            name: f.name,
-                            data: JSON.stringify(f.data),
-                            sha: f.sha,
-                            displayName: f.displayName,
-                            displayValue: f.displayValue,
-                            displayType: f.displayType,
-                        })),
-                        isDefaultBranch: (ids.Repo[0].defaultBranch === repoIdentification.branch),
-                        type,
-                        branchId: ids.Repo[0].branches[0].id,
-                        repoId: ids.Repo[0].id,
-                        sha: repoIdentification.sha,
-                    },
-                },
-            );
+                if (ufps.length > 0) {
+                    await ctx.context.graphClient.mutate<AddFingerprints.Mutation, AddFingerprints.Variables>(
+                        {
+                            name: "AddFingerprints",
+                            variables: {
+                                // Explicit mapping here to avoid more than needed
+                                additions: ufps.map(f => ({
+                                    type: f.type,
+                                    name: f.name,
+                                    data: JSON.stringify(f.data),
+                                    sha: f.sha,
+                                    displayName: f.displayName,
+                                    displayValue: f.displayValue,
+                                    displayType: f.displayType,
+                                })),
+                                isDefaultBranch: (ids.Repo[0].defaultBranch === repoIdentification.branch),
+                                type,
+                                branchId: ids.Repo[0].branches[0].id,
+                                repoId: ids.Repo[0].id,
+                                sha: repoIdentification.sha,
+                            },
+                        },
+                    );
+                }
+            }
         }
     } catch (ex) {
         logger.error(`Error sending fingerprints: ${ex.message}`);

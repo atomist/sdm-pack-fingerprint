@@ -74,6 +74,8 @@ import {
     RebaseOptions,
 } from "./rebase";
 
+// tslint:disable:max-file-line-count
+
 /**
  * Call relevant apply functions from Registrations for a Fingerprint
  * This happens in the context of an an editable Project

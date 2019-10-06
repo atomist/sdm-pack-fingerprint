@@ -202,6 +202,7 @@ export function updateTargetFingerprint(sdm: SoftwareDeliveryMachine,
                 sha: fp.sha,
                 displayName: fp.displayName,
                 displayValue: fp.displayValue,
+                displayType: fp.displayType,
             };
 
             await (setFPTarget(cli.context.graphClient))(type, name, fingerprint);

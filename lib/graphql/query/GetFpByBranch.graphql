@@ -9,6 +9,7 @@ query GetFpByBranch($owner: String!, $repo: String!, $branch: String!){
           data
           displayName
           displayValue
+          displayType
         }
       }
     }

@@ -6,5 +6,6 @@ query GetFpBySha($type: String!, $name: String!, $sha: String!) {
     name
     displayName
     displayValue
+    displayType
   }
 }
