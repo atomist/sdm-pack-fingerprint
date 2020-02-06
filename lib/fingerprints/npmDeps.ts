@@ -210,7 +210,7 @@ export const NpmCoordinates: Aspect = {
     name: "npm-project-coordinates",
     extract: createNpmCoordinatesFingerprint,
     summary: diffNpmCoordinatesFingerprints,
-    toDisplayableFingerprint: fp => fp.data,
+    toDisplayableFingerprint: fp => fp.data.name,
     workflows: [
         diffOnlyHandler(
             async (ctx, diffs) => {
