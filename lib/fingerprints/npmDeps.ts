@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Atomist, Inc.
+ * Copyright © 2020 Atomist, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -210,7 +210,7 @@ export const NpmCoordinates: Aspect = {
     name: "npm-project-coordinates",
     extract: createNpmCoordinatesFingerprint,
     summary: diffNpmCoordinatesFingerprints,
-    toDisplayableFingerprint: fp => fp.data,
+    toDisplayableFingerprint: fp => fp.data.name,
     workflows: [
         diffOnlyHandler(
             async (ctx, diffs) => {
